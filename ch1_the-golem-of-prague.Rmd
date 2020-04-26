@@ -7,7 +7,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-The first two sections are spent describing some of the general probmes that statisticians and researchers face is designing statistical tests and models.
+The first two sections are spent describing some of the general problems that statisticians and researchers face is designing statistical tests and models.
 
 ## 1.3 Tools for golem engineering
 
@@ -37,11 +37,11 @@ The first two sections are spent describing some of the general probmes that sta
 ### 1.3.3. Multilevel models
 
 * models contain parameters which can sometimes stand-in for other missing models
-    - given smoe model of how the parameter gets its value, the new model can be inserted in place of the parameter
-    - this cretes a final model with multiple levels of uncertainty
+    - given some model of how the parameter gets its value, the new model can be inserted in place of the parameter
+    - this creates a final model with multiple levels of uncertainty
 * these models are also called "hierarchical," "random effects," "varying effects," or "mixed effects" models
-* multilevel models can help fight overfitting using "partial pooling" (covered in Chapter 13)
-* they generally apply when there are clusters or groups of measureents that may differ from one another
+* multilevel models can help fight over fitting using "partial pooling" (covered in Chapter 13)
+* they generally apply when there are clusters or groups of measurements that may differ from one another
 
 ### Graphical causal models
 

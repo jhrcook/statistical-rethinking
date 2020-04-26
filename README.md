@@ -30,3 +30,6 @@ devtools::install_github("rmcelreath/rethinking")
 ## Notes
 
 [Chapter 1. The Golem of Prague](ch1_the-golem-of-prague.md)
+
+[Chapter 2. Small Worlds and Large
+Worlds](ch2_small-worlds-and-large-worlds.md)
