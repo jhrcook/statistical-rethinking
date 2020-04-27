@@ -6,6 +6,7 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+library(glue)
 library(tidyverse)
 
 theme_set(theme_minimal())
@@ -58,7 +59,7 @@ theme_set(theme_minimal())
 ### 2.2.3 Evaluate
 
 - the Bayesian model learns in an optimal way
-    * it guarantees perfect inference inthe small world
+    * it guarantees perfect inference in the small world
     * however, the calculations can malfunction, so the results must always be checked
 
 ## 2.3 Components of the model
@@ -66,7 +67,7 @@ theme_set(theme_minimal())
 - we must count the following:
     * the number of ways each conjecture could produce an observation
     * the accumulated number of ways each conjecture could produce the entire data
-    * the initial plausbility of each conjectured cause of the data (the prior distribution)
+    * the initial plausibility of each conjectured cause of the data (the prior distribution)
 
 ### 2.3.1 Variables
 
@@ -120,7 +121,7 @@ tibble(p = probs, y = likelihoods) %>%
 ### 2.3.3 A model is born
 
 - the counts for the water and land variables can be written as the following equation where $N = W+L$
-    * it is the assumption that the relative counts of ways to reliaze $W$ in $N$ trials with probability $p$ on each trial comes from the binomial distribution
+    * it is the assumption that the relative counts of ways to realize $W$ in $N$ trials with probability $p$ on each trial comes from the binomial distribution
 
 $$
 W \sim \text{Binomial}(N,p)
@@ -221,8 +222,8 @@ tibble(p = probs,
 
 ### 2.4.3 Grid approximation
 
-- even for continuous variables, it is often sufficent to just try many different values of each parameter and calculate the posterior probability
-    * though, for most real uses, it is impractically inefficent
+- even for continuous variables, it is often sufficient to just try many different values of each parameter and calculate the posterior probability
+    * though, for most real uses, it is impractically inefficient
 - we can use grid approximation for the globe-tossing example, the steps are:
     1. define the grid by deciding how many points to use in the estimate
     2. compute the value of the prior for each parameter value
@@ -260,8 +261,8 @@ tibble(p = p_grid, posterior = posterior) %>%
 
 - generally, the region near the peak of a posterior distribution is nearly Gaussian and can be approximated as such
 - the Gaussian distribution can be described by two numbers: mean and variance
-- the Gaussian approximation is called the "quadratic approximation" because the logarithm of the Gaussian is a porabola
-    * thus, this method approximates the log-posterior with a porabola
+- the Gaussian approximation is called the "quadratic approximation" because the logarithm of the Gaussian is a parabola
+    * thus, this method approximates the log-posterior with a parabola
 - we will use this method for the first half of this course before graduating to MCMC
 quadratic approximation can be accomplished in R with two steps:
     1. find the posterior mode using a gradient descent algorithm
@@ -306,3 +307,161 @@ tibble(p = probs,
 
 ## 2.6 Practice
 
+**2E1. Which of the expressions below correspond to the statement: "the probability of rain on Monday"?**
+
+2: $\text{Pr}(\text{rain} | \text{Monday})$
+
+**2E2. Which of the following statements corresponds to the expression: $\text{Pr}(\text{Monday} | \text{rain})$?**
+
+3: The probability that it is Monday, given that it is raining.
+
+**2E3. Which of the expressions below correspond to the statement: "the probability that is it is Monday, given it is raining"?**
+
+1: $\text{Pr}(\text{Monday} | \text{rain})$
+
+**2M1. Recall the globe tossing model from the chapter. Compute and plot the grid approximate posterior distribution for each of the following sets of observations. In each case, assume a uniform prior for $p$.**
+
+1: `W`, `W`, `W`  
+2: `W`, `W`, `W`, `L`  
+3: `L`, `W`, `W`, `L`, `W`, `W`, `W`
+
+```{r}
+globe_tossing_grid_approximation <- function(num_W, 
+                                             num_total, 
+                                             n_grid = 50, 
+                                             prior_f = dunif) {
+    p_grid <- seq(0, 1, length.out = n_grid)
+    prior <- prior_f(p_grid)
+    likelihood <- dbinom(x = num_W, size = num_total, prob = p_grid)
+    posterior <- likelihood * prior
+    posterior <- posterior / sum(posterior)
+    
+    max_p <- p_grid[which(posterior == max(posterior))]
+
+    tibble(p = p_grid, posterior = posterior) %>%
+        ggplot(aes(x = p_grid, y = posterior)) +
+        geom_path(size = 1, alpha = 0.5) +
+        geom_point(size = 2) +
+        geom_vline(xintercept = median(max_p), size = 1.3, color = "cyan3") +
+        labs(x = "probability of water",
+             y = "posterior probability",
+             title = "Posterior of the probability of water",
+             subtitle = glue("num. water: {num_W}; num data points: {num_total}; grid size: {n_grid}"))
+}
+
+globe_tossing_grid_approximation(3, 3)
+globe_tossing_grid_approximation(3, 4)
+globe_tossing_grid_approximation(5, 7)
+```
+
+**2M2. Now assume a prior for $p$ that is equal to zero when $p < 0.5$ and is a positive constant when $p \ge 0.5$. Again compute and plot the grid approximate posterior distribution for each of the sets of observations in the problem above.**
+
+```{r}
+step_prior <- function(x) {
+    ifelse(x < 0.5, 0, 1)
+}
+
+globe_tossing_grid_approximation(3, 3, prior_f = step_prior)
+globe_tossing_grid_approximation(3, 4, prior_f = step_prior)
+globe_tossing_grid_approximation(5, 7, prior_f = step_prior)
+```
+
+**2M3. Suppose there are two globes, one for Earth and one for Mars. The Earth globe is 70% covered in water. The Mars globe is 100% land. Further suppose that one of these globes - you don't know which - was toss in the air and produces a "land" observation. Assume that each globe was equally likely to be tossed. Show that the posterior probability that the globe was Earth, conditional on seeing "land" is 0.23.**
+
+$$
+\text{Pr}(E | L) = \frac{\text{Pr}(L | E) \text{Pr}(E)}{\text{Pr}(L)} \\
+\text{Pr}(L | E) = 0.3 \\
+\text{Pr}(E) = 0.5 \\
+\text{Pr}(L) = (0.5 \times 0.3) + (0.5 \times 1.0) = 0.65 \\
+\text{Pr}(E | L) = \frac{0.15 \times 0.5}{0.65} = 0.23
+$$
+
+**2M4. Suppose you have a deck with only three cards. Each card has two sides, and each side is either black or white. One card has two black sides. The second cards has one black and one white side. The third cards has two white sides. Now suppose all three cards are places in a bag and shuffled. Someone reaches into the bag and pulls out a card and places it flat on a table. The black side is shown facing up, but you don't know the color of the side facing down. Show that the probability of the other side is also black is 2/3. Use the counting method to approach this problem. This means counting up the ways that each card could produce the observed data (a black side facing up on the table).**
+
+The prior for each card is $\frac{1}{3}$ and this is multiplied against the number of ways each card could produce the observed data.
+
+$$
+(B,B): \frac{1}{3} \times 2 = \frac{2}{3} \\
+(B,W): \frac{1}{3} \times 1 = \frac{1}{3}\\
+(W,W): \frac{1}{3} \times 0 = 0
+$$
+
+**2M5. Now suppose there are four cards: B/B, B/W, W/W, and another B/B. Again suppose a card is drawn from the bag and a black side appears face up. Again calculate the probability that the other side is black.**
+
+The prior for each card is $\frac{1}{3}$ and this is multiplied against the number of ways each card could produce the observed data.
+
+$$
+(B,B): \frac{1}{3} \times 4 = \frac{4}{3} \rightarrow \frac{4}{5} \\
+(B,W): \frac{1}{3} \times 1 = \frac{1}{3} \rightarrow \frac{1}{5} \\
+(W,W): \frac{1}{3} \times 0 = 0
+$$
+
+**2M6. Imagine that black ink is heavy, and so cards with black sides are heavier than cards with white sides. As a result, it's less likely that a card with black sides is pulled from the bag. So again assume there are three cards: B/B, B/W, and W/W. After experimenting a number of times, you conclude that for every way to pull the B/B card from the bag, there are 2 ways to pull the B/W card and 3 ways to pull the W/W card. Again suppose that a card is pulled and a black side appears face up. Show that the probability the other side is black is now 0.5. Use the counting method, as before.**
+
+Now the priors are left as raw counts and will be normalized at the end.
+
+$$
+(B,B): 1 \times 2 = 2 \rightarrow \frac{1}{2} \\
+(B,W): 2 \times 1 = 2 \rightarrow \frac{1}{2} \\
+(W,W): 3 \times 0 = 0
+$$
+
+**2M7. Assume again the original card problem, with a single card showing a black side face up. Before looking at the other side, we draw another card from the bad and lay it face up on the table. The face that is shown on the new card is white. Show that the probability that the first card, the one showing a black side, has black on the other side is now 0.75. Use the counting method, if you can. Hint: Treat this like the sequence of globe tosses, counting all the ways to see each observation, for each possible fist card.
+
+The prior is again a uniform distribution. I then count the number of ways of getting the first card and multiply this by the number of ways to then get the second card. The prior and these two counts are multiplied and the posterior is normalized by dividing by the sum of the possibilities.
+
+$$
+(B,B): \frac{1}{3} \times 2 \times 3 = 2 \rightarrow \frac{3}{4} \\
+(B,W): \frac{1}{3} \times 1 \times 2 = \frac{2}{3} \rightarrow \frac{1}{4} \\
+(W,W): \frac{1}{3} \times 0 = 0
+$$
+
+**2H1. Suppose there are two species of panda bear. Both are equally common in the wild and live in the same places. They look exactly alike and eat the same food, and there is yet no genetic assay capable of telling them apart. They differ however in their family sizes. Species A gives birth to twins 10% of the time, otherwise birthing a single infant. Species B births twins 20% of the time, otherwise birthing singleton infants. Assume these numbers are known with certainty, from many years of field research. Now suppose you are managing a captive breeding program. You have a new female panda of unknown species, and she has just given birth to twins. What is the probability that her next birth will also be twins?**
+
+$$
+T_n = \text{twins next time} \quad T_f = \text{twins the first time} \\
+\text{Pr}(T_n) = \text{Pr}(A | T_f) \times \text{Pr}(T_n | A) + \text{Pr}(B | T_f) \times \text{Pr}(T_n | B) \\
+\text{Pr}(A | T_f) = \frac{\text{Pr}(T_f | A) \text{Pr}(A)}{\text{Pr}(T_f)} = \frac{0.1 \times 0.5}{(0.1 \times 0.5) + (0.2 \times 0.5)} = \frac{1}{3} \\
+\text{Pr}(B | T_f) = 1 - \text{Pr}(A | T_f) \\
+\text{Pr}(T_n) = (\frac{1}{3} \times 0.1) + (\frac{2}{3} \times 0.2) = \frac{1}{6}
+$$
+
+**2H2. Recall all the facts from the problem above. Now compute the probability that the panda we have is from species A, assuming we have observed only the first birth and that is was twins.**
+
+$$
+\text{Pr}(A | T_f) = \frac{\text{Pr}(T_f | A) \text{Pr}(A)}{\text{Pr}(T_f)} = \frac{0.1 \times 0.5}{(0.1 \times 0.5) + (0.2 \times 0.5)} = \frac{1}{3} \\
+$$
+
+**2H3. Continuing on from the previous problem, suppose the same panda mother has a second birth and that it is not twins, but a singleton infant. Compute the posterior probability that this panda is a species A.**
+
+$$
+T = \text{twins} \quad S = \text{singleton} \\
+\text{Pr}(A | T,S) = \frac{\text{Pr}(T,S | A) \text{Pr}(A)}{\text{Pr}(T,S)} \\
+\text{Pr}(A | T,S) = \frac{(0.1 \times 0.9)(0.5)}{(0.1 \times 0.9)(0.5) + (0.2 \times 0.8)(0.5)} = \frac{9}{25} = 0.36
+$$
+
+**2H4. So suppose now that a veterinarian comes along who has a genetic test that she claims can identify the species of our mother panda. But the test, like all tests, is imperfect. This is the information you have about the test:**
+
+- **The probability it correctly identifies a species A panda is 0.8.**  
+- **The probability it correctly identifies a species B panda is 0.65.**
+
+**The vet administers the test to your panda and tells you that the test is positive for species A. First ignore your previous information from the births and compute the posterior probability that your panda is species A.**
+
+$$
+a = \text{the test reported species A} \\
+\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a)} \\
+\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a | A) + \text{Pr}(a | B)} =
+    \frac{(0.8)(0.5)}{(0.8)(0.5) + (1 - 0.65)(0.5)} =
+    \frac{16}{23} \approx 0.696
+$$
+
+**Then redo your calculation, now using the birth data at well.**
+
+I will use the birth information as the prior, updating it based on the genetic test. This just means the the probability of the the panda being species A or B is no longer uniform ($\text{Pr}(A) = 0.5$).
+
+$$
+a = \text{the test reported species A} \\
+\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a)} \\
+\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a | A) + \text{Pr}(a | B)} =
+    \frac{(0.8)(0.36)}{(0.8)(0.36) + (1 - 0.65)(1 - 0.36)} = 0.5625
+$$
