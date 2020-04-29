@@ -9,9 +9,12 @@ knitr::opts_chunk$set(echo = TRUE)
 library(glue)
 library(conflicted)
 library(rethinking)
+library(patchwork)
 library(tidyverse)
 
 theme_set(theme_minimal())
+
+
 
 set.seed(0)
 ```
@@ -173,5 +176,177 @@ median(samples)
         - this results with the optimal choice as the median because it splits the density of the posterior distribution in half
     * the quadratic loss $(d-p)^2$ leads to the posterior mean being the best point estimate
     
+
 ## 3.3 Sampling to simulate prediction
 
+- the samples from the posterior allow for simulation of the model's implied observations
+- this is useful for:
+    * *model checking*: simulating implied observations to check for model fit and model behaviour
+    * *software validation*: check the model fitting procedure worked
+    * *research design*: simulating observations from the hypothesis to evaluate whether the research design ca be effective (including "power analysis")
+    * *forecasting*: simulate new predictions from new cases and future observations
+- this chapter looks into model checking
+
+### Dummy data
+
+- the globe-tossing model:
+    * there is a fixed proportion of water $p$ that we are trying to infer
+    * tossing and catching the globe produces observations of "water" and "land" that appear in proportion to $p$ and $1-p$
+- likelihood functions "work in both directions":
+    * given a relaized observation, the likelihood function says how plausible the observation is
+    * given the parameters, the likelihood defines a distribution of possible observations to samples from
+        - *Bayesian models are always generative*
+- we will call the simulated data "dummy data"
+    * it comes from a binomial likelihood where $w$ is water and $n$ is the number of tosses:
+
+$$
+\Pr(w | n,p) = \frac{n!}{w! (n-w)!} p^w (1-p)^{n-w}
+$$
+        
+- if we use $p=0.7$, then we can sample from the binomial by sampling from the posterior we have from the modeling, or just use the `rbinom()` function
+    * the following samples represent the number of waters expected from `size` tosses with a $p=0.7$
+
+```{r}
+rbinom(1, size = 2, prob = 0.7)
+```
+
+```{r}
+rbinom(10, size = 2, prob = 0.7)
+```
+
+```{r}
+dummy_w <- rbinom(1e5, size = 2, prob = 0.7)
+table(dummy_w) / length(dummy_w)
+```
+
+- the following samples 9 tosses and counts the number of waters expected given $p=0.7$
+
+```{r}
+dummy_w <- rbinom(1e5, size = 9, prob = 0.7)
+simplehist(dummy_w, xlab = "dummy water count")
+```
+
+### 3.3.2 Model checking
+
+- this is:
+    1. ensuring the model fitting worked correctly
+    2. evaluating the adequacy of the model for some purpose
+
+#### 3.3.2.1 Did the software work?
+
+- there is no perfect method for doing this
+- the globe-tossing example is so simple we cannot do much here, but this will be revisted in later chapters
+
+#### 3.3.2.2 IS the model adequate?
+
+- the goal is to assess exactly how the model fails to describe the data
+    * this is a path towards model comprehension, revision, and improvement
+- all models fail (they are not perfect representations), so we have to decide whether the failures are important or not
+- we will do some basic model checking using the simulated observations of the globe-tossing model
+- there are two types of uncertainty in the model predictions:
+    1. *observation uncertainty* is the uncertainty in the pattern of observations; even if we know $p$, we do not know the next result of tossing the globe
+    2. *uncertainty about $p$* is embodied by the posterior distribution
+- we want to propogate the parameter uncertainty as we evalute the implied predictions
+    * this means averaging over the posterior density for $p$ when computing predictions
+    * compute the sampling distribution of outcomes at each $p$ and average those distributions to make the *posterior predictive distribution*
+- this method provides a better idea of the uncertainty in the model by using the entire posteior distribution instead of a single point estimate
+    * the following code shows the process of making the *posterior predictive distribution*
+    * we can use the `samples` variable because it has draws of $p$ in proportion to their posterior probabilities
+
+```{r}
+# Globe tossing model with 6 waters from 9 tosses
+p_grid <- seq(from = 0, to = 1, length.out = 1e3)
+prior <- rep(1, 1e3)
+likelihood <- dbinom(6, size = 9, prob = p_grid)
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior)
+
+# Sample from the posterior
+samples <- sample(p_grid, prob = posterior, size = 1e5, replace = TRUE)
+```
+
+```{r}
+posterior_dist <- tibble(x = samples) %>%
+    ggplot(aes(x = x)) +
+    geom_density() +
+    labs(x = "proportion of water (p)",
+         y = "likelihood",
+         title = "Posterior probability")
+
+small_grid <- seq(0.1, 0.9, 0.1)
+sampled_dists <- tibble(p = small_grid) %>%
+    mutate(sampled_dists = purrr::map(p, ~ rbinom(1e4, size = 9, prob = .x))) %>%
+    unnest(sampled_dists) %>%
+    ggplot(aes(x = sampled_dists)) +
+    facet_wrap(~ p, nrow = 1) +
+    geom_histogram(binwidth = 1, fill = "grey90", color = "grey40") +
+    theme(axis.text.x = element_blank()) +
+    labs(x = "number of waters",
+         y = "count",
+         title = "Sampled data from different proportions of water")
+
+w <- rbinom(1e4, size = 9, prob = samples)
+posterior_predictive_dist <- tibble(x = w) %>%
+    ggplot(aes(x = x)) +
+    geom_histogram(binwidth = 1, fill = "grey90", color = "grey40") +
+    labs(x = "number of waters",
+         y = "count",
+         title = "Posterior predictive distribution")
+
+
+(posterior_dist / sampled_dists /posterior_predictive_dist) +
+    plot_layout(heights = c(2, 1, 2))
+```
+
+- we can compare the posterior predictive distribution to the distribution if we only took samples from the MAP of the posterior
+
+```{r}
+posteior_map <- chainmode(samples, adj = 0.01)
+
+map_samples <- rbinom(1e4, size = 9, prob = posteior_map)
+
+tibble(ppd = list(w),
+                         map_dist = list(map_samples)) %>%
+    pivot_longer(ppd:map_dist, names_to = "distribution", values_to = "sampled_vals") %>%
+    unnest(sampled_vals) %>%
+    ggplot(aes(x = sampled_vals)) +
+    geom_histogram(aes(fill = distribution, 
+                       color = distribution), position = "identity",
+                   alpha = 0.3, binwidth = 1) +
+    scale_fill_brewer(type = "qual", palette = "Set1", 
+                      labels = c("MAP dist.", "PPD")) +
+    scale_color_brewer(type = "qual", palette = "Set1", 
+                      labels = c("MAP dist.", "PPD")) +
+    labs(x = "number of waters",
+         y = "count",
+         title = "Posterior predictive distribution vs. distribution using MAP")
+```
+
+- we can also look at the actual sequences of data
+    * how long are the stretches of repeated "waters" when tossing the globe?
+    * how many "switches" are there from "water" to "land"
+- these test how well the assumptions that the observed samples are independent from each other
+    * inconsistencies here may or may not be important depending on the cause
+    * for example:
+        - the number of switches from "water" to "land" was higher in the observed data than predicted if the tosses were independent
+        - this just means that each toss provides less information about the true coverage of the globe, but the model will still converge on the correct proportion
+        - however, it will converge more slowly than the posterior distribution may lead us to believe
+
+
+---
+
+## 3.5 Practice
+
+"These problems use the samples from the posterior distribution for the globe tossing example. This code will give you a specific set of samples, so that you can check your answers exactly."
+
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 1000)
+prior <- rep(1, 1000)
+likelihood <- dbinom(6, size=9, prob = p_grid)
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior)
+set.seed(100)
+samples <- sample(p_grid, prob = posterior, size=1e4, replace = TRUE)
+```
+
+**3E1. How much posterior probability lies below p = 0.2?**

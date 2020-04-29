@@ -107,7 +107,7 @@ Chapter 2. Small Worlds and Large Worlds
     water on each toss is:
 
 \[
-\text{Pr}(W,L|p) = \frac{(W + L)!}{W!L!} p^W (1-p)^L
+\Pr(W,L|p) = \frac{(W + L)!}{W!L!} p^W (1-p)^L
 \]
 
     * this can be modeled in R as follows, setting $p = 0.5$:
@@ -164,7 +164,7 @@ p \sim \text{Uniform}(0,1)
 
   - once all of the variables have been chosen and defined, the priors
     can be updated to produce the *posterior* distribution for \(p\):
-    \(\text{Pr}(p|W,L)\)
+    \(\Pr(p|W,L)\)
 
 ### 2.4.1 Bayes’ theorem
 
@@ -177,22 +177,22 @@ p \sim \text{Uniform}(0,1)
         the probability of \(p\)
 
 \[
-\text{Pr}(W,L,p) = \text{Pr}(W,L | p) \text{Pr}(p)
+\Pr(W,L,p) = \Pr(W,L | p) \Pr(p)
 \]
 
   - a similar equation that just rearranges the order of the conditional
     is below
 
 \[
-\text{Pr}(W,L,p) = \text{Pr}(p | W,L) \text{Pr}(W,L)
+\Pr(W,L,p) = \Pr(p | W,L) \Pr(W,L)
 \]
 
   - these two equations have the same left-hand side, so they can be
     equated and rearranged to produce Bayes’ theorem
 
 \[
-\text{Pr}(W,L | p) \text{Pr}(p) = \text{Pr}(p | W,L) \text{Pr}(W,L) \\
-\text{Pr}(p | W,L) = \frac{\text{Pr}(W,L | p) \text{Pr}(p)}{\text{Pr}(W,L)}
+\Pr(W,L | p) \Pr(p) = \Pr(p | W,L) \Pr(W,L) \\
+\Pr(p | W,L) = \frac{\Pr(W,L | p) \Pr(p)}{\Pr(W,L)}
 \]
 
 ``` r
@@ -384,7 +384,7 @@ globe_qa_res
 ```
 
     ##        mean        sd      5.5%     94.5%
-    ## p 0.6666665 0.1571338 0.4155362 0.9177967
+    ## p 0.6666667 0.1571338 0.4155366 0.9177968
 
 ``` r
 qa_posterior <- dnorm(probs, mean = globe_qa_res$mean, sd = globe_qa_res$sd)
@@ -415,17 +415,17 @@ tibble(p = probs,
 **2E1. Which of the expressions below correspond to the statement: “the
 probability of rain on Monday”?**
 
-2: \(\text{Pr}(\text{rain} | \text{Monday})\)
+2: \(\Pr(\text{rain} | \text{Monday})\)
 
 **2E2. Which of the following statements corresponds to the expression:
-\(\text{Pr}(\text{Monday} | \text{rain})\)?**
+\(\Pr(\text{Monday} | \text{rain})\)?**
 
 3: The probability that it is Monday, given that it is raining.
 
 **2E3. Which of the expressions below correspond to the statement: “the
 probability that is it is Monday, given it is raining”?**
 
-1: \(\text{Pr}(\text{Monday} | \text{rain})\)
+1: \(\Pr(\text{Monday} | \text{rain})\)
 
 **2M1. Recall the globe tossing model from the chapter. Compute and plot
 the grid approximate posterior distribution for each of the following
@@ -512,11 +512,11 @@ probability that the globe was Earth, conditional on seeing “land” is
 0.23.**
 
 \[
-\text{Pr}(E | L) = \frac{\text{Pr}(L | E) \text{Pr}(E)}{\text{Pr}(L)} \\
-\text{Pr}(L | E) = 0.3 \\
-\text{Pr}(E) = 0.5 \\
-\text{Pr}(L) = (0.5 \times 0.3) + (0.5 \times 1.0) = 0.65 \\
-\text{Pr}(E | L) = \frac{0.15 \times 0.5}{0.65} = 0.23
+\Pr(E | L) = \frac{\Pr(L | E) \Pr(E)}{\Pr(L)} \\
+\Pr(L | E) = 0.3 \\
+\Pr(E) = 0.5 \\
+\Pr(L) = (0.5 \times 0.3) + (0.5 \times 1.0) = 0.65 \\
+\Pr(E | L) = \frac{0.15 \times 0.5}{0.65} = 0.23
 \]
 
 **2M4. Suppose you have a deck with only three cards. Each card has two
@@ -605,10 +605,10 @@ birth will also be twins?**
 
 \[
 T_n = \text{twins next time} \quad T_f = \text{twins the first time} \\
-\text{Pr}(T_n) = \text{Pr}(A | T_f) \times \text{Pr}(T_n | A) + \text{Pr}(B | T_f) \times \text{Pr}(T_n | B) \\
-\text{Pr}(A | T_f) = \frac{\text{Pr}(T_f | A) \text{Pr}(A)}{\text{Pr}(T_f)} = \frac{0.1 \times 0.5}{(0.1 \times 0.5) + (0.2 \times 0.5)} = \frac{1}{3} \\
-\text{Pr}(B | T_f) = 1 - \text{Pr}(A | T_f) \\
-\text{Pr}(T_n) = (\frac{1}{3} \times 0.1) + (\frac{2}{3} \times 0.2) = \frac{1}{6}
+\Pr(T_n) = \Pr(A | T_f) \times \Pr(T_n | A) + \Pr(B | T_f) \times \Pr(T_n | B) \\
+\Pr(A | T_f) = \frac{\Pr(T_f | A) \Pr(A)}{\Pr(T_f)} = \frac{0.1 \times 0.5}{(0.1 \times 0.5) + (0.2 \times 0.5)} = \frac{1}{3} \\
+\Pr(B | T_f) = 1 - \Pr(A | T_f) \\
+\Pr(T_n) = (\frac{1}{3} \times 0.1) + (\frac{2}{3} \times 0.2) = \frac{1}{6}
 \]
 
 **2H2. Recall all the facts from the problem above. Now compute the
@@ -616,7 +616,7 @@ probability that the panda we have is from species A, assuming we have
 observed only the first birth and that is was twins.**
 
 \[
-\text{Pr}(A | T_f) = \frac{\text{Pr}(T_f | A) \text{Pr}(A)}{\text{Pr}(T_f)} = \frac{0.1 \times 0.5}{(0.1 \times 0.5) + (0.2 \times 0.5)} = \frac{1}{3} \\
+\Pr(A | T_f) = \frac{\Pr(T_f | A) \Pr(A)}{\Pr(T_f)} = \frac{0.1 \times 0.5}{(0.1 \times 0.5) + (0.2 \times 0.5)} = \frac{1}{3} \\
 \]
 
 **2H3. Continuing on from the previous problem, suppose the same panda
@@ -626,8 +626,8 @@ A.**
 
 \[
 T = \text{twins} \quad S = \text{singleton} \\
-\text{Pr}(A | T,S) = \frac{\text{Pr}(T,S | A) \text{Pr}(A)}{\text{Pr}(T,S)} \\
-\text{Pr}(A | T,S) = \frac{(0.1 \times 0.9)(0.5)}{(0.1 \times 0.9)(0.5) + (0.2 \times 0.8)(0.5)} = \frac{9}{25} = 0.36
+\Pr(A | T,S) = \frac{\Pr(T,S | A) \Pr(A)}{\Pr(T,S)} \\
+\Pr(A | T,S) = \frac{(0.1 \times 0.9)(0.5)}{(0.1 \times 0.9)(0.5) + (0.2 \times 0.8)(0.5)} = \frac{9}{25} = 0.36
 \]
 
 **2H4. So suppose now that a veterinarian comes along who has a genetic
@@ -647,8 +647,8 @@ species A.**
 
 \[
 a = \text{the test reported species A} \\
-\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a)} \\
-\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a | A) + \text{Pr}(a | B)} =
+\Pr(A | a) = \frac{\Pr(a | A) \Pr(A)}{\Pr(a)} \\
+\Pr(A | a) = \frac{\Pr(a | A) \Pr(A)}{\Pr(a | A) + \Pr(a | B)} =
     \frac{(0.8)(0.5)}{(0.8)(0.5) + (1 - 0.65)(0.5)} =
     \frac{16}{23} \approx 0.696
 \]
@@ -657,11 +657,11 @@ a = \text{the test reported species A} \\
 
 I will use the birth information as the prior, updating it based on the
 genetic test. This just means the the probability of the the panda being
-species A or B is no longer uniform (\(\text{Pr}(A) = 0.5\)).
+species A or B is no longer uniform (\(\Pr(A) = 0.5\)).
 
 \[
 a = \text{the test reported species A} \\
-\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a)} \\
-\text{Pr}(A | a) = \frac{\text{Pr}(a | A) \text{Pr}(A)}{\text{Pr}(a | A) + \text{Pr}(a | B)} =
+\Pr(A | a) = \frac{\Pr(a | A) \Pr(A)}{\Pr(a)} \\
+\Pr(A | a) = \frac{\Pr(a | A) \Pr(A)}{\Pr(a | A) + \Pr(a | B)} =
     \frac{(0.8)(0.36)}{(0.8)(0.36) + (1 - 0.65)(1 - 0.36)} = 0.5625
 \]

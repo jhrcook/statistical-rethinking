@@ -1,10 +1,10 @@
 
 # Notes on *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*
 
-(2nd Edition)
-
-The first two chapters of the book are available as a
-[PDF](statisticalrethinking2_chapters1and2.pdf) for free.
+The first two chapters of the 2nd edition of this book are available as
+a [PDF](statisticalrethinking2_chapters1and2.pdf) for free. The rest of
+the book I used the first edition as it is available through my schools
+library.
 
 ## Introduction
 
@@ -33,3 +33,5 @@ devtools::install_github("rmcelreath/rethinking")
 
 [Chapter 2. Small Worlds and Large
 Worlds](ch2_small-worlds-and-large-worlds.md)
+
+[Chapter 3. Sampling the Imaginary](ch3_sampling-the-imaginary.md)
