@@ -35,3 +35,5 @@ devtools::install_github("rmcelreath/rethinking")
 Worlds](ch2_small-worlds-and-large-worlds.md)
 
 [Chapter 3. Sampling the Imaginary](ch3_sampling-the-imaginary.md)
+
+[Chapter 4. Linear Models](ch4_linear-models.md)

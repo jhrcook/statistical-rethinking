@@ -38,4 +38,3 @@ devtools::install_github("rmcelreath/rethinking")
 [Chapter 3. Sampling the Imaginary](ch3_sampling-the-imaginary.md)
 
 [Chapter 4. Linear Models](ch4_linear-models.md)
-
