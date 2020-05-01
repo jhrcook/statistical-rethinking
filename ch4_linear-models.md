@@ -914,3 +914,371 @@ simulated_heights | height_pi_ribbon
 ![](ch4_linear-models_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
 ## 4.5 Polynomial regression
+
+  - we can build a model using a curved function of a single predictor
+  - in the following example, we will use all of the height and weight
+    data in `Howell1`, not just that of adults
+
+<!-- end list -->
+
+``` r
+d %>%
+    ggplot(aes(x = weight, y = height)) +
+    geom_point() +
+    labs(title = "All data from `Howell1`")
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
+
+  - polynomials are often discouraged because they ard hard to interpret
+      - it can be better to instead “build the non-linear relationship
+        up from a principled beginning”
+      - this is explored in the practice problems
+  - here is the common polynomial regression
+      - a parabolic model of the mean
+
+\[
+\mu_i = \alpha + \beta_1 x_i + \beta_2 x_i^2
+\]
+
+  - before fitting, we must standardize the predictor variable
+      - center and divide by std. dev.
+      - this helps with intepretation because one unit is equivalent to
+        a change of one std. dev.
+      - this also helps the software fit the model
+
+<!-- end list -->
+
+``` r
+d$weight_std <- (d$weight - mean(d$weight)) / sd(d$weight)
+d %>%
+    ggplot(aes(x = weight_std, y = height)) +
+    geom_point() +
+    labs(title = "Standardized data from `Howell1`",
+         x = "standardized weight")
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-43-1.png)<!-- -->
+
+  - here is the model we will fit
+      - it has very weak priors
+
+\[
+h_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_1 x_i + \beta_2 x_i^2 \\
+\alpha \sim \text{Normal}(178, 100) \\
+\beta_1 \sim \text{Normal}(0, 10) \\
+\beta_2 \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Uniform}(0, 50)
+\]
+
+``` r
+d$weight_std2 <- d$weight_std^2
+
+m4_5 <- quap(
+    alist(
+        height ~ dnorm(mu, sigma),
+        mu <- a + b1*weight_std + b2*weight_std2,
+        a ~ dnorm(178, 100),
+        b1 ~ dnorm(0, 10),
+        b2 ~ dnorm(0, 10),
+        sigma ~ dunif(0, 50)
+    ),
+    data = d
+)
+
+summary(m4_5)
+```
+
+    ##             mean        sd       5.5%      94.5%
+    ## a     146.663373 0.3736588 146.066194 147.260552
+    ## b1     21.400351 0.2898512  20.937113  21.863590
+    ## b2     -8.415056 0.2813197  -8.864659  -7.965453
+    ## sigma   5.749786 0.1743169   5.471194   6.028378
+
+  - we have to plot the fit of the model to make sense of these values
+
+<!-- end list -->
+
+``` r
+weight_seq <- seq(from = -2.2, to = 2.0, length.out = 30)
+pred_dat <- list(weight_std = weight_seq, weight_std2 = weight_seq^2)
+mu <- link(m4_5, data = pred_dat)
+mu_mean <- apply(mu, 2, mean)
+mu_pi <- apply(mu, 2, PI, prob = 0.89)
+sim_height <- sim(m4_5, data = pred_dat)
+height_pi <- apply(sim_height, 2, PI, prob = 0.89)
+```
+
+``` r
+sim_height_data <- t(height_pi) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    set_names(c("pi5", "pi94")) %>%
+    mutate(weight = weight_seq,
+           mu = mu_mean)
+    
+
+d %>%
+    ggplot() +
+    geom_point(aes(x = weight_std, y = height), color = "grey50") +
+    geom_line(data = sim_height_data,
+              aes(x = weight, y = mu),
+              size = 1, color = "blue") +
+    geom_ribbon(data = sim_height_data,
+                aes(x = weight, ymin = pi5, ymax = pi94),
+                alpha = 0.2, color = NA) +
+    scale_x_continuous(
+        labels = function(x) { round(x * sd(d$weight) + mean(d$weight), 1) }
+    ) +
+    labs(title = "Polynomial model of height by weight",
+         x = "weight")
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
+
+-----
+
+## 4.7 Practice
+
+### Easy
+
+**4E1. In the model definition below, which line is the likelihood?**
+
+\[
+y_i \sim \text{Normal}(\mu, \sigma) \quad \text{(likelihood)}\\
+\mu \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Uniform}(0, 10)
+\]
+
+**4E2. In the model definition just above, how many parameters are in
+the posterior distribution?**
+
+2
+
+**4E3. Using the model definition above, write down the appropriate form
+of Bayes’ theorem that includes the proper likelihood and priors.**
+
+\[
+\Pr(y|\mu, \sigma) = \frac{\Pr(\mu, \sigma | y) \Pr(y)}{\Pr(\mu, \sigma)}
+\]
+
+4E4. In the model definition below, which line is the linear model?
+
+\[
+y_i \sim \text{Normal}(\mu, \sigma) \\
+\mu = \alpha + \beta x_i \quad \text{(linear model)} \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta \sim \text{Normal(0, 1)} \\
+\sigma \sim \text{Uniform}(0, 10)
+\]
+
+**4E5. In the model definition just above, how many parameters are in
+the posterior distribution?**
+
+3
+
+### Medium
+
+**4M1. For the model definition below, simulate observed heights from
+the prior (not the posterior).**
+
+\[
+y_i \sim \text{Normal}(\mu, \sigma) \\
+\mu \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Uniform}(0, 10) \\
+\]
+
+``` r
+mu_prior <- rnorm(1e4, 0, 10)
+sigma_prior <- runif(1e4, 0, 10)
+heights_prior <- rnorm(1e4, mu_prior, sigma_prior)
+
+plot(density(heights_prior))
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
+
+**4M2. Translate the model just above into a map formula.**
+
+``` r
+alist(
+    y ~ dnorm(mu, sigma),
+    mu ~ dnorm(0, 10),
+    sigma ~ dunif(0, 10)
+)
+```
+
+    ## [[1]]
+    ## y ~ dnorm(mu, sigma)
+    ## 
+    ## [[2]]
+    ## mu ~ dnorm(0, 10)
+    ## 
+    ## [[3]]
+    ## sigma ~ dunif(0, 10)
+
+**4M3. Translate the map model formula below into a mathematical model
+definition.**
+
+``` r
+flist <- alist(
+    y ~ dnorm(mu, sigma),
+    mu <- a + b*x,
+    a ~ dnorm(0, 50),
+    b ~ dunif(0, 10),
+    sigma ~ dunif(0, 50)
+)
+```
+
+\[
+y_i \sim \text{Normal}(\mu, \sigma) \\
+\mu = \alpha + \beta x_i \\
+\alpha \sim \text{Normal}(0, 50) \\
+\beta \sim \text{Uniform}(0, 10) \\
+\sigma \sim \text{Uniform}(0, 50)
+\]
+
+**4M4. A sample of students is measured for height each year for 3
+years. After the third year, you want to fit a linear regression
+predicting height using year as a predictor. Write down the mathematical
+model definition for this regression, using any variable names and
+priors you choose. Be prepared to defend your choice of priors.**
+
+\[
+y_i \sim \text{Normal}(\mu, \sigma) \\
+\mu = \alpha + \beta x_i \\
+\alpha \sim \text{Normal}(0, 100) \\
+\beta \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Uniform}(0, 50)
+\]
+
+**4M5. Now suppose I tell you that the average height in the first year
+was 120 cm and that every student got taller each year. Does this
+information lead you to change your choice of priors? How?**
+
+I would make the prior for \(\beta\) have a positive mean.
+
+\[
+\beta \sim \text{Normal}(1, 10)
+\]
+
+**4M6. Now suppose I tell you that the variance among heights for
+students of the same age is never more than 64cm. How does this lead you
+to revise your priors?**
+
+I would reduce the standard deviation for the prior distribution of
+\(alpha\).
+
+\[
+\alpha \sim \text{Normal}(0, 20)
+\]
+
+### Hard
+
+**4H1. The weights listed below were recorded in the \!Kung census, but
+heights were not recorded for these individuals. Provide predicted
+heights and 89% intervals (either HPDI or PI) for each of these
+individuals. That is, fill in the table below, using model-based
+predictions.**
+
+``` r
+# Model created and fit in the notes above.
+m4_5 <- quap(
+    alist(
+        height ~ dnorm(mu, sigma),
+        mu <- a + b1*weight_std + b2*weight_std2,
+        a ~ dnorm(178, 100),
+        b1 ~ dnorm(0, 10),
+        b2 ~ dnorm(0, 10),
+        sigma ~ dunif(0, 50)
+    ),
+    data = d
+)
+
+new_data <- tibble(weight = c(46.95, 43.72, 64.78, 32.59, 54.63)) %>%
+    mutate(individual = 1:n(),
+           weight_std = (weight - mean(d$weight)) / sd(d$weight),
+           weight_std2 = weight_std^2)
+new_pred <- link(m4_5, new_data, n = 1e3)
+
+new_data %>%
+    mutate(expected_height = apply(new_pred, 2, chainmode),
+           hpdi = apply(new_pred, 2, function(x) {
+               pi <- round(HPDI(x), 2)
+               glue("{pi[[1]]} - {pi[[2]]}")
+           })) %>%
+    select(individual, weight, expected_height, hpdi)
+```
+
+    ## # A tibble: 5 x 4
+    ##   individual weight expected_height hpdi           
+    ##        <int>  <dbl>           <dbl> <chr>          
+    ## 1          1   47.0            158. 157.68 - 158.71
+    ## 2          2   43.7            156. 155.42 - 156.4 
+    ## 3          3   64.8            156. 154.15 - 158.01
+    ## 4          4   32.6            142. 141.33 - 142.5 
+    ## 5          5   54.6            160. 159.41 - 161.12
+
+**4H2. Select out all the rows in the Howelll data with ages below 18
+years of age. If you do it right, you should end up with a new data
+frame with 192 rows in it.**
+
+``` r
+qh2_data <- Howell1[Howell1$age < 18, ]
+dim(qh2_data)
+```
+
+    ## [1] 192   4
+
+``` r
+qh2_data %>%
+    ggplot(aes(x = weight, y = height)) +
+    geom_point()
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-51-1.png)<!-- -->
+
+**(a) Fit a linear regression to these data, using map. Present and
+interpret the estimates. For every 10 units of increase in weight, how
+much taller does the model predict a child gets?**
+
+``` r
+qh2_data$weight_std <- (qh2_data$weight - mean(qh2_data$weight)) / sd(qh2_data$weight)
+
+qh2_model <- quap(
+    alist(
+        height ~ dnorm(mu, sigma),
+        mu <- a + b * weight_std,
+        a ~ dnorm(100, 20),
+        b ~ dnorm(10, 20),
+        sigma ~ dunif(0, 10)
+    ),
+    data = qh2_data
+)
+
+summary(qh2_model)
+```
+
+    ##            mean        sd       5.5%      94.5%
+    ## a     108.31112 0.6086166 107.338436 109.283810
+    ## b      24.30242 0.6102073  23.327195  25.277653
+    ## sigma   8.43714 0.4305592   7.749023   9.125257
+
+``` r
+# Change in 10 original units of weight.
+weight_seq <- c(10, 20)
+weight_seq_std <- (weight_seq - mean(qh2_data$weight)) / sd(qh2_data$weight)
+diff(coef(qh2_model)["a"] +  weight_seq_std * coef(qh2_model)["b"])
+```
+
+    ## [1] 27.18601
+
+**(b) Plot the raw data, with height on the vertical axis and weight on
+the horizontal axis. Superimpose the MAP regression line and 89% HPDI
+for the mean. Also superimpose the 89% HPDI for predicted heights.**
+
+**(c) What aspects of the model fit concern you? Describe the kinds of
+assumptions you would change, if any, to improve the model. You don’t
+have to write any new code. Just explain what the model appears to be
+doing a bad job of, and what you hypothesize would be a better model.**
