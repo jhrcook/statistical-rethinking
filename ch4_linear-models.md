@@ -588,3 +588,329 @@ summary(m4_3)
     ## sigma   5.0718671 0.19115324   4.7663673   5.3773669
 
 4.4.3 Interpreting the model fit
+
+  - we can inspect fit models using tables and plots
+  - the following questions can be answered by plotting posterior
+    distribution and posterior predictions
+      - whether or not the model fitting procedure worked correctly
+      - the absolute magnitude, rather than just relative magnitude, of
+        a relationship between outcome and predictor
+      - the uncertainty around an average relationship
+      - the uncertainty surrounding the implied predictions of the model
+
+#### 4.4.3.1 Tables of estimate
+
+  - models cannot in general be understood by tables of estimates
+      - only the simplest of models (such as our current example) can be
+  - here is how to understand the summary results of our
+    wieght-to-height model:
+      - \(\beta\) is a slope of 0.90: “a person 1 kg heavier is expected
+        to be 0.90 cm taller”
+          - 89% of the posterior probability lies between 0.84 and 0.97
+          - this suggests strong evidence for a postive relationship
+            between weight and height
+      - \(\alpha\) (intercept) indicates that a person of weight 0
+        should be 114 cm tall
+      - \(\sigma\) informs us of the width of the distribution of
+        heights around the mean
+
+<!-- end list -->
+
+``` r
+precis(m4_3)
+```
+
+    ##              mean         sd        5.5%       94.5%
+    ## a     113.9033852 1.90526701 110.8584005 116.9483699
+    ## b       0.9045063 0.04192009   0.8375099   0.9715027
+    ## sigma   5.0718671 0.19115324   4.7663673   5.3773669
+
+  - we can also inspect the correlation of parameters
+      - there is strong correlation between `a` and `b` because this is
+        such a simple model: chaning the slope would also change the
+        intercept in the opposite direction
+      - in more complex models, this can hinder fitting the model
+
+<!-- end list -->
+
+``` r
+cov2cor(vcov(m4_3))
+```
+
+    ##                   a             b         sigma
+    ## a      1.0000000000 -0.9898830254  0.0009488233
+    ## b     -0.9898830254  1.0000000000 -0.0009398017
+    ## sigma  0.0009488233 -0.0009398017  1.0000000000
+
+  - one way to avoid correlation is by centering the data
+      - subtracting the mean of the variable from each value
+      - this removes the correlation between `a` and `b` in our model
+      - but also \(\alpha\) (`a`, the y-intercept) became the value of
+        the mean of the heights
+          - this is because the intercept is the value when the
+            predictors are 0 and now the mean of the predicotr is 0
+
+<!-- end list -->
+
+``` r
+d2$weight_c <- d2$weight - mean(d2$weight)
+
+m4_4 <- quap(
+    alist(
+        height ~ dnorm(mu, sigma),
+        mu <- a + b*weight_c,
+        a ~ dnorm(178, 100),
+        b ~ dnorm(0, 10),
+        sigma ~ dunif(0, 50)
+    ),
+    data = d2
+)
+summary(m4_4)
+```
+
+    ##              mean         sd        5.5%       94.5%
+    ## a     154.5974770 0.27030258 154.1654813 155.0294727
+    ## b       0.9050075 0.04192321   0.8380061   0.9720089
+    ## sigma   5.0713444 0.19110397   4.7659234   5.3767655
+
+``` r
+cov2cor(vcov(m4_4))
+```
+
+    ##                   a             b         sigma
+    ## a      1.000000e+00 -4.169566e-09  1.071719e-04
+    ## b     -4.169566e-09  1.000000e+00 -3.890539e-05
+    ## sigma  1.071719e-04 -3.890539e-05  1.000000e+00
+
+#### 4.4.3.2 Plotting posterior inference against the data
+
+  - we can start by adding the MAP values for the mean height over the
+    actual data
+
+<!-- end list -->
+
+``` r
+a_map <- coef(m4_3)["a"]
+b_map <- coef(m4_3)["b"]
+
+d2 %>%
+    ggplot(aes(x = weight, y = height)) +
+    geom_point() +
+    geom_abline(slope = b_map, intercept = a_map, lty = 2, size = 2, color = "tomato")
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+#### 4.4.3.3 Adding uncertainty around the mean
+
+  - we could display uncertainty of the model by plotting many lines on
+    the data
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m4_3)
+head(post)
+```
+
+    ##          a         b    sigma
+    ## 1 116.4236 0.8412152 5.041186
+    ## 2 114.0396 0.9071210 4.853101
+    ## 3 115.1166 0.8780719 5.232571
+    ## 4 118.4739 0.7949162 5.231642
+    ## 5 113.7912 0.9102064 5.199805
+    ## 6 116.0722 0.8559793 5.161445
+
+``` r
+d2 %>%
+    ggplot(aes(x = weight, y = height)) +
+    geom_point(color = "grey30") +
+    geom_abline(data = post, 
+                aes(slope = b, intercept = a), 
+                alpha = 0.1, size = 0.1, color = "grey70") +
+    geom_abline(slope = b_map, intercept = a_map, 
+                lty = 2, size = 1.3, color = "tomato")
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+
+#### 4.4.3.4 Plotting regression intervals and contours
+
+  - we can compute any interval using this cloud of regression lines and
+    plot a shaded region around the MAP line
+  - lets begin by focusing just on a single weight value, 50
+      - we can make a list of 10,000 values of \(\mu\) for an individual
+        who weights 50 kg
+
+<!-- end list -->
+
+``` r
+# mu = a + b * x
+mu_at_50 <- post$a + post$b * 50
+plot(density(mu_at_50), xlab = "mu | weight=50")
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+
+  - since the posteior for \(\mu\) is a ditribution, we can calculate
+    the HDPI intervals to find the 89% highest posterior density
+    intervals
+
+<!-- end list -->
+
+``` r
+HPDI(mu_at_50)
+```
+
+    ##    |0.89    0.89| 
+    ## 158.5909 159.6806
+
+  - we can use the `link()` function from ‘rethinking’ to sample from
+    the posterior and compute \(\mu\) for eah case in the data and
+    sample from the posterior
+
+<!-- end list -->
+
+``` r
+mu <- link(m4_3)
+
+# row: sample from the posterior; column: each individual in the data
+dim(mu)
+```
+
+    ## [1] 1000  352
+
+``` r
+mu[1:5, 1:5]
+```
+
+    ##          [,1]     [,2]     [,3]     [,4]     [,5]
+    ## [1,] 157.2735 146.5395 142.1654 162.2111 151.0746
+    ## [2,] 156.8582 145.7179 141.1782 161.9828 150.4247
+    ## [3,] 156.9177 145.9155 141.4321 161.9787 150.5639
+    ## [4,] 157.5256 146.8543 142.5057 162.4343 151.3629
+    ## [5,] 157.1968 146.7853 142.5426 161.9861 151.1841
+
+  - however, we want something slightly different, so we must pass
+    `link()` each value from the x-axis (weight)
+
+<!-- end list -->
+
+``` r
+weight_seq <- seq(25, 70, by = 1)
+mu <- link(m4_3, data = data.frame(weight = weight_seq))
+
+dim(mu)
+```
+
+    ## [1] 1000   46
+
+``` r
+as_tibble(as.data.frame(mu)) %>%
+    set_names(as.character(weight_seq)) %>%
+    pivot_longer(tidyselect::everything(), 
+                 names_to = "weight",
+                 values_to = "height") %>%
+    mutate(weight = as.numeric(weight)) %>%
+    ggplot(aes(weight, height)) +
+    geom_point(size = 0.5, alpha = 0.2)
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-37-1.png)<!-- -->
+
+  - finally, we can get the HPDI at each value of weight
+
+<!-- end list -->
+
+``` r
+mu_mean <- apply(mu, 2, mean)
+mu_hpdi <- apply(mu, 2, HPDI, prob = 0.89)
+
+mu_data <- tibble(weight = weight_seq,
+                  mu = mu_mean) %>%
+    bind_cols(as.data.frame(t(mu_hpdi))) %>%
+    set_names(c("weight", "height", "hpdi_low", "hpdi_high"))
+
+d2 %>%
+    ggplot(aes(x = weight, y = height)) +
+    geom_point() +
+    geom_ribbon(data = mu_data,
+                aes(x = weight, ymin = hpdi_low, ymax = hpdi_high),
+                alpha = 0.5, color = NA, fill = "grey50") +
+    geom_line(data = mu_data,
+              aes(weight, height),
+              color = "tomato", size = 1) +
+    labs(title = "Bayesian estiamte for the relationship between weight and height",
+         subtitle = "Line is the MAP of the weight and height; ribbon is the 89% HPDI")
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
+
+#### 4.4.3.5 Prediction intervals
+
+  - now we can generate an 89% prediction interval for actual heights
+      - so far we have been looking at the uncertainty in \(\mu\) which
+        is the mean for the heights
+      - there is also \(\sigma\) in the equation for heights
+        \(h_i \sim \mathcal{N}(\mu_i, \sigma)\)
+  - we can simulate height values for a given weight by sampling from a
+    Gaussian with some mean and standard deviation sampled from the
+    posterior
+      - this will provide a collection of simulated heights with the
+        uncertainty in the posterior distribution and the Gaussian
+        likelihood of the heights
+      - we can plot the 89% percentile interval on the simulated data
+        which represents where the model thinks 89% of actual heights in
+        the population at each weight
+
+<!-- end list -->
+
+``` r
+sim_height <- sim(m4_3, data = list(weight = weight_seq))
+str(sim_height)
+```
+
+    ##  num [1:1000, 1:46] 143 134 133 142 140 ...
+
+``` r
+height_pi <- apply(sim_height, 2, PI, prob = 0.89)
+```
+
+``` r
+height_pi_data <- height_pi %>%
+    t() %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    set_names(c("low_pi", "high_pi")) %>%
+    mutate(weight = weight_seq)
+
+simulated_heights <- as.data.frame(sim_height) %>%
+    as_tibble() %>%
+    set_names(as.character(weight_seq)) %>%
+    pivot_longer(tidyselect::everything(),
+                 names_to = "weight",
+                 values_to = "sim_height") %>%
+    mutate(weight = as.numeric(weight)) %>%
+    ggplot() +
+    geom_jitter(aes(x = weight, y = sim_height), 
+                size = 0.2, alpha = 0.1) + 
+    labs(x = "weight",
+         y = "height",
+         title = "Simulated heights from the model")
+    
+height_pi_ribbon <- d2 %>%
+    ggplot() +
+    geom_point(aes(x = weight, y = height)) +
+    geom_ribbon(data = height_pi_data,
+                aes(x = weight, ymin = low_pi, ymax = high_pi),
+                color = NA, fill = "black", alpha = 0.25) + 
+    labs(x = "weight",
+         y = "height",
+         title = "89% percentile interval of the heights")
+
+simulated_heights | height_pi_ribbon
+```
+
+![](ch4_linear-models_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+
+## 4.5 Polynomial regression
