@@ -904,6 +904,122 @@ diff(coef(qh2_model)["a"] +  weight_seq_std * coef(qh2_model)["b"])
 
 **(b) Plot the raw data, with height on the vertical axis and weight on the horizontal axis. Superimpose the MAP regression line and 89% HPDI for the mean. Also superimpose the 89% HPDI for predicted heights.**
 
+```{r}
+weight_seq <- seq(range(qh2_data$weight_std)[[1]], 
+                  range(qh2_data$weight_std)[[2]],
+                  length.out = 100)
 
+mu_est <- link(qh2_model, data = data.frame(weight_std = weight_seq))
+mu_mean <- apply(mu_est, 2, mean)
+mu_hpdi <- apply(mu_est, 2, function(x) {
+    y <- HPDI(x)
+    tibble(hpdi_low = y[[1]], hpdi_high = y[[2]])
+}) %>%
+    bind_rows()
+
+mu_pred <- tibble(weight_std = weight_seq,
+                  mu = mu_mean) %>%
+    bind_cols(mu_hpdi) %>%
+    mutate(weight = weight_std * sd(qh2_data$weight) + mean(qh2_data$weight))
+
+
+qh2_data %>%
+    ggplot() +
+    geom_point(aes(x = weight, y = height)) +
+    geom_ribbon(data = mu_pred,
+                aes(x = weight, ymin = hpdi_low, ymax = hpdi_high),
+                fill = "black", alpha = 0.2, color = NA) +
+    geom_line(data = mu_pred,
+              aes(x = weight, y = mu),
+              color = "dodgerblue", lty = 2, size = 1.2)
+```
 
 **(c) What aspects of the model fit concern you? Describe the kinds of assumptions you would change, if any, to improve the model. You don’t have to write any new code. Just explain what the model appears to be doing a bad job of, and what you hypothesize would be a better model.**
+
+I really don't like how confident the model is in its predictions of height.
+It does not appear to be a very good fit for this data.
+I would change the model by maybe adding a polynomial or other predictors such as age.
+
+**4H3. Suppose a colleague of yours, who works on allometry, glances at the practice problems just above. Your colleague exclaims, “That’s silly. Everyone knows that it’s only the logarithm of body weight that scales with height!” Let’s take your colleague’s advice and see what happens.**
+
+**(a)  Model the relationship between height (cm) and the natural logarithm of weight (log-kg). Use the entire Howelll data frame, all 544 rows, adults and non-adults. Fit this model, using quadratic approximation:**
+
+$$
+h_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta \log(w_i) \\
+\alpha \sim \text{Normal}(178, 100) \\
+\beta \sim \text{Normal}(0, 100) \\
+\sigma \sim \text{Uniform}(0, 50)
+$$
+
+**where $h_i$ is the height of individual $i$ and $w_i$ is the weight (in kg) of individual $i$. The function for computing a natural log in R is just `log`. Can you interpret the resulting estimates?**
+
+```{r}
+qh3_data <- Howell1 %>%
+    mutate(weight_ln = log(weight),
+           weight_ln_std = (weight_ln - mean(weight_ln)) / sd(weight_ln))
+
+qh3_model <- quap(
+    alist(
+        height ~ dnorm(mu, sigma),
+        mu <- a + b * weight_ln_std,
+        a ~ dnorm(178, 100),
+        b ~ dnorm(0, 100),
+        sigma ~ dunif(0, 50)
+    ),
+    data = qh3_data
+)
+
+summary(qh3_model)
+```
+
+**(b)  Begin with this plot:**
+
+```r
+plot(height ~ weight , data = Howell1, col = col.alpha(rangi2, 0.4))
+```
+
+**Then use samples from the quadratic approximate posterior of the model in (a) to superimpose on the plot: (1) the predicted mean height as a function of weight, (2) the 97% HPDI for the mean, and (3) the 97% HPDI for predicted heights.**
+
+```{r}
+weight_seq <- seq(range(qh3_data$weight_ln_std)[[1]], 
+                  range(qh3_data$weight_ln_std)[[2]],
+                  length.out = 100)
+
+mu_est <- link(qh3_model, data = data.frame(weight_ln_std = weight_seq))
+mu_mean <- apply(mu_est, 2, mean)
+mu_hpdi <- apply(mu_est, 2, function(x) {
+    y <- HPDI(x, prob = 0.97)
+    tibble(hpdi_low = y[[1]], hpdi_high = y[[2]])
+}) %>%
+    bind_rows()
+
+sim_height <- sim(qh3_model, data = list(weight_ln_std = weight_seq), n = 1e4)
+height_pi <- apply(sim_height, 2, function(x) {
+    y <- HPDI(x, prob = 0.97)
+    tibble(h_hpdi_low = y[[1]], h_hpdi_high = y[[2]])
+}) %>%
+    bind_rows()
+
+mu_pred <- tibble(weight_ln_std = weight_seq,
+                  mu = mu_mean) %>%
+    bind_cols(mu_hpdi) %>%
+    bind_cols(height_pi) %>%
+    mutate(weight_ln = weight_ln_std * sd(qh3_data$weight_ln) + mean(qh3_data$weight_ln),
+           weight = exp(weight_ln))
+
+qh3_data %>%
+    ggplot() +
+    geom_point(aes(x = weight, y = height)) +
+    geom_ribbon(data = mu_pred,
+                aes(x = weight, ymin = h_hpdi_low, ymax = h_hpdi_high),
+                fill = "orange", alpha = 0.2, color = NA) +
+    geom_ribbon(data = mu_pred,
+                aes(x = weight, ymin = hpdi_low, ymax = hpdi_high),
+                fill = "blue", alpha = 0.3, color = NA) +
+    geom_line(data = mu_pred,
+              aes(x = weight, y = mu),
+              color = "dodgerblue", lty = 2, size = 1.2) +
+    labs(title = "Model of logarithm of weight against height",
+         subtitle = "Dotted line and blue 97% HPDI intervals are for the mean of height at each weight\nOrange interval is the 97% HPDI for model predictions of height")
+```
