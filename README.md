@@ -37,3 +37,6 @@ Worlds](ch2_small-worlds-and-large-worlds.md)
 [Chapter 3. Sampling the Imaginary](ch3_sampling-the-imaginary.md)
 
 [Chapter 4. Linear Models](ch4_linear-models.md)
+
+[Chapter 4. \<ultivariate Linear
+Models](ch5_multivariate-linear-models.md)
