@@ -1,7 +1,7 @@
 Chapter 4. Linear Models
 ================
 
-  - this chapter introduce linear regresssion as a Bayesian procedure
+  - this chapter introduce linear regression as a Bayesian procedure
       - under a probability interpretation (necessary for Bayesian
         word), linear reg. uses a Gaussian distribution for uncertainty
         about the measurement of interest
@@ -135,12 +135,12 @@ dens(log(growth), norm.comp = TRUE, main = "Log-scaled")
         the plausibility of individual observations
           - this is always Gaussian for linear regression
     3.  recognize a set of other measurements to use to predict or
-        understand the outcome - the *predictory* variables
-    4.  relate the shape of the likelihood distribtuion to the predictor
+        understand the outcome - the *predictor* variables
+    4.  relate the shape of the likelihood distribution to the predictor
         variables
     5.  choose priors for all parameters in the model; this is the
         initial state of the model before seeing any data
-    6.  summarise the model with math expressions; for example:
+    6.  summarize the model with math expressions; for example:
 
 \[
 \text{outcome}_i \sim \text{Normal}(\mu_i, \sigma) \\
@@ -177,13 +177,13 @@ p \sim \text{Uniform}(0,1)
   - model a single measurement variable as a Gaussian distribution
       - two parameters: \(\mu\) = mean; \(\sigma\) = standard deviation
       - Bayesian updating will consider each possible combination of
-        \(\mu\) and \(\sigma\) and provide a socre for the plausibility
+        \(\mu\) and \(\sigma\) and provide a score for the plausibility
         of each
 
 ### 4.3.1 The data
 
   - we will use the `Howll1` data from the ‘rethinking’ package
-      - we will use height information for peple older that 18 years
+      - we will use height information for people older that 18 years
 
 <!-- end list -->
 
@@ -268,7 +268,7 @@ dens(prior_h)
 
 ![](ch4_linear-models_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-### 4.3.3 Grid approximation of the posteior distribution
+### 4.3.3 Grid approximation of the posterior distribution
 
   - as an example, we will map the posterior distribution using brute
     force
@@ -464,7 +464,7 @@ vcov(m4_1)
   - the variance-covariance matrix tells us how the parameters relate to
     each other
   - it can be decomposed into two pieces:
-    1.  the vector of varainces for the parameters
+    1.  the vector of variances for the parameters
     2.  a correlation matrix that tells us how the changes in one
         parameter lead to a correlated change in the others
 
@@ -603,11 +603,11 @@ summary(m4_3)
   - models cannot in general be understood by tables of estimates
       - only the simplest of models (such as our current example) can be
   - here is how to understand the summary results of our
-    wieght-to-height model:
+    weight-to-height model:
       - \(\beta\) is a slope of 0.90: “a person 1 kg heavier is expected
         to be 0.90 cm taller”
           - 89% of the posterior probability lies between 0.84 and 0.97
-          - this suggests strong evidence for a postive relationship
+          - this suggests strong evidence for a positive relationship
             between weight and height
       - \(\alpha\) (intercept) indicates that a person of weight 0
         should be 114 cm tall
@@ -627,7 +627,7 @@ precis(m4_3)
 
   - we can also inspect the correlation of parameters
       - there is strong correlation between `a` and `b` because this is
-        such a simple model: chaning the slope would also change the
+        such a simple model: changing the slope would also change the
         intercept in the opposite direction
       - in more complex models, this can hinder fitting the model
 
@@ -648,7 +648,7 @@ cov2cor(vcov(m4_3))
       - but also \(\alpha\) (`a`, the y-intercept) became the value of
         the mean of the heights
           - this is because the intercept is the value when the
-            predictors are 0 and now the mean of the predicotr is 0
+            predictors are 0 and now the mean of the predictor is 0
 
 <!-- end list -->
 
@@ -752,7 +752,7 @@ plot(density(mu_at_50), xlab = "mu | weight=50")
 
 ![](ch4_linear-models_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
 
-  - since the posteior for \(\mu\) is a ditribution, we can calculate
+  - since the posterior for \(\mu\) is a distribution, we can calculate
     the HDPI intervals to find the 89% highest posterior density
     intervals
 
@@ -766,7 +766,7 @@ HPDI(mu_at_50)
     ## 158.5909 159.6806
 
   - we can use the `link()` function from ‘rethinking’ to sample from
-    the posterior and compute \(\mu\) for eah case in the data and
+    the posterior and compute \(\mu\) for each case in the data and
     sample from the posterior
 
 <!-- end list -->
@@ -840,7 +840,7 @@ d2 %>%
     geom_line(data = mu_data,
               aes(weight, height),
               color = "tomato", size = 1) +
-    labs(title = "Bayesian estiamte for the relationship between weight and height",
+    labs(title = "Bayesian estimate for the relationship between weight and height",
          subtitle = "Line is the MAP of the weight and height; ribbon is the 89% HPDI")
 ```
 
@@ -930,7 +930,7 @@ d %>%
 
 ![](ch4_linear-models_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
 
-  - polynomials are often discouraged because they ard hard to interpret
+  - polynomials are often discouraged because they are hard to interpret
       - it can be better to instead “build the non-linear relationship
         up from a principled beginning”
       - this is explored in the practice problems
@@ -943,7 +943,7 @@ d %>%
 
   - before fitting, we must standardize the predictor variable
       - center and divide by std. dev.
-      - this helps with intepretation because one unit is equivalent to
+      - this helps with interpretation because one unit is equivalent to
         a change of one std. dev.
       - this also helps the software fit the model
 
