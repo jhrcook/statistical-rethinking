@@ -38,5 +38,5 @@ Worlds](ch2_small-worlds-and-large-worlds.md)
 
 [Chapter 4. Linear Models](ch4_linear-models.md)
 
-[Chapter 4. \<ultivariate Linear
+[Chapter 4. Multivariate Linear
 Models](ch5_multivariate-linear-models.md)

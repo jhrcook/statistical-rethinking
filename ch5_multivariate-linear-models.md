@@ -469,7 +469,7 @@ A_counterfactual %>%
     geom_line(aes(y = mu), color = "black", size = 1.4) +
     labs(x = "MedianAgeMarriage_std",
          y = "Divorce",
-         title = "Counterfactual holding median age constant",
+         title = "Counterfactual holding marriage rate constant",
          subtitle = "The line is the mean divorce rate over median age, holding marriage rate constant.
 The inner ribbon (darker) is the 95% PI for the mean over median age.
 The outer ribbon is the 95% PI of the simulated divorce rates.")
@@ -911,3 +911,364 @@ y_i \sim \text{Normal}(\mu_i, \sigma) \\
     about which leg is more important
 
 ### 5.3.2 Multicollinear milk
+
+  - the leg example above is a bit obvious, but how do we identify this
+    colinear effect in real data
+      - for this we return to the milk example
+  - we will model `kcal_per_g` using `perc_fat` and `perc_lactose` in
+    two bivariate regressions
+
+<!-- end list -->
+
+``` r
+d <- milk %>% as_tibble() %>% janitor::clean_names()
+
+# kilocalories per gram regressed on percent fat
+m5_10 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, sigma),
+        mu <- a + bf*perc_fat,
+        a ~ dnorm(0.6, 10),
+        bf ~ dnorm(0, 1),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+# kilocalories per gram regressed on percent lactose
+m5_11 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, sigma),
+        mu <- a + bl*perc_lactose,
+        a ~ dnorm(0.6, 10),
+        bl ~ dnorm(0, 1),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_10, digits = 3)
+```
+
+    ##             mean           sd        5.5%      94.5%
+    ## a     0.30114320 0.0356380683 0.244186683 0.35809972
+    ## bf    0.01001996 0.0009690801 0.008471187 0.01156874
+    ## sigma 0.07326090 0.0096134500 0.057896752 0.08862505
+
+``` r
+precis(m5_11, digits = 3)
+```
+
+    ##              mean           sd        5.5%        94.5%
+    ## a      1.16643928 0.0427429275  1.09812783  1.234750733
+    ## bl    -0.01057776 0.0008300758 -0.01190438 -0.009251139
+    ## sigma  0.06173576 0.0080962666  0.04879637  0.074675162
+
+  - summary of `m5_10` and `m5_11`:
+      - posterior mean for \(\beta_f\) is 0.010 with 89% interval
+        \[0.008, 0.012\]
+      - posterior mean for \(\beta_l\) is -0.011 with 89% interval
+        \[-0.012, -0.009\]
+  - now we model kilocalories per gram using both predictors
+
+<!-- end list -->
+
+``` r
+# kilocalories per gram regressed on percent fat and percent lactose
+m5_12 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, sigma),
+        mu <- a + bf*perc_fat + bl*perc_lactose,
+        a ~ dnorm(0.6, 10),
+        bf ~ dnorm(0, 1),
+        bl ~ dnorm(0, 1),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_10, digits = 3)
+```
+
+    ##             mean           sd        5.5%      94.5%
+    ## a     0.30114320 0.0356380683 0.244186683 0.35809972
+    ## bf    0.01001996 0.0009690801 0.008471187 0.01156874
+    ## sigma 0.07326090 0.0096134500 0.057896752 0.08862505
+
+  - summary of `m5_12`:
+      - both posterior means for \(\beta_f\) and \(\beta_l\) are closer
+        to 0
+      - the standard deviations of both coefficient’s posteriors are
+        larger, too
+      - the estimate of \(\beta_f\) is effectively 0
+  - the problem is the same as in the leg example: the percent fat and
+    lactose contain roughly the same information
+      - the plot below shows these correlations
+      - in the middle-right scatter plot we can see the strong
+        correlation between fat and lactose
+      - below that the correlations are shown
+
+<!-- end list -->
+
+``` r
+pairs(~ kcal_per_g + perc_fat + perc_lactose, data = d)
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+``` r
+cor(d$perc_fat, d$perc_lactose)
+```
+
+    ## [1] -0.9416373
+
+  - not only does the correlation between pairs of variables matter, but
+    also the correlation that remains after accounting for any other
+    predictors
+  - if we run simulations of fitting the model predicting kilocalories
+    per gram with percent fat and a new variable that is correlated wih
+    percent fat at different amounts, we can plot the standard deviation
+    of the coefficient of percent fat against the correlation of the two
+    predictors
+      - this shows that the effect is not linear
+      - instead, as the correlation coefficient increases, the standard
+        deviation of the posterior of the estimate increases
+        exponentially
+  - it is difficult to identify colinearity, especially with many
+    variates in the model
+      - just keep an eye out for large standard deviations of the
+        posteriors
+      - one technique for demonstrating multicolinearity is to make a
+        model with each variable and show that the models make nearly
+        the same predictions
+  - multicolinearity is in a family of problems with fitting models
+    called *non-identifiability*
+      - when a parameter is non-identifiable, it means the structure of
+        the data and model do not make it possible to estimate the
+        parameter’s value
+
+### 5.3.3 Post-treatment bias
+
+  - *omitted variable bias*: mistaken inferences from omitting predictor
+    variables
+  - *post-treatment bias*: mistaken inferences from including variables
+    that are consequences of other variables
+  - example with plants:
+      - growing some plants in a greenhouse
+      - want to know the difference in growth under different antifungal
+        soil treatments
+      - plants are grown from seed, their heights measured, treated with
+        antifungals, final measures of heights are taken
+      - the precense of fungus is also measured
+      - if we are trying to make a causal inference on height, we should
+        not include the presence of fungus
+          - the precense of fungus is a *post-treatment effect*
+  - below is a simulation to help show what goes wrong when included a
+    post-treatment effect
+      - probability of fungus was 0.5 without treatment and 0.1 with
+        treatment
+      - the final height was the starting height plus a sample from a
+        normal distribution with mean of either 5 or 2 for no treatment
+        or treatment
+
+<!-- end list -->
+
+``` r
+set.seed(123)
+
+# Number of plants
+N <- 100
+# Simulate initial heights
+h0 <- rnorm(N, 10, 2)
+# Assign treatments and simulate fungus and growth
+treatment <- rep(0:1, each = N/2)
+fungus <- rbinom(N, size = 1, prob = 0.5 - treatment * 0.4)
+h1 <- h0 + rnorm(N, 5 - 3 * fungus)
+
+# Final data frame
+d <- tibble(h0, h1, treatment, fungus)
+d
+```
+
+    ## # A tibble: 100 x 4
+    ##       h0    h1 treatment fungus
+    ##    <dbl> <dbl>     <int>  <int>
+    ##  1  8.88  14.7         0      0
+    ##  2  9.54  12.3         0      1
+    ##  3 13.1   15.4         0      1
+    ##  4 10.1   11.1         0      1
+    ##  5 10.3   15.1         0      0
+    ##  6 13.4   15.1         0      1
+    ##  7 10.9   16.5         0      0
+    ##  8  7.47  12.1         0      0
+    ##  9  8.63  14.6         0      0
+    ## 10  9.11  13.7         0      0
+    ## # … with 90 more rows
+
+  - we can model the final height on the starting height, if treated,
+    and if fungus
+
+<!-- end list -->
+
+``` r
+m5_13 <- quap(
+    alist(
+        h1 ~ dnorm(mu, sigma),
+        mu <- a + bh*h0 + bt*treatment + bf*fungus,
+        a ~ dnorm(0, 100),
+        c(bh, bt, bf) ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_13, digits = 3)
+```
+
+    ##               mean         sd       5.5%      94.5%
+    ## a      5.668728543 0.53070106  4.8205658  6.5168913
+    ## bh     0.933440564 0.05125802  0.8515203  1.0153608
+    ## bt     0.001391461 0.20928826 -0.3330916  0.3358745
+    ## bf    -2.919532111 0.23096892 -3.2886651 -2.5503992
+    ## sigma  0.921904330 0.06518793  0.8177214  1.0260872
+
+  - summary of `m5_13`:
+      - the coefficent for treatment is basically 0 with the 89%
+        intervals straddling 0
+      - the coefficients for starting height and precense of fungus were
+        very strong
+  - the problem is that we built this data manually and know that
+    treatment should matter
+      - however, fungus is mostly a consequence of treatment and should
+        be omitted
+      - this is done below and now the impact of treatment is strong as
+        positive, as expected
+
+<!-- end list -->
+
+``` r
+m5_14 <- quap(
+    alist(
+        h1 ~ dnorm(mu, sigma),
+        mu <- a + bh*h0 + bt*treatment,
+        a ~ dnorm(0, 100),
+        c(bh, bt) ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_14, digits = 3)
+```
+
+    ##            mean         sd      5.5%     94.5%
+    ## a     5.0327321 0.85158105 3.6717411 6.3937231
+    ## bh    0.8517318 0.08196086 0.7207425 0.9827211
+    ## bt    1.2441102 0.29764926 0.7684092 1.7198112
+    ## sigma 1.4860732 0.10507787 1.3181385 1.6540080
+
+## 5.4 Categorical variables
+
+### 5.4.1 Binary categories
+
+  - the simplest case is when the variable has only two cases
+  - we will use the `Howell1` Kalahari data again
+      - the `male` predictor is binary
+      - it is an example of a *dummy variable*
+
+<!-- end list -->
+
+``` r
+data("Howell1")
+d <- Howell1
+skimr::skim(d)
+```
+
+|                                                  |      |
+| :----------------------------------------------- | :--- |
+| Name                                             | d    |
+| Number of rows                                   | 544  |
+| Number of columns                                | 4    |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |      |
+| Column type frequency:                           |      |
+| numeric                                          | 4    |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |      |
+| Group variables                                  | None |
+
+Data summary
+
+**Variable type: numeric**
+
+| skim\_variable | n\_missing | complete\_rate |   mean |    sd |    p0 |    p25 |    p50 |    p75 |   p100 | hist  |
+| :------------- | ---------: | -------------: | -----: | ----: | ----: | -----: | -----: | -----: | -----: | :---- |
+| height         |          0 |              1 | 138.26 | 27.60 | 53.98 | 125.09 | 148.59 | 157.48 | 179.07 | ▁▂▂▇▇ |
+| weight         |          0 |              1 |  35.61 | 14.72 |  4.25 |  22.01 |  40.06 |  47.21 |  62.99 | ▃▂▃▇▂ |
+| age            |          0 |              1 |  29.34 | 20.75 |  0.00 |  12.00 |  27.00 |  43.00 |  88.00 | ▇▆▅▂▁ |
+| male           |          0 |              1 |   0.47 |  0.50 |  0.00 |   0.00 |   0.00 |   1.00 |   1.00 | ▇▁▁▁▇ |
+
+  - the dummy variable turns a parameter “on” for those cases in the
+    category
+  - here is the formula for a model predicting height using `male`
+      - the parameter \(\beta_m\) only influences the cases where
+        \(\m_i = 1\) and is canceled out when \(\mu_i = 0\)
+
+\[
+h_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i \sim \alpha + \beta_m \mu_i \\
+\alpha \sim \text{Normal}(178, 100) \\
+\beta_m \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Uniform}(0, 50)
+\]
+
+``` r
+m5_15 <- quap(
+    alist(
+        height ~ dnorm(mu, sigma),
+        mu <- a + bm*male,
+        a ~ dnorm(178, 100),
+        bm ~ dnorm(0, 10),
+        sigma ~ dunif(0, 50)
+    ),
+    data = d
+)
+
+summary(m5_15)
+```
+
+    ##             mean        sd       5.5%     94.5%
+    ## a     134.830728 1.5918784 132.286599 137.37486
+    ## bm      7.279024 2.2833512   3.629788  10.92826
+    ## sigma  27.309266 0.8279791  25.985995  28.63254
+
+  - summary of `m5_15`:
+      - \(\alpha\) is now the average height of females:
+          - \(\mu_i = \alpha + \beta_m (0) = \alpha\)
+          - therefore, the expected height of the average female is 135
+            cm
+      - the parameter \(\beta_m\) is the average difference between
+        males and females
+          - therefore, the average male height is 135 cm + 7.27 cm =
+            142.3 cm
+  - we can get posteior distribution for male height by sampling
+    \(\alpha\) and \(\beta_m\) from the model and adding them together
+      - we cannot just add the 89% interval values togehter because
+        \(\alpha\) and \(\beta_m\) are correlated
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m5_15)
+mu_male <- post$a + post$bm
+chainmode(mu_male)
+```
+
+    ## [1] 141.9889
+
+``` r
+PI(mu_male)
+```
+
+    ##       5%      94% 
+    ## 139.4176 144.8044
+
+### 5.4.2 Many categories

@@ -39,4 +39,4 @@ devtools::install_github("rmcelreath/rethinking")
 
 [Chapter 4. Linear Models](ch4_linear-models.md)
 
-[Chapter 4. <ultivariate Linear Models](ch5_multivariate-linear-models.md)
+[Chapter 4. Multivariate Linear Models](ch5_multivariate-linear-models.md)
