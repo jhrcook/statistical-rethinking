@@ -1272,3 +1272,561 @@ PI(mu_male)
     ## 139.4176 144.8044
 
 ### 5.4.2 Many categories
+
+  - need one dummy variable per category except for one which will be in
+    the intercept
+  - we will use the primate milk data for an example
+
+<!-- end list -->
+
+``` r
+d <- as_tibble(milk) %>% janitor::clean_names()
+unique(d$clade)
+```
+
+    ## [1] Strepsirrhine    New World Monkey Old World Monkey Ape             
+    ## Levels: Ape New World Monkey Old World Monkey Strepsirrhine
+
+  - (for now) we will make the dummary variables by hand
+
+<!-- end list -->
+
+``` r
+d$clade_nwm <- as.numeric(d$clade == "New World Monkey")
+d$clade_owm <- as.numeric(d$clade == "Old World Monkey")
+d$clade_s <- as.numeric(d$clade == "Strepsirrhine")
+```
+
+  - the model we will fit is below
+      - it really defines 4 separate linear models, one for each clade
+        (ape is in \(\alpha\))
+
+\[
+k_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_{\text{NWM}} \text{NWM}_i + \beta_{\text{OWM}} \text{OWM}_i + \beta_{S} \text{NWM}_i \\
+\alpha \sim \text{Normal}(0.6, 10) \\
+\beta_{\text{NWM}} \sim \text{Normal}(0, 1) \\
+\beta_{\text{OWM}} \sim \text{Normal}(0, 1) \\
+\beta_{\text{S}} \sim \text{Normal}(0, 1) \\
+\sigma \sim \text{Uniform}(0, 10)
+\]
+
+``` r
+m5_16 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, sigma),
+        mu <- a + bNWM * clade_nwm + bOWM * clade_owm + bS * clade_s,
+        a ~ dnorm(0.6, 10),
+        c(bNWM, bOWM, bS) ~ dnorm(0, 1),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_16, digits = 4)
+```
+
+    ##             mean         sd        5.5%      94.5%
+    ## a      0.5460930 0.03808543  0.48522507 0.60696083
+    ## bNWM   0.1681041 0.05386106  0.08202375 0.25418451
+    ## bOWM   0.2417117 0.06020562  0.14549154 0.33793194
+    ## bS    -0.0379969 0.06370516 -0.13981005 0.06381626
+    ## sigma  0.1145052 0.01503088  0.09048299 0.13852749
+
+  - sample from the posteriors to get the posteriors for the heights of
+    each ape
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m5_16)
+
+mu_ape <- post$a
+mu_nwm <- post$a + post$bNWM
+mu_owm <- post$a + post$bOWM
+mu_s <- post$a + post$bS
+
+precis(tibble(mu_ape, mu_nwm, mu_owm, mu_s))
+```
+
+    ##             mean         sd      5.5%     94.5% histogram
+    ## mu_ape 0.5457440 0.03805410 0.4838328 0.6062117   ▁▂▇▇▁▁▁
+    ## mu_nwm 0.7146146 0.03841843 0.6538651 0.7766511   ▁▁▅▇▂▁▁
+    ## mu_owm 0.7880270 0.04670493 0.7136646 0.8620845 ▁▁▁▃▇▇▂▁▁
+    ## mu_s   0.5074211 0.05099688 0.4253128 0.5894189 ▁▁▂▇▇▃▁▁▁
+
+  - additional comparisons between the clades can be made with these
+    estimates
+      - we can estimate the difference between new world and old world
+        monkeys
+
+<!-- end list -->
+
+``` r
+diff_nwm_old <- mu_nwm - mu_owm
+quantile(diff_nwm_old, probs = c(0.025, 0.5, 0.975))
+```
+
+    ##        2.5%         50%       97.5% 
+    ## -0.19117777 -0.07295865  0.04523712
+
+### 5.4.3 Adding regular predictor variables
+
+  - can still include other predictor variables in the model with the
+    dummy variables for clade
+      - here is the model for the clades and percent fat
+        (\(\beta_F F_i\))
+
+\[
+\mu_i = \alpha + \beta_{\text{NWM}} \text{NWM}_i + \beta_{\text{OWM}} \text{OWM}_i + \beta_{S} \text{NWM}_i + \beta_F F_i \\
+\]
+
+## 5.5 Ordinary least squares and lm
+
+  - *ordinary least squares*: (OLS) way of estimating the parameters of
+    linear regression
+      - tries to minimize the sum of squared residuals
+      - generally simillar to maximizing the posterior probability or
+        maximizing the likelihood
+  - we will explore `lm()` in R and understand the estimates of OLS from
+    a Bayesian perspective
+
+### 5.5.1 Design formulas
+
+  - use *design formula* for `lm()`, separating predictors by `+`
+      - the coefficients get created automatically
+      - all priors are flat (unimformative)
+  - linear regression below is modeled in R shown in the following
+    design formula
+
+\[
+y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta x_i
+\]
+
+``` r
+y ~ 1 + x
+```
+
+  - for a model with multiple predictors, the design formula looks like
+    this:
+
+<!-- end list -->
+
+``` r
+y ~ 1 + x + z + w
+```
+
+### 5.5.2 Using lm
+
+  - just provide the design formula and data to `lm()`
+
+<!-- end list -->
+
+``` r
+m5_17 <- lm(y ~ 1 + x, data = d)
+m5_18 <- lm(y + 1 + x + z + w, data = d)
+```
+
+  - the parameter estimates will be named after the predictors
+  - the following subsections explain a few quirks of `lm()`
+
+#### 5.5.2.1 Intercepts are optional
+
+  - need not include the explicit `1` in the design formula
+  - it can be omitted by instead including a `0` or `-1` parameter
+
+<!-- end list -->
+
+``` r
+m5_20 <- lm(y ~ 0 + x, data = d)
+m5_21 <- lm(y ~ x - 1, data = d)
+```
+
+#### 5.5.2.2 Categorical variables
+
+  - categorical variables are automatically expanded into the necessary
+    dummy variables
+      - if the cetagorical variable is encoded with numbers, you must
+        change it to a factor (or character)
+
+<!-- end list -->
+
+``` r
+m5_22 <- lm(y ~ 1 + as.factor(season), data = d)
+```
+
+#### 5.5.2.3 Transform variables first
+
+  - `lm()` can be confused by transformations to the data included in
+    the model, so it is usually best to do these before hand
+      - e.g.: log, square, cube, center, scale
+
+#### 5.5.2.4 No estiamte for \(\sigma\)
+
+  - `lm()` does not provide a posterior for the standard deviation
+    \(\sigma\)
+      - it can provide the “residual standard error”
+          - can be an estimate of \(\sigma\) but without any uncertainty
+            in this value
+
+### 5.5.3 Building map (quap) formulas from lm formulas
+
+  - the ‘rethinking’ package has the function `glimmer()` to turn a
+    design formula into a quap-style model formula
+
+<!-- end list -->
+
+``` r
+glimmer(dist ~ speed, data = cars)
+```
+
+    ## alist(
+    ##     dist ~ dnorm( mu , sigma ),
+    ##     mu <- Intercept +
+    ##         b_speed*speed,
+    ##     Intercept ~ dnorm(0,10),
+    ##     b_speed ~ dnorm(0,10),
+    ##     sigma ~ dcauchy(0,2)
+    ## )
+
+## 5.7 Practice
+
+### Easy
+
+**5E1. Which of the linear models below are multiple linear
+regressions?**
+
+\(\text{(2)} \quad \mu_i = \beta_x x_i + \beta_z z_i\)  
+\(\text{(4)} \quad \mu_i = \alpha + \beta_x x_i + \beta_z z_i\)
+
+**5E2. Write down a multiple regression to evaluate the claim: Animal
+diversity is linearly related to latitude, but only after controlling
+for plant diversity. You just need to write down the model definition.**
+
+\[
+A_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_L x_L + \beta_P x_P
+\]
+
+**5E3. Write down a multiple regression to evaluate the claim: Neither
+amount of funding nor size of laboratory is by itself a good predictor
+of time to PhD degree; but together these variables are both positively
+associated with time to degree. Write down the model definition and
+indicate which side of zero each slope parameter should be on.**
+
+\[
+T_i \sim \text{Normal}(\mu, \sigma) \\
+\mu_i = \alpha + \beta_F x_F + \beta_S x_S
+\]
+
+Both coefficients (\(\beta_F\) and \(\beta_S\)) should be positive.
+
+**5E4. Suppose you have a single categorical predictor with 4 levels
+(unique values), labeled A, B, C and D. Let \(A_i\) be an indicator
+variable that is 1 where case \(i\) is in category A. Also suppose
+\(B_i\), \(C_i\), and \(D_i\) for the other categories. Now which of the
+following linear models are inferentially equivalent ways to include the
+categorical variable in a regression? Models are inferentially
+equivalent when it’s possible to compute one posterior distribution from
+the posterior distribution of another model.**
+
+(Refer to the text to see which models these numbers refer to.)
+
+Models 1, 3, 4 and 5 are inferrentially equivalent.
+
+### Medium
+
+**5M1. Invent your own example of a spurious correlation. An outcome
+variable should be correlated with both predictor variables. But when
+both predictors are entered in the same model, the correlation between
+the outcome and one of the predictors should mostly vanish (or at least
+be greatly reduced).**
+
+``` r
+set.seed(0)
+
+N <- 100  # number of samples
+x1 <- rnorm(N, 10, 1)
+x2 <- x1 + 1 * rnorm(N, 1, 1)
+
+plot(x1, x2)
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
+
+``` r
+y <- x1 + x2 + runif(N, 0, 3)
+
+d <- tibble(x1, x2, y)
+pairs(d)
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-45-2.png)<!-- -->
+
+``` r
+# Just model y with x1
+m5_23 <- quap(
+    alist(
+        y ~ dnorm(mu, sigma),
+        mu <- a + b1*x1,
+        a ~ dnorm(0, 20),
+        b1 ~ dnorm(0, 50),
+        sigma ~ dunif(0, 20)
+    ),
+    data = d
+)
+
+# Model with both predictors.
+m5_24 <- quap(
+    alist(
+        y ~ dnorm(mu, sigma),
+        mu <- a + b1*x1 + b2*x2,
+        a ~ dnorm(0, 20),
+        c(b1, b2) ~ dnorm(0, 50),
+        sigma ~ dunif(0, 20)
+    ),
+    data = d
+)
+
+precis(m5_23)
+```
+
+    ##           mean         sd     5.5%    94.5%
+    ## a     3.549139 1.42786049 1.267142 5.831136
+    ## b1    1.892405 0.14192208 1.665586 2.119224
+    ## sigma 1.249563 0.08832099 1.108409 1.390717
+
+``` r
+precis(m5_24)
+```
+
+    ##            mean         sd      5.5%     94.5%
+    ## a     3.9691468 1.00377643 2.3649182 5.5733754
+    ## b1    0.8264943 0.14460601 0.5953859 1.0576026
+    ## b2    0.9349963 0.09199352 0.7879729 1.0820198
+    ## sigma 0.8765970 0.06198458 0.7775337 0.9756604
+
+**5M2. Invent your own example of a masked relationship. An outcome
+variable should be correlated with both predictor variables, but in
+opposite directions. And the two predictor variables should be
+correlated with one another.**
+
+``` r
+set.seed(0)
+N <- 100
+
+x1 <- rnorm(N, 10, 1)
+x2 <- -x1 * rnorm(N, mean = 1, sd = 0.1)
+plot(x1, x2)
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
+
+``` r
+y <- x1 + x2 + runif(N, 0.5, 1.5)
+
+d <- tibble(x1, x2, y)
+pairs(d)
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-46-2.png)<!-- -->
+
+``` r
+# Just model y ~ x1
+m5_25 <- quap(
+    alist(
+        y ~ dnorm(mu, sigma),
+        mu <- a + b1*x1,
+        a ~ dnorm(0, 20),
+        b1 ~ dnorm(0, 50),
+        sigma ~ dunif(0, 20)
+    ),
+    data = d
+)
+
+# Model with both predictors, unmasking the relationship
+m5_26 <- quap(
+    alist(
+        y ~ dnorm(mu, sigma),
+        mu <- a + b1*x1 + b2*x2,
+        a ~ dnorm(0, 20),
+        c(b1, b2) ~ dnorm(0, 50),
+        sigma ~ dunif(0, 20)
+    ),
+    data = d
+)
+
+precis(m5_25)
+```
+
+    ##             mean        sd       5.5%       94.5%
+    ## a      3.2331102 1.1579883  1.3824213  5.08379906
+    ## b1    -0.2187724 0.1150974 -0.4027203 -0.03482455
+    ## sigma  1.0125024 0.0715946  0.8980804  1.12692442
+
+``` r
+precis(m5_26)
+```
+
+    ##            mean         sd      5.5%     94.5%
+    ## a     1.8044153 0.33748449 1.2650499 2.3437807
+    ## b1    0.9421736 0.04830170 0.8649781 1.0193690
+    ## b2    1.0219554 0.03080180 0.9727281 1.0711826
+    ## sigma 0.2921878 0.02065997 0.2591691 0.3252064
+
+**5M3. It is sometimes observed that the best predictor of fire risk is
+the presence of firefighters—States and localities with many
+firefighters also have more fires. Presumably firefighters do not cause
+fires. Nevertheless, this is not a spurious correlation. Instead fires
+cause firefighters. Consider the same reversal of causal inference in
+the context of the divorce and marriage data. How might a high divorce
+rate cause a higher marriage rate? Can you think of a way to evaluate
+this relationship, using multiple regression?**
+
+Higher divorce rate could cause a higher marriage rate because it gives
+each person more opportunities to get married. Also, people who marry
+first when they are younger have more time to get multiple marriages
+afterwards. Finally, population can also be a factor here as that offers
+more chances to marry someone. We can try modeling this relationship
+using divorce rate, population, and median age at marriage
+
+``` r
+d <- as_tibble(WaffleDivorce) %>% 
+    janitor::clean_names() %>%
+    mutate_if(is.factor, as.character) %>%
+    mutate(pop_log = log(population),
+           pop_log_std = (pop_log - mean(pop_log)) / sd(pop_log),
+           age_std = (median_age_marriage - mean(median_age_marriage)) / sd(median_age_marriage),
+           divorce_std = (divorce - mean(divorce)) / sd(divorce))
+
+pairs(~ marriage + pop_log_std + age_std + divorce_std, data = d)
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
+
+``` r
+m5_27 <- quap(
+    alist(
+        marriage ~ dnorm(mu, sigma),
+        mu <- a + bp*pop_log_std + ba*age_std + bd*divorce_std,
+        a ~ dnorm(0, 50),
+        c(bp, ba, bd) ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_27)
+```
+
+    ##             mean        sd      5.5%      94.5%
+    ## a     20.1130587 0.3426248 19.565478 20.6606393
+    ## bp    -0.9404989 0.3508610 -1.501243 -0.3797552
+    ## ba    -2.8784839 0.4314736 -3.568062 -2.1889057
+    ## bd    -0.4505912 0.4332385 -1.142990  0.2418076
+    ## sigma  2.4227795 0.2422785  2.035572  2.8099873
+
+**5M4. In the divorce data, States with high numbers of Mormons (members
+of The Church of Jesus Christ of Latter-day Saints, LDS) have much lower
+divorce rates than the regression models expected. Find a list of LDS
+population by State and use those numbers as a predictor variable,
+predicting divorce rate using marriage rate, median age at marriage, and
+percent LDS population (possibly standardized). You may want to consider
+transformations of the raw percent LDS variable.**
+
+I got my statisitcs from the *Wikipedia* article [“The Church of Jesus
+Christ of Latter-day Saints membership statistics (United
+States)”](https://en.wikipedia.org/wiki/The_Church_of_Jesus_Christ_of_Latter-day_Saints_membership_statistics_\(United_States\))
+(05/06/2020).
+
+``` r
+lds_data <- file.path("assets", "ch5", "mormon-population-stats.tsv") %>%
+    read_tsv(col_types = cols(.default = "c")) %>%
+    janitor::clean_names() %>%
+    select(state, perc_lds = lds) %>%
+    mutate(perc_lds = as.numeric(str_remove(perc_lds, "\\%")),
+           perc_lds_std = (perc_lds - mean(perc_lds)) / sd(perc_lds)) %>%
+    inner_join(d, by = c("state" = "location")) %>%
+    mutate(marriage_std = (marriage - mean(marriage)) / sd(marriage))
+
+m5_28 <- quap(
+    alist(
+        divorce ~ dnorm(mu, sigma),
+        mu <- a + bm*marriage_std + ba*age_std + bl*perc_lds_std,
+        a ~ dnorm(0, 50),
+        c(bm, ba, bl) ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = lds_data
+)
+
+precis(m5_28)
+```
+
+    ##               mean        sd       5.5%      94.5%
+    ## a      9.684618398 0.1896023  9.3815973  9.9876395
+    ## bm     0.008057667 0.2879958 -0.4522153  0.4683306
+    ## ba    -1.372922791 0.2803681 -1.8210052 -0.9248404
+    ## bl    -0.614625647 0.2240546 -0.9727082 -0.2565431
+    ## sigma  1.340674975 0.1340638  1.1264152  1.5549348
+
+**5M5. One way to reason through multiple causation hypotheses is to
+imagine detailed mechanisms through which predictor variables may
+influence outcomes. For example, it is sometimes argued that the price
+of gasoline (predictor variable) is positively associated with lower
+obesity rates (outcome variable). However, there are at least two
+important mechanisms by which the price of gas could reduce obesity.
+First, it could lead to less driving and therefore more exercise.
+Second, it could lead to less driving, which leads to less eating out,
+which leads to less consumption of huge restaurant meals. Can you
+outline one or more multiple regressions that address these two
+mechanisms? Assume you can have any predictor data you need.**
+
+I would begin by modeling the obesity rate on just the about of exercise
+and number of restaurant meals per month (or some other period) to see
+if they directly predict obestiy. Further, I would model obesity with
+both of these predictors as they could be negatively correlated with
+each other, casuing a masked relationship. I would then look at the
+counterfactual plots and residulas to see if either predictor is more
+influential than the other.
+
+### Hard
+
+**All three exercises below use the same data, data(foxes) (partof
+rethinking).81 Theurban fox (Vulpes vulpes) is a successful exploiter of
+human habitat. Since urban foxes move in packs and defend territories,
+data on habitat quality and population density is also included. The
+data frame has five columns:**
+
+| group     | Number of the social group the individual fox belongs to |
+| --------- | -------------------------------------------------------- |
+| avgfood   | The average amount of food available in the territory    |
+| groupsize | The number of foxes in the social group                  |
+| area      | Size of the territory                                    |
+| weight    | Body weight of the individual fox                        |
+
+**5H1. Fit two bivariate Gaussian regressions, using map: (1) body
+weight as a linear function of territory size (area), and (2) body
+weight as a linear function of groupsize. Plot the results of these
+regressions, displaying the MAP regression line and the 95% interval of
+the mean. Is either variable important for predicting fox body weight?**
+
+**5H2. Now fit a multiple linear regression with weight as the outcome
+and both area and groupsize as predictor variables. Plot the predictions
+of the model for each predictor, holding the other predictor constant at
+its mean. What does this model say about the importance of each
+variable? Why do you get different results than you got in the exercise
+just above?**
+
+**5H3. Finally, consider the avgfood variable. Fit two more multiple
+regressions: (1) body weight as an additive function of avgfood and
+groupsize, and (2) body weight as an additive function of all three
+variables, avgfood and groupsize and area. Compare the results of these
+models to the previous models you’ve fit, in the first two exercises.
+(a) Is avgfood or area abetter predictor of body weight? If you had to
+choose one or the other to include in a model, which would it be?
+Support your assessment with any tables or plots you choose. (b) When
+both avgfood or area are in the same model, their effects are reduced
+(closer to zero) and their standard errors are larger than when they are
+included in separate models. Can you explain this result?**
