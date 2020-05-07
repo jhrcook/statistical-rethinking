@@ -1,4 +1,4 @@
-Chapter 4. Linear Models
+Chapter 5. Multivariate Linear Models
 ================
 
   - correlation is very common in the real world
@@ -1026,7 +1026,7 @@ cor(d$perc_fat, d$perc_lactose)
     also the correlation that remains after accounting for any other
     predictors
   - if we run simulations of fitting the model predicting kilocalories
-    per gram with percent fat and a new variable that is correlated wih
+    per gram with percent fat and a new variable that is correlated with
     percent fat at different amounts, we can plot the standard deviation
     of the coefficient of percent fat against the correlation of the two
     predictors
@@ -1059,10 +1059,10 @@ cor(d$perc_fat, d$perc_lactose)
         soil treatments
       - plants are grown from seed, their heights measured, treated with
         antifungals, final measures of heights are taken
-      - the precense of fungus is also measured
+      - the presence of fungus is also measured
       - if we are trying to make a causal inference on height, we should
         not include the presence of fungus
-          - the precense of fungus is a *post-treatment effect*
+          - the presence of fungus is a *post-treatment effect*
   - below is a simulation to help show what goes wrong when included a
     post-treatment effect
       - probability of fungus was 0.5 without treatment and 0.1 with
@@ -1133,9 +1133,9 @@ precis(m5_13, digits = 3)
     ## sigma  0.921904330 0.06518793  0.8177214  1.0260872
 
   - summary of `m5_13`:
-      - the coefficent for treatment is basically 0 with the 89%
+      - the coefficient for treatment is basically 0 with the 89%
         intervals straddling 0
-      - the coefficients for starting height and precense of fungus were
+      - the coefficients for starting height and presence of fungus were
         very strong
   - the problem is that we built this data manually and know that
     treatment should matter
@@ -1249,9 +1249,9 @@ summary(m5_15)
         males and females
           - therefore, the average male height is 135 cm + 7.27 cm =
             142.3 cm
-  - we can get posteior distribution for male height by sampling
+  - we can get posterior distribution for male height by sampling
     \(\alpha\) and \(\beta_m\) from the model and adding them together
-      - we cannot just add the 89% interval values togehter because
+      - we cannot just add the 89% interval values together because
         \(\alpha\) and \(\beta_m\) are correlated
 
 <!-- end list -->
@@ -1287,7 +1287,7 @@ unique(d$clade)
     ## [1] Strepsirrhine    New World Monkey Old World Monkey Ape             
     ## Levels: Ape New World Monkey Old World Monkey Strepsirrhine
 
-  - (for now) we will make the dummary variables by hand
+  - (for now) we will make the dummy variables by hand
 
 <!-- end list -->
 
@@ -1386,7 +1386,7 @@ quantile(diff_nwm_old, probs = c(0.025, 0.5, 0.975))
   - *ordinary least squares*: (OLS) way of estimating the parameters of
     linear regression
       - tries to minimize the sum of squared residuals
-      - generally simillar to maximizing the posterior probability or
+      - generally similar to maximizing the posterior probability or
         maximizing the likelihood
   - we will explore `lm()` in R and understand the estimates of OLS from
     a Bayesian perspective
@@ -1395,7 +1395,7 @@ quantile(diff_nwm_old, probs = c(0.025, 0.5, 0.975))
 
   - use *design formula* for `lm()`, separating predictors by `+`
       - the coefficients get created automatically
-      - all priors are flat (unimformative)
+      - all priors are flat (uninformative)
   - linear regression below is modeled in R shown in the following
     design formula
 
@@ -1447,7 +1447,7 @@ m5_21 <- lm(y ~ x - 1, data = d)
 
   - categorical variables are automatically expanded into the necessary
     dummy variables
-      - if the cetagorical variable is encoded with numbers, you must
+      - if the categorical variable is encoded with numbers, you must
         change it to a factor (or character)
 
 <!-- end list -->
@@ -1462,7 +1462,7 @@ m5_22 <- lm(y ~ 1 + as.factor(season), data = d)
     the model, so it is usually best to do these before hand
       - e.g.: log, square, cube, center, scale
 
-#### 5.5.2.4 No estiamte for \(\sigma\)
+#### 5.5.2.4 No estimate for \(\sigma\)
 
   - `lm()` does not provide a posterior for the standard deviation
     \(\sigma\)
@@ -1533,7 +1533,7 @@ the posterior distribution of another model.**
 
 (Refer to the text to see which models these numbers refer to.)
 
-Models 1, 3, 4 and 5 are inferrentially equivalent.
+Models 1, 3, 4 and 5 are inferentially equivalent.
 
 ### Medium
 
@@ -1735,7 +1735,7 @@ predicting divorce rate using marriage rate, median age at marriage, and
 percent LDS population (possibly standardized). You may want to consider
 transformations of the raw percent LDS variable.**
 
-I got my statisitcs from the *Wikipedia* article [“The Church of Jesus
+I got my statistics from the *Wikipedia* article [“The Church of Jesus
 Christ of Latter-day Saints membership statistics (United
 States)”](https://en.wikipedia.org/wiki/The_Church_of_Jesus_Christ_of_Latter-day_Saints_membership_statistics_\(United_States\))
 (05/06/2020).
@@ -1785,19 +1785,19 @@ mechanisms? Assume you can have any predictor data you need.**
 
 I would begin by modeling the obesity rate on just the about of exercise
 and number of restaurant meals per month (or some other period) to see
-if they directly predict obestiy. Further, I would model obesity with
+if they directly predict obesity. Further, I would model obesity with
 both of these predictors as they could be negatively correlated with
-each other, casuing a masked relationship. I would then look at the
-counterfactual plots and residulas to see if either predictor is more
+each other, causing a masked relationship. I would then look at the
+counterfactual plots and residuals to see if either predictor is more
 influential than the other.
 
 ### Hard
 
-**All three exercises below use the same data, data(foxes) (partof
-rethinking).81 Theurban fox (Vulpes vulpes) is a successful exploiter of
-human habitat. Since urban foxes move in packs and defend territories,
-data on habitat quality and population density is also included. The
-data frame has five columns:**
+**All three exercises below use the same data, `data(foxes)` (part of
+rethinking).81 The urban fox (Vulpes vulpes) is a successful exploiter
+of human habitat. Since urban foxes move in packs and defend
+territories, data on habitat quality and population density is also
+included. The data frame has five columns:**
 
 | group     | Number of the social group the individual fox belongs to |
 | --------- | -------------------------------------------------------- |
@@ -1806,11 +1806,102 @@ data frame has five columns:**
 | area      | Size of the territory                                    |
 | weight    | Body weight of the individual fox                        |
 
+``` r
+data("foxes")
+d <- as_tibble(foxes)
+```
+
 **5H1. Fit two bivariate Gaussian regressions, using map: (1) body
 weight as a linear function of territory size (area), and (2) body
 weight as a linear function of groupsize. Plot the results of these
 regressions, displaying the MAP regression line and the 95% interval of
 the mean. Is either variable important for predicting fox body weight?**
+
+``` r
+d <- d %>%
+    mutate(area_std = scale_nums(area),
+           groupsize_std = scale_nums(groupsize))
+
+m5_29 <- quap(
+    alist(
+        weight ~ dnorm(mu, sigma),
+        mu <- a + ba*area_std,
+        a ~ dnorm(0, 10),
+        ba ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+m5_30 <- quap(
+    alist(
+        weight ~ dnorm(mu, sigma),
+        mu <- a + bg*groupsize_std,
+        a ~ dnorm(0, 10),
+        bg ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_29, digits = 3)
+```
+
+    ##            mean        sd       5.5%     94.5%
+    ## a     4.5291226 0.1094314  4.3542301 4.7040151
+    ## ba    0.0230637 0.1099061 -0.1525875 0.1987149
+    ## sigma 1.1786827 0.0773839  1.0550083 1.3023571
+
+``` r
+precis(m5_30, digits = 3)
+```
+
+    ##             mean         sd       5.5%       94.5%
+    ## a      4.5291263 0.10802808  4.3564766  4.70177604
+    ## bg    -0.1905837 0.10849667 -0.3639823 -0.01718508
+    ## sigma  1.1635657 0.07639513  1.0414715  1.28565982
+
+``` r
+mu_area <- link(m5_29)
+mu_area_avg <- apply(mu_area, 2, mean)
+mu_area_pi <- apply(mu_area, 2, PI, prob = 0.95) %>% pi_to_df()
+d %>% 
+    mutate(mu_avg = mu_area_avg) %>%
+    bind_cols(mu_area_pi) %>%
+    ggplot(aes(x = area_std)) +
+    geom_ribbon(aes(ymin = x3_percent, ymax = x98_percent),
+                fill = "black", color = NA, alpha = 0.3) +
+    geom_line(aes(y = mu_avg), color = "black", size = 1.1) +
+    geom_point(aes(y = weight), size = 1, color = "grey50") +
+    labs(title = "Predicting fox weight by area of territory",
+         subtitle = "Ribbon is the 95% interval of the estimated average of weight",
+         y = "weight")
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-50-1.png)<!-- -->
+
+``` r
+mu_size <- link(m5_30)
+mu_size_avg <- apply(mu_size, 2, mean)
+mu_size_pi <- apply(mu_size, 2, PI, prob = 0.95) %>% pi_to_df()
+d %>% 
+    mutate(mu_avg = mu_size_avg) %>%
+    bind_cols(mu_size_pi) %>%
+    ggplot(aes(x = groupsize_std)) +
+    geom_ribbon(aes(ymin = x3_percent, ymax = x98_percent),
+                fill = "black", color = NA, alpha = 0.3) +
+    geom_line(aes(y = mu_avg), color = "black", size = 1.1) +
+    geom_point(aes(y = weight), size = 1, color = "grey50") +
+    labs(title = "Predicting fox weight by group size",
+         subtitle = "Ribbon is the 95% interval of the estimated average of weight",
+         y = "weight")
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-50-2.png)<!-- -->
+
+On its own, area of the territory does not seem to be an informative
+predictor of weight. On its own, group size has a very slight negative
+association with weight.
 
 **5H2. Now fit a multiple linear regression with weight as the outcome
 and both area and groupsize as predictor variables. Plot the predictions
@@ -1819,14 +1910,150 @@ its mean. What does this model say about the importance of each
 variable? Why do you get different results than you got in the exercise
 just above?**
 
+``` r
+m5_31 <- quap(
+    alist(
+        weight ~ dnorm(mu, sigma),
+        mu <- a + ba*area_std + bg*groupsize_std,
+        a ~ dnorm(0, 10),
+        ba ~ dnorm(0, 10),
+        bg ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_31, digits = 3)
+```
+
+    ##             mean         sd       5.5%      94.5%
+    ## a      4.5291668 0.10383998  4.3632105  4.6951232
+    ## ba     0.5734772 0.18574891  0.2766146  0.8703399
+    ## bg    -0.6651545 0.18574891 -0.9620171 -0.3682918
+    ## sigma  1.1184510 0.07342973  1.0010961  1.2358058
+
+``` r
+area_data <- data.frame(area_std = seq(-2.3, 2.1, length.out = 100),
+                        groupsize_std = mean(d$groupsize_std))
+mu_area <- link(m5_31, data = area_data)
+area_data %>%
+    mutate(mu_avg = apply(mu_area, 2, mean)) %>%
+    bind_cols(apply(mu_area, 2, PI) %>% pi_to_df()) %>%
+    ggplot(aes(x = area_std)) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent),
+                color = NA, fill = "black", alpha = 0.3) +
+    geom_line(aes(y = mu_avg), lty = 2, size = 1.1) +
+    labs(title = "Counterfactual of effect of territory area on weight, holding groupsize constant",
+         subtitle = "The ribbon is the 89% interval on the estimate of the mean weight",
+         x = "area (standardized)", y = "estimate of weight")
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-51-1.png)<!-- -->
+
+``` r
+size_data <- data.frame(area_std = mean(d$area_std),
+                        groupsize_std = seq(-1.6, 2.4, length.out = 100))
+mu_size <- link(m5_31, data = size_data)
+size_data %>%
+    mutate(mu_avg = apply(mu_size, 2, mean)) %>%
+    bind_cols(apply(mu_size, 2, PI) %>% pi_to_df()) %>%
+    ggplot(aes(x = groupsize_std)) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent),
+                color = NA, fill = "black", alpha = 0.3) +
+    geom_line(aes(y = mu_avg), lty = 2, size = 1.1) +
+    labs(title = "Counterfactual of effect of groupsize on weight, holding territory area constant",
+         subtitle = "The ribbon is the 89% interval on the estimate of the mean weight",
+         x = "group size (standardized)", y = "estimate of weight")
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-51-2.png)<!-- -->
+
+Now each variable is quite important with the territory area as a
+positive indicator of weight and group size as a negative indicator.
+They are negatively correlated with each other, thus masking their
+individual contributions to weight in individual models.
+
 **5H3. Finally, consider the avgfood variable. Fit two more multiple
 regressions: (1) body weight as an additive function of avgfood and
 groupsize, and (2) body weight as an additive function of all three
 variables, avgfood and groupsize and area. Compare the results of these
 models to the previous models you’ve fit, in the first two exercises.
-(a) Is avgfood or area abetter predictor of body weight? If you had to
+(a) Is avgfood or area a better predictor of body weight? If you had to
 choose one or the other to include in a model, which would it be?
 Support your assessment with any tables or plots you choose. (b) When
 both avgfood or area are in the same model, their effects are reduced
 (closer to zero) and their standard errors are larger than when they are
 included in separate models. Can you explain this result?**
+
+``` r
+pairs(~ groupsize + area + avgfood + weight, data = d)
+```
+
+![](ch5_multivariate-linear-models_files/figure-gfm/unnamed-chunk-52-1.png)<!-- -->
+
+``` r
+d <- d %>% mutate(avgfood_std = scale_nums(avgfood))
+
+m5_32 <- quap(
+    alist(
+        weight ~ dnorm(mu, sigma),
+        mu <- a + bf*avgfood_std + bg*groupsize_std,
+        a ~ dnorm(0, 10),
+        bf ~ dnorm(0, 10),
+        bg ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+m5_33 <- quap(
+    alist(
+        weight ~ dnorm(mu, sigma),
+        mu <- a + ba*area_std + bf*avgfood_std + bg*groupsize_std,
+        a ~ dnorm(0, 10),
+        ba ~ dnorm(0, 10),
+        bf ~ dnorm(0, 10),
+        bg ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = d
+)
+
+precis(m5_32, digits = 3)
+```
+
+    ##             mean         sd       5.5%      94.5%
+    ## a      4.5291592 0.10366869  4.3634766  4.6948418
+    ## bf     0.7581821 0.24044806  0.3738996  1.1424645
+    ## bg    -0.8740002 0.24044806 -1.2582826 -0.4897177
+    ## sigma  1.1166057 0.07330899  0.9994438  1.2337676
+
+``` r
+precis(m5_33, digits = 3)
+```
+
+    ##             mean         sd         5.5%      94.5%
+    ## a      4.5291790 0.10253072  4.365315056  4.6930428
+    ## ba     0.3573858 0.22209466  0.002435633  0.7123359
+    ## bf     0.4968562 0.28797316  0.036619437  0.9570929
+    ## bg    -0.9341993 0.24073370 -1.318938290 -0.5494604
+    ## sigma  1.1043475 0.07250373  0.988472543  1.2202225
+
+Average food seems to be a better predictor of weight than area of the
+territory when included in a model with the group size as another
+predictor.
+
+I would choose average food to be in the model as it is likely to have a
+more direct impact on weight than the size of the territory. This is
+assuming that it is not a post-treatment variable; I would need to know
+how the data was collected to accurately address that concern.
+
+Average food and area are highly correlated (shown below and in the
+pairs plot above), therefore, when included in the same model, their
+estimates are weakened due to shared information.
+
+``` r
+cor(d$avgfood, d$area)
+```
+
+    ## [1] 0.8831038

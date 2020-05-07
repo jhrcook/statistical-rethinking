@@ -40,3 +40,6 @@ Worlds](ch2_small-worlds-and-large-worlds.md)
 
 [Chapter 5. Multivariate Linear
 Models](ch5_multivariate-linear-models.md)
+
+[Chapter 6. Overfitting, Regularization, and Information
+Criteria](ch6_overfitting-regularization-and-information-criteria.md)
