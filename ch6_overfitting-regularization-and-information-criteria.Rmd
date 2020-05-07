@@ -40,7 +40,7 @@ set.seed(0)
 ### 6.1.1 More parameters always improve fit
 
 - *overfitting*: a model learns to much from a sample
-- for an example, we will use fake data on average brain volumes and body mass of hominin species
+- for an example, we will use fake data on average brain volumes and body mass of hominid species
 
 ```{r}
 sppnames <- c("afarensis", "africanus", "habilis", "boisei",
@@ -84,6 +84,11 @@ m6_5 <- lm(brain ~ mass + I(mass^2) + I(mass^3) + I(mass^4) + I(mass^5), data = 
 m6_6 <- lm(brain ~ mass + I(mass^2) + I(mass^3) + I(mass^4) + I(mass^5) + I(mass^6), data = d)
 ```
 
+- all of the fit models are shown against the original data, below
+    * the 5th order model has an $R^2 = 0.99$ and the 6th-order is 1
+    * the 6th order goes through every point
+    * there were enough parameters to assign one to each point of the data
+
 ```{r, fig.height=9, fig.width=8}
 fitted_plot <- function(fit, idx, ...) {
     mass_seq <- data.frame(mass = seq(min(fit$model$mass), max(fit$model$mass), 
@@ -95,7 +100,7 @@ fitted_plot <- function(fit, idx, ...) {
                     alpha = 0.3, color = NA) +
         geom_line(aes(x = mass, y = fit)) +
         geom_point(data = fit, aes(x = mass, y = brain)) +
-        labs(title = glue("poly.: {idx}  |  R^2: {round(glance(m6_1)$r.squared, 2)}"),
+        labs(title = glue("poly.: {idx}  |  R^2: {round(glance(fit)$r.squared, 2)}"),
              x = "mass", y = "brain volume")
 }
 
@@ -103,4 +108,150 @@ list(m6_1, m6_2, m6_3, m6_4, m6_5, m6_6) %>%
     purrr::imap(fitted_plot) %>%
     patchwork::wrap_plots(ncol = 2)
 ```
+
+### 6.1.2 Too few parameters hurts, too
+
+- too few parameters means the model has learned too little from the data
+
+## 6.2 Information theory and model performance
+
+<span style="color:gray">(My notes on this section are relatively brief and focused on the main points application.)</span>
+
+- must choose a *target* criterion of model performance
+    * this can be based on regularization or information criteria
+- then must choose a metric
+
+### 6.2.1 Firing the weatherperson
+
+- accuracy depends on definition of the target
+    * two dimensions to accuracy:
+        1. *cost-benefit analysis*: how much does it cost to be wrong?
+        2. *accuracy in context:* how much can the model improve prediction?
+- we will use a weather prediction for example
+    * two weathermen make the following predictions for the probability of rain over the next 10 days in the same city
+    * the bottom row is the observed outcome
+
+| Day    | 1 | 2 | 3 | 4   | 5   | 6   | 7   | 8   | 9   | 10  |
+|--------|---|---|---|-----|-----|-----|-----|-----|-----|-----|
+| Pred 1 | 1 | 1 | 1 | 0.6 | 0.6 | 0.6 | 0.6 | 0.6 | 0.6 | 0.6 |
+| Pred 2 | 0 | 0 | 0 | 0   | 0   | 0   | 0   | 0   | 0   | 0   |
+| Obs    | R | R | R | S   | S   | S   | S   | S   | S   | S   |
+
+- the second prediction was correct more often than the first
+    * a higher *hit rate* (rate of correct predictions)
+
+#### 6.2.1.1 Costs and benefits
+
+- if we weight being caught in the rain as -5 and carrying an umbrella as -1:
+    * prediction 1 score: -7.2
+    * prediction 2 score: -15
+
+#### 6.2.1.2 Measuring accuracy
+
+- hit rate is not the only measure of accuracy
+- perhaps compute the probability of predicting the exact sequence of days:
+    * compute the probability of a correct prediction for each day
+    * multiply each probability together to get the joint probability of correctly predicting the sequence
+    * this is the joint likelihood for Bayes' theorem
+- prediction 1 had a probability of $1^3 \times 0.4^7 \approx 0.005$ and prediction 2 had $0^3 \times 1^7 = 0$
+    * the 2nd prediction had no chance of being correct
+    * the 2nd prediction had a high average probability of being correct, it had a bad join probability of being correct
+- the joint probability is the likelihood in Bayes' theorem
+    * the number of ways each event (sequence of rain and shine) could happen
+- now need to find a way to measure how incorrect the prediction is
+    * needs to account for how hard getting the correct prediction is
+
+### 6.2.2 Information and uncertainty
+
+- *How much is our uncertainty reduced by learning an outcome?*
+    * how much is learned when we actually observe the day's weather
+    * need a measure of uncertainty
+- *information*: the reduction in uncertainty derived from learning an outcome
+- need a way to quantify uncertainty inherent in a probability distribution
+    * use *information entropy*: "The uncertainty contained in a probability distribution is the average log-probability of an event."
+
+$$
+H(p) = -E \log(p_i) = \ \sum_{i=1}^{n} p_i \log(p_i)
+$$
+
+### 6.2.3 From entropy to accuracy
+
+- now need a measure of how far a model is from the target: *divergence*
+- *divergence*: "The additional uncertainty induced by using probabilities from one distribution to describe another distribution."
+    * also known as *Kullback-Leibler divergence* (K-L divergence)
+- suppose the probabilities for two events are $p_1 = 0.3$, $p_2 = 0.7$
+    * if we instead believe these events have the probabilities $q_1 = 0.25$, $q_2 = 0.75$
+    * measure how much additional uncertainty has been introduced by using $q = {q_1, q_2}$ to estimate $p = {p_1, p_2}$?
+
+$$
+D_\text{KL}(p, q) = \sum_i p_i (\log(p_i) - \log(q_i)) = \sum_i p_i \log(\frac{p_i}{q_i})
+$$
+
+- "the divergence is the average difference in log probability between the target (p) and model (q)"
+    * the difference between the entropy of the target $p$ and the *cross entropy* from using $q$ to predict $p$
+
+### 6.2.4 From divergence to deviance
+
+- the above sections established the distance of a model from the target using K-L divergence
+- the remaining is to see how to estimate this divergence in a statistical model
+- so far, we have been comparing the model to the truth: compare true probability $p$ to estimated probability $q$
+    * the truth is not known in reality, though
+    * instead, we can compare two estimated $q$ and $r$, which causes the real probability $p$ to be subtracted out
+        - cannot how far from the truth either model is, but we can tell which is further
+- we end up with a *relative model fit* as an estimate of K-L divergence
+    * we measure a model's *deviance*:
+
+$$
+D(q) = -2 \sum_i \log(q_i)
+$$
+
+- the deviance of the estimates we have modeled in this course so far can be calculated:
+    * the $q$-values: use the MAP estimates to compute a log-probability of the observed data for each row
+    * sum and multiply by $-2$
+    * in R, this can be done by the `logLik()` function
+
+```{r}
+-2 * logLik(m6_1)  # deviance
+```
+
+### 6.2.5 From deviance to out-of-sample
+
+- flaw with deviance: it will always improve with model complexity
+    * just like $R^2$
+    * the deviance on new data is really what we want
+    
+## 6.3 Regularization
+
+- can prevent overfitting by adding a *regularization prior* to a $\beta$ coefficient
+    * requires tuning to prevent both overfitting and underfitting
+    * a uniform or other broad prior may allow the model fitting algorithm to stray to extreme
+- for example, consider the following Gaussian model (where $x$ is standardized)
+    * the prior for $\alpha$ is effectively uninformative
+    * the prior for $\beta$ is very strict
+
+$$
+y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta x_i \\
+\alpha \sim \text{Normal}(0, 100) \\
+\beta \sim \text{Normal}(0, 1) \\
+\sigma \sim \text{Uniform}(0, 10)
+$$
+
+```{r}
+tibble(x = list(seq(-3, 3, length.out = 1e3)),
+       std_dev = c(1, 0.5, 0.2)) %>%
+    unnest(x) %>%
+    mutate(prob_density = map2_dbl(x, std_dev, ~ dnorm(.x, mean = 0, sd = .y))) %>%
+    ggplot(aes(x = x, y = prob_density, color = factor(std_dev))) +
+    geom_line(size = 1) +
+    theme(legend.position = c(0.8, 0.7)) +
+    labs(x = "parameter value", 
+         y = "probability density",
+         title = "Distribution of parameter values at different standard deviations of priors",
+         color = "Gaussian std. dev.")
+```
+
+- the amount of regularization can be dewtermined using *cross validation*
+
+## 6.4 Information criteria
 
