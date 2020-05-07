@@ -1,0 +1,106 @@
+---
+title: "Chapter 6. Overfitting, Regularization, and Information Criteria"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(glue)
+library(broom)
+library(patchwork)
+library(rethinking)
+library(tidyverse)
+library(conflicted)
+
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("rename", "dplyr")
+
+theme_set(theme_minimal())
+source_scripts()
+set.seed(0)
+```
+
+- simpler models tend to be preferred
+    * this chapter deals with comparing explanatory value of a model and its complexity
+- there are two general families:
+    * *regularization*
+    * use a scoring mechanism like *information criteria*
+        - this chapter introduces *information theory* to cover these metrics
+
+## 6.1 The problem with parameters
+
+- we should not just add all variables even if they are not correlated with each other
+    * adding parameters will generally improve the fit of the model to the data
+    * however, they can often predict worse on new data
+    * this is *overfitting*
+
+### 6.1.1 More parameters always improve fit
+
+- *overfitting*: a model learns to much from a sample
+- for an example, we will use fake data on average brain volumes and body mass of hominin species
+
+```{r}
+sppnames <- c("afarensis", "africanus", "habilis", "boisei",
+              "rudolfensis", "ergaster", "sapiens")
+brainvolcc <- c(438, 452, 612, 521, 752, 871, 1350)
+masskg <- c(37.0, 35.5, 34.5, 41.5, 55.5, 61.0, 53.5)
+d <- tibble(species=sppnames, brain=brainvolcc, mass=masskg)
+```
+
+- we will use `lm()` instead of `quap()` for this part of the lesson as it is a bit faster and easier to use
+    * the main points will still apply
+- we will build increasingly complex models of this data
+    * the simplest is below, modelling brain volume of body size
+
+$$
+v_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_1 m_i
+$$
+
+- this model is fit below and the $R^2$ is calculated.
+
+```{r}
+m6_1 <- lm(brain ~ mass, data = d)
+1 - var(resid(m6_1)) / var(d$brain)  # R-squared
+```
+
+- consider 5 more models, each more complex with higher degree polynomials
+    * below is the formula for the 2nd-degree polynomial
+
+$$
+v_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_1 m_i + \beta_2 m_i^2
+$$
+
+```{r}
+m6_1 <- lm(brain ~ mass, data = d)
+m6_2 <- lm(brain ~ mass + I(mass^2), data = d)
+m6_3 <- lm(brain ~ mass + I(mass^2) + I(mass^3), data = d)
+m6_4 <- lm(brain ~ mass + I(mass^2) + I(mass^3) + I(mass^4), data = d)
+m6_5 <- lm(brain ~ mass + I(mass^2) + I(mass^3) + I(mass^4) + I(mass^5), data = d)
+m6_6 <- lm(brain ~ mass + I(mass^2) + I(mass^3) + I(mass^4) + I(mass^5) + I(mass^6), data = d)
+```
+
+```{r, fig.height=9, fig.width=8}
+fitted_plot <- function(fit, idx, ...) {
+    mass_seq <- data.frame(mass = seq(min(fit$model$mass), max(fit$model$mass), 
+                                      length.out = 200))
+    predict(fit, newdata = mass_seq, interval = "confidence") %>%
+        cbind(mass_seq) %>%
+        ggplot() +
+        geom_ribbon(aes(x = mass, ymin = lwr, ymax = upr), 
+                    alpha = 0.3, color = NA) +
+        geom_line(aes(x = mass, y = fit)) +
+        geom_point(data = fit, aes(x = mass, y = brain)) +
+        labs(title = glue("poly.: {idx}  |  R^2: {round(glance(m6_1)$r.squared, 2)}"),
+             x = "mass", y = "brain volume")
+}
+
+list(m6_1, m6_2, m6_3, m6_4, m6_5, m6_6) %>%
+    purrr::imap(fitted_plot) %>%
+    patchwork::wrap_plots(ncol = 2)
+```
+
