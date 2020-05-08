@@ -255,3 +255,227 @@ tibble(x = list(seq(-3, 3, length.out = 1e3)),
 
 ## 6.4 Information criteria
 
+- *Akaike information criterion* provides an estimate of out-of-sample deviance:
+    * $p$ is the number of free parameters to be estimated
+
+$$
+\text{AIC} = D_\text{train} + 2p
+$$
+
+- AIC's approximation is reliable when:
+    1. the priors are flat
+    2. the posterior distribution is approximately multivariate Gaussian
+    3. the sample size $N$ is much larger than the number of parameters $k$
+- because we rarely want to use flat priors, use DIC and WAIC more frequently:
+    * *Deviance Information Criterion* (DIC) accomidates informative priors but still assumes the posterior is multivariate Gaussian and $N \gg k$
+    * *Widely Applicable Information Criterion* (WAIC) is more general
+        - makes no assumptions about the posterior
+
+### 6.4.1 DIC
+
+- Deviance Information Criterion (DIC)
+- it is aware of informative priors
+    * by using the posterior distributions to calculate the deviance
+- assumes a multivariate Gaussian posterior distribution (like AIC)
+    * if a parameter in the posterior is highly skewed, DIC (and AIC) will give poor estimates
+
+### 6.4.2 WAIC
+
+- Widely Applicable Information Criterion (WAIC)
+- does not require a multivariate Gaussian posterior
+- is often more accurate than DIC
+    * however, there are some models where defining WAIC is too difficult
+    * particularly where the points are not independent (line in time-series analysis)
+- it operates point-wise
+    * uncertainty in prediction is considered for each point in the data
+
+### 6.4.3 DIC and WAIC as estimates of deviance
+
+## 6.5 Using information criteria
+
+- this section discusses *model comparison* and *model averaging*:
+    * *model comparison*: using DIC/WAIC in combination with posterior predictive checks to each model
+    * *model averaging*:using DIC/WAIC to construct a posterior predictive distribution that uses what we know about relative accuracy of the models
+        - "prediction averaging," not averaging the estimates of multiple models
+
+### 6.5.1 Model comparison
+
+- use the primate milk data for an example
+    * remove rows with missing information
+
+```{r}
+data("milk")
+d <- milk[complete.cases(milk), ] %>% janitor::clean_names()
+d$neocortex <- d$neocortex_perc / 100
+```
+
+- predict kilocalories per gram using neocortex size and the lagarithm of mass of the mother
+    * fit 4 different models with different combinations of these predictors
+    * also restrict the standard deviation of the final Gaussian $\sigma$ to be positive
+        - estimate the logarithm of $\sigma$ and exponentiate it in the likelihood function
+    * all priors were left as flat
+
+```{r}
+a_start <- mean(d$kcal_per_g)
+sigma_start <- log(sd(d$kcal_per_g))
+
+# Model kcal with no predictors (just an intercept)
+m6_11 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(a, exp(log_sigma))
+    ),
+    data = d,
+    start = list(a = a_start,
+                 log_sigma = sigma_start)
+)
+
+# Model kcal with neocortex
+m6_12 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, exp(log_sigma)),
+        mu <- a + bn*neocortex
+    ),
+    data = d,
+    start = list(a = a_start,
+                 bn = 0,
+                 log_sigma = sigma_start)
+)
+
+# Model kcal with log(mass)
+m6_13 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, exp(log_sigma)),
+        mu <- a + bm*log(mass)
+    ),
+    data = d,
+    start = list(a = a_start,
+                 bm = 0,
+                 log_sigma = sigma_start)
+)
+
+# Model kcal with neocortex and log(mass)
+m6_14 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, exp(log_sigma)),
+        mu <- a + bn*neocortex + bm*log(mass)
+    ),
+    data = d,
+    start = list(a = a_start,
+                 bn = 0,
+                 bm = 0,
+                 log_sigma = sigma_start)
+)
+```
+
+#### 6.5.1.1 Comparing WAIC values
+
+- can measure WAIC using the `WAIC()` function from the 'rethinking' package:
+    * first value is the WAIC
+    * `lppd` and `pWAIC` are used to calculate WAIC
+    * `se` is the standard error of the estimate from the sampling process
+
+```{r}
+WAIC(m6_14)
+```
+
+- get WAIC for all models
+    * the "weight" is roughly "an estiamte of the probability that the model will make the best predictions on new data, conditional on the set of models considered"
+
+```{r}
+milk_models <- compare(m6_11, m6_12, m6_13, m6_14)
+milk_models
+```
+
+- can plot the WAIC values and distributions
+    * unfilled points are the WAIC
+    * the SE of the difference between each WAIC and the top-ranke WAIC are the grey triangles
+
+```{r}
+plot(milk_models, SE = TRUE, dSE = TRUE)
+```
+
+#### 6.5.1.2 Comparing estimates
+
+- generally useful to compare parameter estimates of models
+    * can help to understand the WAIC values
+    * helps to understand the parameters to see if they remain stable across models
+
+```{r}
+coeftab(m6_11, m6_12, m6_13, m6_14)
+```
+
+```{r}
+plot(coeftab(m6_11, m6_12, m6_13, m6_14))
+```
+
+### 6.5.2 Model averaging
+
+- we want to use the weights from WAIC to generate predictions
+- to review, start with simulating and plotting counterfactual predictions for `m6_14` on the range of neocortex
+
+```{r}
+nc_seq <- seq(0.53, 0.78, length.out = 1e3)
+d_predict <- tibble(
+    kcal_per_g = 0,
+    neocortex = nc_seq,
+    mass = 4.5
+)
+
+pred_m6_14 <- link(m6_14, data = d_predict)
+mu <- apply(pred_m6_14, 2, mean)
+mu_pi <- apply(pred_m6_14, 2, PI)
+
+d_predict %>%
+    mutate(mu_mean = mu) %>%
+    bind_cols(pi_to_df(mu_pi)) %>%
+    ggplot() +
+    geom_ribbon(aes(x = neocortex, ymin = x5_percent, ymax = x94_percent),
+                fill = NA, color = "grey30", lty = 2) +
+    geom_line(aes(x = neocortex, y = mu_mean), lty = 2, size = 0.7) +
+    geom_point(data = d, aes(x = neocortex, y = kcal_per_g)) +
+    labs(x = "neocortex",
+         y = "kcal_per_g",
+         title = "Counterfactual over the range of neocortex",
+         subtitle = "Holding mass constant at the average value; ribbon is the 89% interval of the estimate of kcal_per_g")
+```
+
+- now we can compute and add model-averaged posterior predictions:
+    1. compute WAIC for each model
+    2. compute the weight for each model
+    3. compute linear model and simulated outcomes for each model
+    4. combine these values into an ensemble of predictions, using the model weights as proportions
+- this is automated by the `ensemble()` function from 'rethinking'
+    * it uses `link()` and `sim()` to do the above process
+
+```{r}
+milk_ensemble <- ensemble(m6_11, m6_12, m6_13, m6_14, data = d_predict)
+
+mu_ens <- apply(milk_ensemble$link, 2, mean)
+mu_pi_ens <- apply(milk_ensemble$link, 2, PI)
+
+d_predict %>%
+    mutate(mu_mean = mu,
+           ensemble_mu = mu_ens) %>%
+    bind_cols(pi_to_df(mu_pi) %>% set_names(c("m6_14_low", "m6_14_hi"))) %>%
+    bind_cols(pi_to_df(mu_pi_ens) %>% set_names(c("ens_low", "end_hi"))) %>%
+    ggplot(aes(x = neocortex)) +
+    geom_ribbon(aes(ymin = m6_14_low, ymax = m6_14_hi),
+                fill = NA, color = "grey30", lty = 2) +
+    geom_line(aes(y = mu_mean), lty = 2, size = 0.7) +
+    geom_ribbon(aes(ymin = ens_low, ymax = end_hi),
+                fill = "black", color = NA, alpha = 0.2) +
+    geom_line(aes(y = ensemble_mu), lty = 1, size = 0.7) +
+    geom_point(data = d, aes(y = kcal_per_g)) +
+    labs(x = "neocortex",
+         y = "kcal_per_g",
+         title = "Counterfactual over the range of neocortex",
+         subtitle = 
+"Holding mass constant at the avg.; dashed ribbon is the 89% interval of the estimate of kcal_per_g.
+The shaded region and solid line are estimates using the ensemble approach.")
+```
+
+- model averaging is a conservative approach
+- it communicates model uncertainty
+- will never make a predictor variable appear more influential than it already does in any single model
+
+## 6.7 Practice

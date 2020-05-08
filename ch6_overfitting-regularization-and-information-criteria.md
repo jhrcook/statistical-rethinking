@@ -214,3 +214,376 @@ D_\text{KL}(p, q) = \sum_i p_i (\log(p_i) - \log(q_i)) = \sum_i p_i \log(\frac{p
         *cross entropy* from using \(q\) to predict \(p\)
 
 ### 6.2.4 From divergence to deviance
+
+  - the above sections established the distance of a model from the
+    target using K-L divergence
+  - the remaining is to see how to estimate this divergence in a
+    statistical model
+  - so far, we have been comparing the model to the truth: compare true
+    probability \(p\) to estimated probability \(q\)
+      - the truth is not known in reality, though
+      - instead, we can compare two estimated \(q\) and \(r\), which
+        causes the real probability \(p\) to be subtracted out
+          - cannot how far from the truth either model is, but we can
+            tell which is further
+  - we end up with a *relative model fit* as an estimate of K-L
+    divergence
+      - we measure a model’s *deviance*:
+
+\[
+D(q) = -2 \sum_i \log(q_i)
+\]
+
+  - the deviance of the estimates we have modeled in this course so far
+    can be calculated:
+      - the \(q\)-values: use the MAP estimates to compute a
+        log-probability of the observed data for each row
+      - sum and multiply by \(-2\)
+      - in R, this can be done by the `logLik()` function
+
+<!-- end list -->
+
+``` r
+-2 * logLik(m6_1)  # deviance
+```
+
+    ## 'log Lik.' 94.92499 (df=3)
+
+### 6.2.5 From deviance to out-of-sample
+
+  - flaw with deviance: it will always improve with model complexity
+      - just like \(R^2\)
+      - the deviance on new data is really what we want
+
+## 6.3 Regularization
+
+  - can prevent overfitting by adding a *regularization prior* to a
+    \(\beta\) coefficient
+      - requires tuning to prevent both overfitting and underfitting
+      - a uniform or other broad prior may allow the model fitting
+        algorithm to stray to extreme
+  - for example, consider the following Gaussian model (where \(x\) is
+    standardized)
+      - the prior for \(\alpha\) is effectively uninformative
+      - the prior for \(\beta\) is very strict
+
+\[
+y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta x_i \\
+\alpha \sim \text{Normal}(0, 100) \\
+\beta \sim \text{Normal}(0, 1) \\
+\sigma \sim \text{Uniform}(0, 10)
+\]
+
+``` r
+tibble(x = list(seq(-3, 3, length.out = 1e3)),
+       std_dev = c(1, 0.5, 0.2)) %>%
+    unnest(x) %>%
+    mutate(prob_density = map2_dbl(x, std_dev, ~ dnorm(.x, mean = 0, sd = .y))) %>%
+    ggplot(aes(x = x, y = prob_density, color = factor(std_dev))) +
+    geom_line(size = 1) +
+    theme(legend.position = c(0.8, 0.7)) +
+    labs(x = "parameter value", 
+         y = "probability density",
+         title = "Distribution of parameter values at different standard deviations of priors",
+         color = "Gaussian std. dev.")
+```
+
+![](ch6_overfitting-regularization-and-information-criteria_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+  - the amount of regularization can be dewtermined using *cross
+    validation*
+
+## 6.4 Information criteria
+
+  - *Akaike information criterion* provides an estimate of out-of-sample
+    deviance:
+      - \(p\) is the number of free parameters to be estimated
+
+\[
+\text{AIC} = D_\text{train} + 2p
+\]
+
+  - AIC’s approximation is reliable when:
+    1.  the priors are flat
+    2.  the posterior distribution is approximately multivariate
+        Gaussian
+    3.  the sample size \(N\) is much larger than the number of
+        parameters \(k\)
+  - because we rarely want to use flat priors, use DIC and WAIC more
+    frequently:
+      - *Deviance Information Criterion* (DIC) accomidates informative
+        priors but still assumes the posterior is multivariate Gaussian
+        and \(N \gg k\)
+      - *Widely Applicable Information Criterion* (WAIC) is more general
+          - makes no assumptions about the posterior
+
+### 6.4.1 DIC
+
+  - Deviance Information Criterion (DIC)
+  - it is aware of informative priors
+      - by using the posterior distributions to calculate the deviance
+  - assumes a multivariate Gaussian posterior distribution (like AIC)
+      - if a parameter in the posterior is highly skewed, DIC (and AIC)
+        will give poor estimates
+
+### 6.4.2 WAIC
+
+  - Widely Applicable Information Criterion (WAIC)
+  - does not require a multivariate Gaussian posterior
+  - is often more accurate than DIC
+      - however, there are some models where defining WAIC is too
+        difficult
+      - particularly where the points are not independent (line in
+        time-series analysis)
+  - it operates point-wise
+      - uncertainty in prediction is considered for each point in the
+        data
+
+### 6.4.3 DIC and WAIC as estimates of deviance
+
+## 6.5 Using information criteria
+
+  - this section discusses *model comparison* and *model averaging*:
+      - *model comparison*: using DIC/WAIC in combination with posterior
+        predictive checks to each model
+      - *model averaging*:using DIC/WAIC to construct a posterior
+        predictive distribution that uses what we know about relative
+        accuracy of the models
+          - “prediction averaging,” not averaging the estimates of
+            multiple models
+
+### 6.5.1 Model comparison
+
+  - use the primate milk data for an example
+      - remove rows with missing information
+
+<!-- end list -->
+
+``` r
+data("milk")
+d <- milk[complete.cases(milk), ] %>% janitor::clean_names()
+d$neocortex <- d$neocortex_perc / 100
+```
+
+  - predict kilocalories per gram using neocortex size and the lagarithm
+    of mass of the mother
+      - fit 4 different models with different combinations of these
+        predictors
+      - also restrict the standard deviation of the final Gaussian
+        \(\sigma\) to be positive
+          - estimate the logarithm of \(\sigma\) and exponentiate it in
+            the likelihood function
+      - all priors were left as flat
+
+<!-- end list -->
+
+``` r
+a_start <- mean(d$kcal_per_g)
+sigma_start <- log(sd(d$kcal_per_g))
+
+# Model kcal with no predictors (just an intercept)
+m6_11 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(a, exp(log_sigma))
+    ),
+    data = d,
+    start = list(a = a_start,
+                 log_sigma = sigma_start)
+)
+
+# Model kcal with neocortex
+m6_12 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, exp(log_sigma)),
+        mu <- a + bn*neocortex
+    ),
+    data = d,
+    start = list(a = a_start,
+                 bn = 0,
+                 log_sigma = sigma_start)
+)
+
+# Model kcal with log(mass)
+m6_13 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, exp(log_sigma)),
+        mu <- a + bm*log(mass)
+    ),
+    data = d,
+    start = list(a = a_start,
+                 bm = 0,
+                 log_sigma = sigma_start)
+)
+
+# Model kcal with neocortex and log(mass)
+m6_14 <- quap(
+    alist(
+        kcal_per_g ~ dnorm(mu, exp(log_sigma)),
+        mu <- a + bn*neocortex + bm*log(mass)
+    ),
+    data = d,
+    start = list(a = a_start,
+                 bn = 0,
+                 bm = 0,
+                 log_sigma = sigma_start)
+)
+```
+
+#### 6.5.1.1 Comparing WAIC values
+
+  - can measure WAIC using the `WAIC()` function from the ‘rethinking’
+    package:
+      - first value is the WAIC
+      - `lppd` and `pWAIC` are used to calculate WAIC
+      - `se` is the standard error of the estimate from the sampling
+        process
+
+<!-- end list -->
+
+``` r
+WAIC(m6_14)
+```
+
+    ##        WAIC     lppd  penalty  std_err
+    ## 1 -15.39206 12.33699 4.640955 7.612751
+
+  - get WAIC for all models
+      - the “weight” is roughly “an estiamte of the probability that the
+        model will make the best predictions on new data, conditional on
+        the set of models considered”
+
+<!-- end list -->
+
+``` r
+milk_models <- compare(m6_11, m6_12, m6_13, m6_14)
+milk_models
+```
+
+    ##             WAIC       SE    dWAIC      dSE    pWAIC     weight
+    ## m6_14 -15.862631 7.081823 0.000000       NA 4.406564 0.94839376
+    ## m6_11  -8.242263 4.517978 7.620368 6.802299 1.834151 0.02100133
+    ## m6_13  -8.136854 5.418315 7.725778 4.954064 2.874894 0.01992312
+    ## m6_12  -6.890172 4.251610 8.972459 7.101033 2.594300 0.01068179
+
+  - can plot the WAIC values and distributions
+      - unfilled points are the WAIC
+      - the SE of the difference between each WAIC and the top-ranke
+        WAIC are the grey triangles
+
+<!-- end list -->
+
+``` r
+plot(milk_models, SE = TRUE, dSE = TRUE)
+```
+
+![](ch6_overfitting-regularization-and-information-criteria_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+#### 6.5.1.2 Comparing estimates
+
+  - generally useful to compare parameter estimates of models
+      - can help to understand the WAIC values
+      - helps to understand the parameters to see if they remain stable
+        across models
+
+<!-- end list -->
+
+``` r
+coeftab(m6_11, m6_12, m6_13, m6_14)
+```
+
+    ##           m6_11   m6_12   m6_13   m6_14  
+    ## a            0.66    0.35    0.71   -1.09
+    ## log_sigma   -1.79   -1.80   -1.85   -2.16
+    ## bn             NA    0.45      NA    2.79
+    ## bm             NA      NA   -0.03   -0.10
+    ## nobs           17      17      17      17
+
+``` r
+plot(coeftab(m6_11, m6_12, m6_13, m6_14))
+```
+
+![](ch6_overfitting-regularization-and-information-criteria_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+### 6.5.2 Model averaging
+
+  - we want to use the weights from WAIC to generate predictions
+  - to review, start with simulating and plotting counterfactual
+    predictions for `m6_14` on the range of neocortex
+
+<!-- end list -->
+
+``` r
+nc_seq <- seq(0.53, 0.78, length.out = 1e3)
+d_predict <- tibble(
+    kcal_per_g = 0,
+    neocortex = nc_seq,
+    mass = 4.5
+)
+
+pred_m6_14 <- link(m6_14, data = d_predict)
+mu <- apply(pred_m6_14, 2, mean)
+mu_pi <- apply(pred_m6_14, 2, PI)
+
+d_predict %>%
+    mutate(mu_mean = mu) %>%
+    bind_cols(pi_to_df(mu_pi)) %>%
+    ggplot() +
+    geom_ribbon(aes(x = neocortex, ymin = x5_percent, ymax = x94_percent),
+                fill = NA, color = "grey30", lty = 2) +
+    geom_line(aes(x = neocortex, y = mu_mean), lty = 2, size = 0.7) +
+    geom_point(data = d, aes(x = neocortex, y = kcal_per_g)) +
+    labs(x = "neocortex",
+         y = "kcal_per_g",
+         title = "Counterfactual over the range of neocortex",
+         subtitle = "Holding mass constant at the average value; ribbon is the 89% interval of the estimate of kcal_per_g")
+```
+
+![](ch6_overfitting-regularization-and-information-criteria_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+  - now we can compute and add model-averaged posterior predictions:
+    1.  compute WAIC for each model
+    2.  compute the weight for each model
+    3.  compute linear model and simulated outcomes for each model
+    4.  combine these values into an ensemble of predictions, using the
+        model weights as proportions
+  - this is automated by the `ensemble()` function from ‘rethinking’
+      - it uses `link()` and `sim()` to do the above process
+
+<!-- end list -->
+
+``` r
+milk_ensemble <- ensemble(m6_11, m6_12, m6_13, m6_14, data = d_predict)
+
+mu_ens <- apply(milk_ensemble$link, 2, mean)
+mu_pi_ens <- apply(milk_ensemble$link, 2, PI)
+
+d_predict %>%
+    mutate(mu_mean = mu,
+           ensemble_mu = mu_ens) %>%
+    bind_cols(pi_to_df(mu_pi) %>% set_names(c("m6_14_low", "m6_14_hi"))) %>%
+    bind_cols(pi_to_df(mu_pi_ens) %>% set_names(c("ens_low", "end_hi"))) %>%
+    ggplot(aes(x = neocortex)) +
+    geom_ribbon(aes(ymin = m6_14_low, ymax = m6_14_hi),
+                fill = NA, color = "grey30", lty = 2) +
+    geom_line(aes(y = mu_mean), lty = 2, size = 0.7) +
+    geom_ribbon(aes(ymin = ens_low, ymax = end_hi),
+                fill = "black", color = NA, alpha = 0.2) +
+    geom_line(aes(y = ensemble_mu), lty = 1, size = 0.7) +
+    geom_point(data = d, aes(y = kcal_per_g)) +
+    labs(x = "neocortex",
+         y = "kcal_per_g",
+         title = "Counterfactual over the range of neocortex",
+         subtitle = 
+"Holding mass constant at the avg.; dashed ribbon is the 89% interval of the estimate of kcal_per_g.
+The shaded region and solid line are estimates using the ensemble approach.")
+```
+
+![](ch6_overfitting-regularization-and-information-criteria_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+  - model averaging is a conservative approach
+  - it communicates model uncertainty
+  - will never make a predictor variable appear more influential than it
+    already does in any single model
+
+## 6.7 Practice
