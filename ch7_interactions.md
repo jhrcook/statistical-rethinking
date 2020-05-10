@@ -411,3 +411,211 @@ bind_rows(
     2.  the influence of continent depends in the ruggedness
 
 ## 7.3 Continuous interactions
+
+  - interaction effects are difficult to interpret
+      - especially with only tables of posterior means and std. devs.
+      - we will look at using a *triptych plot* to understand these
+        effects
+  - it is very important to center and standardize the predictors when
+    using interactions
+
+### 7.3.1 The data
+
+  - for examples we will use sizes of blooms from beds of tulips grown
+    in greenhouses with different soil and light
+      - we are interested in the interaction of light and water
+
+<!-- end list -->
+
+``` r
+data("tulips")
+d <- as_tibble(tulips)
+str(d)
+```
+
+    ## tibble [27 × 4] (S3: tbl_df/tbl/data.frame)
+    ##  $ bed   : Factor w/ 3 levels "a","b","c": 1 1 1 1 1 1 1 1 1 2 ...
+    ##  $ water : int [1:27] 1 1 1 2 2 2 3 3 3 1 ...
+    ##  $ shade : int [1:27] 1 2 3 1 2 3 1 2 3 1 ...
+    ##  $ blooms: num [1:27] 0 0 111 183.5 59.2 ...
+
+### 7.3.2 The un-centered models
+
+  - the author demonstrates fitting and interpreting the models without
+    centering the data
+
+### 7.3.3 Center and re-estimate
+
+``` r
+d$shade_c <- d$shade - mean(d$shade)
+d$water_c <- d$water - mean(d$water)
+```
+
+  - fit two models for predicting number of blooms with water and shade
+      - the second model includes their interactions
+      - starting places for the fitting are provided because the priors
+        are very flat
+
+<!-- end list -->
+
+``` r
+m7_8 <- quap(
+    alist(
+        blooms ~ dnorm(mu, sigma),
+        mu <- a + bW*water_c + bS*shade_c,
+        a ~ dnorm(130, 100),
+        c(bW, bS) ~ dnorm(0, 100),
+        sigma ~ dunif(0, 100)
+    ),
+    data = d,
+    start = list(a = mean(d$blooms), 
+                 bW = 0, bS = 0, 
+                 sigma = sd(d$blooms))
+)
+
+m7_9 <- quap(
+    alist(
+        blooms ~ dnorm(mu, sigma),
+        mu <- a + bW*water_c + bS*shade_c + bWS*water_c*shade_c,
+        a ~ dnorm(130, 100),
+        c(bW, bS, bWS) ~ dnorm(0, 100),
+        sigma ~ dunif(0, 100)
+    ),
+    data = d,
+    start = list(a = mean(d$blooms), 
+                 bW = 0, bS = 0, bWS = 0, 
+                 sigma = sd(d$blooms))
+)
+
+plot(precis(m7_8))
+```
+
+![](ch7_interactions_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+``` r
+plot(precis(m7_9))
+```
+
+![](ch7_interactions_files/figure-gfm/unnamed-chunk-14-2.png)<!-- -->
+
+``` r
+coeftab(m7_8, m7_9)
+```
+
+    ##       m7_8    m7_9   
+    ## a      129.00  129.01
+    ## bW      74.22   74.96
+    ## bS     -40.74  -41.14
+    ## sigma   57.35   45.22
+    ## bWS        NA  -51.87
+    ## nobs       27      27
+
+``` r
+compare(m7_8, m7_9)
+```
+
+    ##          WAIC        SE    dWAIC      dSE    pWAIC     weight
+    ## m7_9 295.9624 10.252522  0.00000       NA 6.565320 0.99593805
+    ## m7_8 306.9664  9.254801 11.00404 8.473258 5.848144 0.00406195
+
+  - the main effects are the same between the two models
+      - if the predictors were not centered, the coefficient for shade
+        in the model with the interaction would have been positive
+  - with the data centered, the intercept has meaning - it is the mean
+    number of blooms
+  - interpretations of the estimates for the model with the interaction
+    term `m7_9`:
+      - \(\alpha\): the expected value of blooms when both water and
+        shade are at their average values (0 from centering)
+      - \(\beta_W\): the expected change in blooms when water increases
+        by 1 unit and shade is at its average value
+      - \(\beta_S\): the expected change in blooms when shade increases
+        by 1 unit and water is at its average value
+      - \(\beta_{WS}\): the interaction term has multiple
+        interpretations:
+          - the expected change in the influence of water on blooms when
+            increasing shade by one unit
+          - the expected change in the influence of shade on blooms when
+            increasing water by one unit
+
+### 7.3.4 Plotting implied predictions
+
+  - make a *triptych plot* to help understand interactions:
+      - plot the bivariate relationship between shade and blooms
+      - each of the 3 plots will show predictions for different values
+        of water
+
+<!-- end list -->
+
+``` r
+shade_seq <- seq(-1, 1)
+
+purrr::map(seq(-1, 1), function(w) {
+    dt <- d[d$water_c == w, ]
+    pred_data <- tibble(water_c = w, shade_c = shade_seq)
+    mu <- link(m7_9, data = pred_data)
+    pred_data %>%
+        mutate(mu_mean = apply(mu, 2, mean)) %>%
+        bind_cols(apply(mu, 2, PI) %>% pi_to_df())
+}) %>%
+    bind_rows() %>%
+    ggplot(aes(x = shade_c)) +
+    facet_wrap(~ water_c) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent), alpha = 0.2) +
+    geom_line(aes(y = mu_mean)) +
+    geom_point(data = d, aes(y = blooms)) +
+    labs(x = "shade (centered)",
+         y = "blooms",
+         title = "Effect of amount of light on impact of shade on blooms",
+         subtitle = "Each panel is a different level of light.")
+```
+
+![](ch7_interactions_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+  - this makes the interaction of the effects of shade and water easily
+    understandable
+      - plot on the left: when there is little water, the impact of
+        shade is negligible
+      - plot on the right: when there is plenty of water, the shade has
+        a larger impact on the number of blooms
+
+7.4 Interactions in design formulas
+
+  - mathematical formula with an interaction between \(x\) and \(z\):
+
+\[
+y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_x x_i + \beta_z z_i + \beta_{xz} x_i z_i
+\]
+
+``` r
+# Two equivalent model specifications.
+m7_x <- lm(y ~ x + z + x*z, data = d)
+m7_x <- lm(y ~ x*z, data = d)
+```
+
+  - can also remove main effects by subtracting them out
+      - useful when we know *a priori* there is know effect of \(z\) on
+        \(y\)
+
+<!-- end list -->
+
+``` r
+m7_x <- lm(y ~ x + x*z - z, data = d)
+```
+
+  - can use the following trick to see how R is interpreting a formula
+
+<!-- end list -->
+
+``` r
+x <- z <- w <- 1
+colnames(model.matrix(~ x*z*w))
+```
+
+    ## [1] "(Intercept)" "x"           "z"           "w"           "x:z"        
+    ## [6] "x:w"         "z:w"         "x:z:w"
+
+## 7.6 Practice
+
+### Easy
