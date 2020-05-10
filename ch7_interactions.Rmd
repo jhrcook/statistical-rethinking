@@ -40,7 +40,7 @@ dd <- d[complete.cases(d$rgdppc_2000), ]
 dd <- as_tibble(dd)
 ```
 
-- one perculiarity is how the GDP of a country is associated to the ruggedness of the terrain.
+- one peculiarity is how the GDP of a country is associated to the ruggedness of the terrain.
     * the association is opposite for African and non-African countries
 
 ```{r}
@@ -152,7 +152,7 @@ Y_i \sim \text{Normal}(\mu_i, \sigma) \\
 \gamma_i = \beta_R + \beta_{AR}A_i
 $$
 
-- rearranging the above forumla results in the following
+- rearranging the above formula results in the following
 
 $$
 \mu_i = \alpha + \beta_R R_i + \beta_{AR} A_i R_i + \beta_A A_i
@@ -246,7 +246,7 @@ tibble(Africa = gamma_africa,
     geom_density(aes(fill = name, color = name), alpha = 0.3) +
     scale_color_brewer(palette = "Set1") +
     scale_fill_brewer(palette = "Set1") +
-    labs(x = "posterior etimates of gamma",
+    labs(x = "posterior estimates of gamma",
          y = "probability density",
          title = "Probability distribution for the estimates of gamma",
          subtitle = "Gamma is the slope of the interaction term")
@@ -288,8 +288,8 @@ $$
 
 - below is a plot of the reverse interpretation of the interaction term
     * the x-axis is now whether the country is in Africa
-    * the points are the ruggedness separated by high and low (usign the median as the cut-off)
-    * the blue slope is the expected reduction in log GDP for a non-rugged terrian if it was moved to Africa
+    * the points are the ruggedness separated by high and low (using the median as the cut-off)
+    * the blue slope is the expected reduction in log GDP for a non-rugged terrain if it was moved to Africa
     * for countries in very rugged terrains, the continent has little effect
 
 ```{r}
@@ -486,4 +486,147 @@ colnames(model.matrix(~ x*z*w))
 
 ## 7.6 Practice 
 
-### Easy
+### Hard.
+
+**7H1. Return to the data(tulips) example in the chapter. Now include the bed variable as a predictor in the interaction model. Don’t interact bed with the other predictors; just include it as a main effect. Note that bed is categorical. So to use it properly, you will need to either construct dummy variables or rather an index variable, as explained in Chapter 6.**
+
+```{r}
+# Add bed as a set of dummy variables.
+# Bed "a" will be part of the intercept.
+beds_dummy <- model.matrix(~ bed, data = d) %>% 
+    as.matrix() %>%
+    as.data.frame() %>%
+    set_names(paste0("bed_", letters[1:3]))
+dd <- bind_cols(d, beds_dummy)
+
+m_7h1 <- quap(
+    alist(
+        blooms ~ dnorm(mu, sigma),
+        mu <- a + bW*water_c + bS*shade_c + bWS*water_c*shade_c + bb*bed_b + bc*bed_c,
+        a ~ dnorm(130, 100),
+        c(bW, bS, bWS, bb, bc) ~ dnorm(0, 50),
+        sigma ~ dunif(0, 100)
+    ),
+    data = dd,
+    start = list(a = mean(d$blooms), 
+                 bW = 0, bS = 0, bWS = 0,
+                 bb = 0, bc = 0,
+                 sigma = sd(d$blooms))
+)
+
+precis(m_7h1)
+```
+
+**7H2. Use WAIC to compare the model from 7H1 to a model that omits bed. What do you infer from this comparison? Can you reconcile the WAIC results with the posterior distribution of the bed coefficients?**
+
+```{r}
+compare(m_7h1, m7_9)
+```
+
+It seems that the model that includes the bed information produced a better model.
+However, the improvement was not overwhelming as the difference in WAIC value is less than the standard error of the WAIC values and the weights are split about 75:25.
+
+The beds seem to hold some information, perhaps some sort of batch effect.
+From the standard deviation and 89% interval of these coefficients, they are not very informative, given the other variables.
+
+**7H3. Consider again the data(rugged) data on economic development and terrain ruggedness, examined in this chapter. One of the African countries in that example, Seychelles, is far outside the cloud of other nations, being a rare country with both relatively high GDP and high ruggedness. Seychelles is also unusual, in that it is a group of islands far from the coast of mainland Africa, and its main economic activity is tourism.**
+
+**One might suspect that this one nation is exerting a strong influence on the conclusions. In this problem, I want you to drop Seychelles from the data and re-evaluate the hypothesis that the relationship of African economies with ruggedness is different from that on other continents.**
+
+**(a)  Begin by using map to fit just the interaction model:**
+
+$$
+y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_A A_i + \beta_R R_i + \beta_{AR} A_i R_i
+$$
+
+**where $y$ is log GDP per capita in the year 2000 (log of `rgdppc_2000`); $A$ is `cont_africa`, the dummy variable for being an African nation; and $R$ is the variable `rugged`. Choose your own priors. Compare the inference from this model fit to the data without Seychelles to the same model fit to the full data. Does it still seem like the effect of ruggedness depends upon continent? How much has the expected relationship changed?**
+
+```{r}
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[complete.cases(d$rgdppc_2000), ]
+dd <- as_tibble(dd)
+
+m7h3_1 <- quap(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bA*cont_africa + bR*rugged + bAR*cont_africa*rugged,
+        a ~ dnorm(0, 20),
+        c(bA, bR, bAR) ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = dd
+)
+
+dd_noS <- dd %>% filter(country != "Seychelles")
+m7h3_2 <- quap(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bA*cont_africa + bR*rugged + bAR*cont_africa*rugged,
+        a ~ dnorm(0, 20),
+        c(bA, bR, bAR) ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = dd_noS
+)
+
+precis(m7h3_1)
+precis(m7h3_2)
+```
+
+Removing Seychelles from the data reduced the MAP for the coefficient for continent $\beta_A$ and the interaction term $\beta_{AR}$.
+This suggests that Seychelles did have a relatively large impact on the effect from being in Africa and the interaction between being in Africa and terrain ruggedness.
+
+**(b)  Now plot the predictions of the interaction model, with and without Seychelles. Does it still seem like the effect of ruggedness depends upon continent? How much has the expected relationship changed?**
+
+```{r}
+rugged_seq <- seq(-1, 8, 0.25)
+
+plot_effect_of_africa <- function(mdl, original_data) {
+    mu_africa <- link(mdl, 
+                      data = data.frame(cont_africa = 1, 
+                                        rugged = rugged_seq))
+    mu_africa_mean <- apply(mu_africa, 2, mean)
+    mu_africa_pi <- apply(mu_africa, 2, PI, prob = 0.97) %>% pi_to_df()
+    
+    mu_notafrica <- link(mdl, 
+                         data = data.frame(cont_africa = 0, 
+                                           rugged = rugged_seq))
+    mu_notafrica_mean <- apply(mu_notafrica, 2, mean)
+    mu_notafrica_pi <- apply(mu_notafrica, 2, PI, prob = 0.97) %>% pi_to_df()
+    
+    bind_rows(
+        tibble(cont_africa = "not Africa", 
+               rugged = rugged_seq, 
+               mu = mu_notafrica_mean) %>%
+            bind_cols(mu_notafrica_pi),
+        tibble(cont_africa = "Africa", 
+               rugged = rugged_seq, 
+               mu = mu_africa_mean) %>%
+            bind_cols(mu_africa_pi)
+    ) %>%
+        ggplot(aes(x = rugged)) +
+        geom_ribbon(aes(ymin = x2_percent, ymax = x98_percent,
+                        fill = cont_africa), 
+                    alpha = 0.2, color = NA) +
+        geom_line(aes(y = mu, color = cont_africa), size = 1.1) +
+        geom_point(data = original_data, aes(y = log_gdp), 
+                   size = 1, color = "lightblue4") +
+        scale_color_brewer(palette = "Set1") +
+        scale_fill_brewer(palette = "Set1") +
+        theme(legend.position = c(0.8, 0.8)) +
+        labs(x = "terrain ruggedness index",
+             y = "log GDP year 2000",
+             color = NULL, fill = NULL,
+             title = "Model of GDP by ruggedness with an interaction term for continent",
+             subtitle = "One line for in and out of Africa with the 97% interval.")
+}
+
+plot_effect_of_africa(m7h3_1, dd)
+plot_effect_of_africa(m7h3_2, dd) +
+    labs(subtitle = "One line for in and out of Africa with the 97% interval; without Seychelles.")
+```
+
+The angle of the red line decreases when Seychelles is removed.
+This suggests that Seychelles increased the impact of being in Africa as terrain ruggedness increased (and similarly for the symmetric interpretation of the interaction term).
