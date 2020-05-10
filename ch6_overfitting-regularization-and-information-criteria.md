@@ -585,5 +585,3 @@ The shaded region and solid line are estimates using the ensemble approach.")
   - it communicates model uncertainty
   - will never make a predictor variable appear more influential than it
     already does in any single model
-
-## 6.7 Practice

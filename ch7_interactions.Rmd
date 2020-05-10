@@ -1,0 +1,345 @@
+---
+title: "Chapter 7. Interactions"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(glue)
+library(broom)
+library(patchwork)
+library(rethinking)
+library(tidyverse)
+library(conflicted)
+
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("rename", "dplyr")
+
+theme_set(theme_minimal())
+source_scripts()
+set.seed(0)
+```
+
+- so far, we have assumed that each predictor has an independent association with the mean of the outcome
+    * now we will look at conditioning this estimate on another predictor using *interactions*
+- fitting a model with interactions is easy, but understanding them can be harder
+
+## 7.1 Building an interaction
+
+- for examples, we will use information on the economy countries and geographic properties
+
+```{r}
+data("rugged")
+
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[complete.cases(d$rgdppc_2000), ]
+dd <- as_tibble(dd)
+```
+
+- one perculiarity is how the GDP of a country is associated to the ruggedness of the terrain.
+    * the association is opposite for African and non-African countries
+
+```{r}
+dd %>%
+    mutate(is_africa = ifelse(cont_africa == 1, "Africa", "non-Africa")) %>%
+    ggplot(aes(x = rugged, y = log_gdp)) +
+    facet_wrap(~ is_africa, nrow = 1, scales = "free") +
+    geom_smooth(method = "lm", formula = "y ~ x", color = "black", lty = 2) +
+    geom_point(color = "lightblue4")
+```
+
+### 7.1.1 Adding a dummy variable doesn't work
+
+- two models to begin with:
+    1. linear regression of log-GDP on ruggedness
+    2. the same model with a dummy variable for the African nations
+
+```{r}
+m7_3 <- quap(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bR*rugged,
+        a ~ dnorm(8, 100),
+        bR ~ dnorm(0, 1),
+        sigma ~ dunif(0, 10)
+    ),
+    data = dd
+)
+
+m7_4 <- quap(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bR*rugged + bA*cont_africa,
+        a ~ dnorm(8, 100),
+        bR ~ dnorm(0, 1),
+        bA ~ dnorm(0, 1),
+        sigma ~ dunif(0, 10)
+    ),
+    data = dd
+)
+
+precis(m7_3)
+precis(m7_4)
+```
+
+```{r}
+compare(m7_3, m7_4)
+```
+
+- plot the posterior distribution mean and intervals for African countries and the rest
+    * we can see that the WAIC for the model with the dummy variable was lower because African countries tend to have lower GDP, not because it fit the different slope
+
+```{r}
+rugged_seq <- seq(-1, 8, 0.25)
+
+mu_notafrica <- link(m7_4, data = data.frame(cont_africa = 0, 
+                                             rugged = rugged_seq))
+mu_africa <- link(m7_4, data = data.frame(cont_africa = 1, 
+                                          rugged = rugged_seq))
+
+mu_notafrica_mean <- apply(mu_notafrica, 2, mean)
+mu_notafrica_pi <- apply(mu_notafrica, 2, PI, prob = 0.97) %>% pi_to_df()
+
+mu_africa_mean <- apply(mu_africa, 2, mean)
+mu_africa_pi <- apply(mu_africa, 2, PI, prob = 0.97) %>% pi_to_df()
+
+bind_rows(
+    tibble(cont_africa = "not Africa", 
+           rugged = rugged_seq, 
+           mu = mu_notafrica_mean) %>%
+        bind_cols(mu_notafrica_pi),
+    tibble(cont_africa = "Africa", 
+           rugged = rugged_seq, 
+           mu = mu_africa_mean) %>%
+        bind_cols(mu_africa_pi)
+) %>%
+    ggplot(aes(x = rugged)) +
+    geom_ribbon(aes(ymin = x2_percent, ymax = x98_percent, fill = cont_africa), 
+                alpha = 0.2, color = NA) +
+    geom_line(aes(y = mu, color = cont_africa), size = 1.1) +
+    geom_point(data = dd, aes(y = log_gdp), size = 1, color = "lightblue4") +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    theme(legend.position = c(0.8, 0.8)) +
+    labs(x = "terrain ruggedness index",
+         y = "log GDP year 2000",
+         color = NULL, fill = NULL,
+         title = "Model of GDP by ruggedness with a dummy variable for continent",
+         subtitle = "One line for in and out of Africa with the 97% interval.")
+```
+
+### 7.1.2 Adding a linear interaction does work
+
+- we have just used the model below:
+
+$$
+Y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_R R_i + \beta_A A_i
+$$
+
+- now we want to allow the relationship of $Y$ and $R$ to vary as a function of $A$
+    * add in $\gamma$ as a placeholder for another linear function that defines the slope between GDP and ruggedness
+    * this is the *linear interaction effect*
+    * explicitly modeling that the slope between GDP and ruggedness is *conditional upon* whether or not a nation is in Africa
+
+$$
+Y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \gamma_i R_i + \beta_A A_i \\
+\gamma_i = \beta_R + \beta_{AR}A_i
+$$
+
+- rearranging the above forumla results in the following
+
+$$
+\mu_i = \alpha + \beta_R R_i + \beta_{AR} A_i R_i + \beta_A A_i
+$$
+
+- fit the model using `quap()` like normal
+
+```{r}
+m7_5 <- quap(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + gamma*rugged + bA*cont_africa,
+        gamma <- bR + bAR*cont_africa,
+        a ~ dnorm(8, 100),
+        c(bA, bR, bAR) ~ dnorm(0, 1),
+        sigma ~ dunif(0, 10)
+    ),
+    data = dd
+)
+
+precis(m7_5)
+plot(precis(m7_5))
+```
+
+- the new model is far better than the previous two
+
+```{r}
+compare(m7_3, m7_4,  m7_5)
+```
+
+### 7.1.3 Plotting the interaction
+
+- nothing new, just make two plots, one for African and one for non-African
+
+```{r}
+rugged_seq <- seq(-1, 8, 0.25)
+
+mu_africa <- link(m7_5, 
+                  data = data.frame(cont_africa = 1, rugged = rugged_seq))
+mu_africa_mean <- apply(mu_africa$mu, 2, mean)
+mu_africa_pi <- apply(mu_africa$mu, 2, PI, prob = 0.97) %>% pi_to_df()
+
+mu_notafrica <- link(m7_5, 
+                     data = data.frame(cont_africa = 0, rugged = rugged_seq))
+mu_notafrica_mean <- apply(mu_notafrica$mu, 2, mean)
+mu_notafrica_pi <- apply(mu_notafrica$mu, 2, PI, prob = 0.97) %>% pi_to_df()
+
+bind_rows(
+    tibble(cont_africa = "not Africa", 
+           rugged = rugged_seq, 
+           mu = mu_notafrica_mean) %>%
+        bind_cols(mu_notafrica_pi),
+    tibble(cont_africa = "Africa", 
+           rugged = rugged_seq, 
+           mu = mu_africa_mean) %>%
+        bind_cols(mu_africa_pi)
+) %>%
+    ggplot(aes(x = rugged)) +
+    geom_ribbon(aes(ymin = x2_percent, ymax = x98_percent, fill = cont_africa), 
+                alpha = 0.2, color = NA) +
+    geom_line(aes(y = mu, color = cont_africa), size = 1.1) +
+    geom_point(data = dd, aes(y = log_gdp), size = 1, color = "lightblue4") +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    theme(legend.position = c(0.8, 0.8)) +
+    labs(x = "terrain ruggedness index",
+         y = "log GDP year 2000",
+         color = NULL, fill = NULL,
+         title = "Model of GDP by ruggedness with an interaction term for continent",
+         subtitle = "One line for in and out of Africa with the 97% interval.")
+```
+
+### 7.1.4 Interpreting the interaction estimate
+
+- helpful to plot implied predictions
+- often only numbers are reported, though they are difficult to interpret because:
+    * the parameters have different meanings because they are no longer independent
+    * it is very difficult to propagate the uncertainty when trying to understand multiple parameters simultaneously
+- remember that the interaction term $y$ is a distribution
+    * we can sample from it for African and non-African countries
+
+```{r}
+post <- extract.samples(m7_5)
+gamma_africa <- post$bR + post$bAR*1
+gamma_notafrica <- post$bR + post$bAR*0
+
+tibble(Africa = gamma_africa,
+       `not Africa` = gamma_notafrica) %>%
+    pivot_longer(everything()) %>%
+    ggplot(aes(x = value)) +
+    geom_density(aes(fill = name, color = name), alpha = 0.3) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "posterior etimates of gamma",
+         y = "probability density",
+         title = "Probability distribution for the estimates of gamma",
+         subtitle = "Gamma is the slope of the interaction term")
+```
+
+- can use these estimates like normal:
+    * e.g.: what is the probability that the slope within Africa is less than the slope outside of Africa
+
+```{r}
+# The probability that the slope within Africa is less than that outside.
+sum(gamma_africa < gamma_notafrica) / length(gamma_africa)
+```
+
+## 7.2 Symmetry of the linear interaction
+
+- the interaction term we have fit has two different phrasings:
+    1. "How much does the influence of ruggedness (on GDP) depend upon whether the nation is in Africa?"
+    2. How much does the influence of being in Africa (on GDP) depend upon ruggedness?
+- the model interprets these as the same statement
+
+7.2.1 Buridan's interaction
+
+- the model's formula can be rearranged
+    * the same  model can be reformulated to group the $A_i$ terms together
+    * shows that *linear interactions are symmetric*
+
+$$
+Y_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \gamma_i R_i + \beta_A A_i \\
+\gamma_i = \beta_R + \beta_{AR}A_i \\
+\ \\
+\mu_i = \alpha + (\beta_R + \beta_{AR}A_i) R_i + \beta_A A_i \\
+\mu_i = \alpha + \beta_R R_i + \beta_{AR}A_i R_i + \beta_A A_i \\
+\ \\
+\mu_i = \alpha + \beta_R R_i + (\beta_{AR} R_i + \beta_A) A_i \\
+$$
+
+### 7.2.2 Africa depends upon ruggedness
+
+- below is a plot of the reverse interpretation of the interaction term
+    * the x-axis is now whether the country is in Africa
+    * the points are the ruggedness separated by high and low (usign the median as the cut-off)
+    * the blue slope is the expected reduction in log GDP for a non-rugged terrian if it was moved to Africa
+    * for countries in very rugged terrains, the continent has little effect
+
+```{r}
+q_rugged  <- range(dd$rugged)
+
+mu_ruggedlo <- link(m7_5,
+                    data = data.frame(rugged = q_rugged[1],
+                                      cont_africa = 0:1))
+mu_ruggedlo_mean <- apply(mu_ruggedlo$mu, 2, mean)
+mu_ruggedlo_pi <- apply(mu_ruggedlo$mu, 2, PI) %>% pi_to_df()
+
+mu_ruggedhi <- link(m7_5,
+                    data = data.frame(rugged = q_rugged[2],
+                                      cont_africa = 0:1))
+mu_ruggedhi_mean <- apply(mu_ruggedhi$mu, 2, mean)
+mu_ruggedhi_pi <- apply(mu_ruggedhi$mu, 2, PI) %>% pi_to_df()
+
+bind_rows(
+    tibble(rugged = "low",
+           cont_africa = 0:1,
+           name = "low",
+           mu_rugged = mu_ruggedlo_mean) %>%
+        bind_cols(mu_ruggedlo_pi),
+    tibble(rugged = "high",
+           cont_africa = 0:1,
+           mu_rugged = mu_ruggedhi_mean) %>%
+        bind_cols(mu_ruggedhi_pi)
+) %>%
+    ggplot(aes(x = cont_africa)) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent, 
+                    fill = factor(rugged)), alpha = 0.2) +
+    geom_line(aes(y = mu_rugged, color = factor(rugged))) +
+    geom_jitter(
+        data = dd, 
+        aes(x = cont_africa, y = log_gdp, 
+            color = ifelse(rugged < median(rugged), "low", "high")),
+        alpha = 0.4, width = 0.03
+    ) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    scale_x_continuous(breaks = c(0, 1), labels = c("not Africa", "Africa")) +
+    labs(x = NULL,
+         y  = "log GDP year 2000",
+         fill = "ruggedness", color = "ruggedness",
+         title = "Symmetric interpretation of the interaction term")
+```
+
+- it is simultaneously true that:
+    1. the influence of ruggedness depends on the continent
+    2. the influence of continent depends in the ruggedness
+
+## 7.3 Continuous interactions
+
