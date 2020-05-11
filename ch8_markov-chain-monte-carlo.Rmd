@@ -18,6 +18,14 @@ conflict_prefer("filter", "dplyr")
 conflict_prefer("select", "dplyr")
 conflict_prefer("rename", "dplyr")
 
+# To be able to use `map2stan()`:
+conflict_prefer("collapse", "dplyr")
+conflict_prefer("extract", "tidyr")
+conflict_prefer("rstudent", "rethinking")
+conflict_prefer("lag", "dplyr")
+conflict_prefer("map", "purrr")
+conflict_prefer("Position", "ggplot2")
+
 theme_set(theme_minimal())
 source_scripts()
 set.seed(0)
@@ -155,3 +163,80 @@ tibble(wk = seq(1, num_weeks),
         - other hyperparameters of MCMC is handeled by Stan
 
 ## 8.3 Easy HMC: `map2stan`
+
+- `map2stan()` provides an interface to Stan similar to how we have used `quap()`
+    * need to preprocess and variables transformations
+    * input data frame can only have columns used in the formulae
+- example: look at terrain ruggedness data
+
+```{r}
+data("rugged")
+dd <- as_tibble(rugged) %>%
+    mutate(log_gdp = log(rgdppc_2000)) %>%
+    filter(!is.na(rgdppc_2000))
+```
+
+- fit a model to predict log-GDP with terrain ruggedness, continent, and the interaction of the two
+- first fit with `quap()` like before
+
+```{r}
+m8_1 <- quap(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
+        a ~ dnorm(0, 100),
+        bR ~ dnorm(0, 10),
+        bA ~ dnorm(0, 10),
+        bAR ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = dd
+)
+precis(m8_1)
+```
+
+### 8.3.1 Preparation
+
+- must:
+    * do any transformations beforehand (e.g. logarithm, squared, etc.)
+    * reduce data frame to only used variables
+
+```{r}
+dd_trim <- dd %>%
+    select(log_gdp, rugged, cont_africa)
+```
+
+### 8.3.2 Estimation
+
+- can now fit the model with HMC using `map2stan()`
+
+```{r}
+m8_1stan <- map2stan(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
+        a ~ dnorm(0, 100),
+        bR ~ dnorm(0, 10),
+        bA ~ dnorm(0, 10),
+        bAR ~ dnorm(0, 10),
+        sigma ~ dcauchy(0, 2)
+    ),
+    data = dd_trim
+)
+
+precis(m8_1stan)
+```
+
+- a half-Cauchy prior was used for $\sigma$
+    * a uniform distribution would work here, too
+    * it is a useful, "thick-tailed" probability
+    * related to the Student $t$ distribution
+    * can think of it as a weakly-regularizing prior for the standard deviation
+- the estimates from this model are simillar to those from the quadratic prior
+- a few differences to note about the output of `precis()` (`summary()`):
+    * the *highest probability density intervals* (HPDI) are shown, not just percentiles intervals (PI), like before
+    * two new columns (they will be discussed further later):
+        - `n_eff`: a crude estimate of the number of independent samples that were collected
+        - `Rhat4`: an estimate of the convergence of the Markov chains (1 is good)
+
+### 8.3.3 Sampling again, in parallel

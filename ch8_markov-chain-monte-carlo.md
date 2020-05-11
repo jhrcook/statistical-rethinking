@@ -177,3 +177,164 @@ tibble(wk = seq(1, num_weeks),
           - other hyperparameters of MCMC is handeled by Stan
 
 ## 8.3 Easy HMC: `map2stan`
+
+  - `map2stan()` provides an interface to Stan similar to how we have
+    used `quap()`
+      - need to preprocess and variables transformations
+      - input data frame can only have columns used in the formulae
+  - example: look at terrain ruggedness data
+
+<!-- end list -->
+
+``` r
+data("rugged")
+dd <- as_tibble(rugged) %>%
+    mutate(log_gdp = log(rgdppc_2000)) %>%
+    filter(!is.na(rgdppc_2000))
+```
+
+  - fit a model to predict log-GDP with terrain ruggedness, continent,
+    and the interaction of the two
+  - first fit with `quap()` like before
+
+<!-- end list -->
+
+``` r
+m8_1 <- quap(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
+        a ~ dnorm(0, 100),
+        bR ~ dnorm(0, 10),
+        bA ~ dnorm(0, 10),
+        bAR ~ dnorm(0, 10),
+        sigma ~ dunif(0, 10)
+    ),
+    data = dd
+)
+precis(m8_1)
+```
+
+    ##             mean         sd       5.5%       94.5%
+    ## a      9.2227717 0.13798197  9.0022499  9.44329359
+    ## bR    -0.2026506 0.07646932 -0.3248634 -0.08043786
+    ## bA    -1.9469424 0.22450135 -2.3057389 -1.58814589
+    ## bAR    0.3929006 0.13004832  0.1850583  0.60074296
+    ## sigma  0.9326829 0.05058184  0.8518433  1.01352241
+
+### 8.3.1 Preparation
+
+  - must:
+      - do any transformations beforehand (e.g. logarithm, squared,
+        etc.)
+      - reduce data frame to only used variables
+
+<!-- end list -->
+
+``` r
+dd_trim <- dd %>%
+    select(log_gdp, rugged, cont_africa)
+```
+
+### 8.3.2 Estimation
+
+  - can now fit the model with HMC using `map2stan()`
+
+<!-- end list -->
+
+``` r
+m8_1stan <- map2stan(
+    alist(
+        log_gdp ~ dnorm(mu, sigma),
+        mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
+        a ~ dnorm(0, 100),
+        bR ~ dnorm(0, 10),
+        bA ~ dnorm(0, 10),
+        bAR ~ dnorm(0, 10),
+        sigma ~ dcauchy(0, 2)
+    ),
+    data = dd_trim
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+    ## 
+    ## SAMPLING FOR MODEL 'f6693cddea054695f17c31793a066d41' NOW (CHAIN 1).
+    ## Chain 1: 
+    ## Chain 1: Gradient evaluation took 6.2e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.62 seconds.
+    ## Chain 1: Adjust your expectations accordingly!
+    ## Chain 1: 
+    ## Chain 1: 
+    ## Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
+    ## Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
+    ## Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
+    ## Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
+    ## Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
+    ## Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+    ## Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+    ## Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+    ## Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+    ## Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+    ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+    ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
+    ## Chain 1: 
+    ## Chain 1:  Elapsed Time: 0.272953 seconds (Warm-up)
+    ## Chain 1:                0.275488 seconds (Sampling)
+    ## Chain 1:                0.548441 seconds (Total)
+    ## Chain 1:
+
+    ## Computing WAIC
+
+``` r
+precis(m8_1stan)
+```
+
+    ##             mean         sd       5.5%       94.5%    n_eff     Rhat4
+    ## a      9.2182611 0.14034806  8.9999067  9.43564460 381.7565 1.0081349
+    ## bR    -0.2002538 0.08066235 -0.3253604 -0.07468424 348.7989 1.0179494
+    ## bA    -1.9413043 0.23158324 -2.2990252 -1.56245440 475.1342 0.9990503
+    ## bAR    0.3897727 0.14112017  0.1729353  0.60830114 452.2939 0.9999791
+    ## sigma  0.9504754 0.05263645  0.8721904  1.03751376 454.5194 1.0041046
+
+  - a half-Cauchy prior was used for \(\sigma\)
+      - a uniform distribution would work here, too
+      - it is a useful, “thick-tailed” probability
+      - related to the Student \(t\) distribution
+      - can think of it as a weakly-regularizing prior for the standard
+        deviation
+  - the estimates from this model are simillar to those from the
+    quadratic prior
+  - a few differences to note about the output of `precis()`
+    (`summary()`):
+      - the *highest probability density intervals* (HPDI) are shown,
+        not just percentiles intervals (PI), like before
+      - two new columns (they will be discussed further later):
+          - `n_eff`: a crude estimate of the number of independent
+            samples that were collected
+          - `Rhat4`: an estimate of the convergence of the Markov chains
+            (1 is good)
+
+### 8.3.3 Sampling again, in parallel
