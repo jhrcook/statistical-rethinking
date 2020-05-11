@@ -44,4 +44,6 @@ Models](ch5_multivariate-linear-models.md)
 [Chapter 6. Overfitting, Regularization, and Information
 Criteria](ch6_overfitting-regularization-and-information-criteria.md)
 
-[Chapter 7. Interactions](ch6_interactions.md)
+[Chapter 7. Interactions](ch7_interactions.md)
+
+[Chapter 8. Markov Chain Monte Carlo](ch8_markov-chain-monte-carlo.md)
