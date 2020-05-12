@@ -281,10 +281,10 @@ m8_1stan <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL 'f6693cddea054695f17c31793a066d41' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'e3427aaee5ad40daea09a9a2e19cfcf3' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 6.2e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.62 seconds.
+    ## Chain 1: Gradient evaluation took 0.000137 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.37 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -301,9 +301,9 @@ m8_1stan <- map2stan(
     ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.272953 seconds (Warm-up)
-    ## Chain 1:                0.275488 seconds (Sampling)
-    ## Chain 1:                0.548441 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.35654 seconds (Warm-up)
+    ## Chain 1:                0.369299 seconds (Sampling)
+    ## Chain 1:                0.725839 seconds (Total)
     ## Chain 1:
 
     ## Computing WAIC
@@ -338,3 +338,221 @@ precis(m8_1stan)
             (1 is good)
 
 ### 8.3.3 Sampling again, in parallel
+
+  - specific advice on the number of samples to run will be given later
+  - a compiled model can be resampled from again
+      - multiple chains can also be used and run in parallel
+
+<!-- end list -->
+
+``` r
+m8_1stan_4chains <- map2stan(m8_1stan, chains = 4, cores = 4)
+```
+
+    ## Warning in .local(object, ...): some chains had errors; consider specifying
+    ## chains = 1 to debug
+
+    ## here are whatever error messages were returned
+
+    ## [[1]]
+    ## Stan model 'e3427aaee5ad40daea09a9a2e19cfcf3' does not contain samples.
+    ## 
+    ## [[2]]
+    ## Stan model 'e3427aaee5ad40daea09a9a2e19cfcf3' does not contain samples.
+
+    ## Computing WAIC
+
+``` r
+precis(m8_1stan_4chains)
+```
+
+    ##             mean         sd       5.5%       94.5%     n_eff     Rhat4
+    ## a      9.2256832 0.14362460  8.9906977  9.45258878  877.9440 1.0034584
+    ## bR    -0.2045680 0.08014458 -0.3281884 -0.07372293  894.0294 1.0031833
+    ## bA    -1.9464960 0.23749000 -2.3392785 -1.58143450  890.1520 1.0032003
+    ## bAR    0.3933826 0.13793937  0.1767777  0.62174432  872.0515 1.0013379
+    ## sigma  0.9505496 0.05415063  0.8688302  1.04002911 1357.1632 0.9997233
+
+### 8.3.4 Visualization
+
+  - can plot the samples
+      - interesting to see how Gaussian the distribution actually was
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m8_1stan)
+str(post)
+```
+
+    ## List of 5
+    ##  $ a    : num [1:1000(1d)] 9.01 9.25 9.26 9.29 9.23 ...
+    ##  $ bR   : num [1:1000(1d)] -0.0536 -0.1974 -0.3163 -0.3114 -0.1873 ...
+    ##  $ bA   : num [1:1000(1d)] -1.82 -1.93 -2.04 -2.03 -1.84 ...
+    ##  $ bAR  : num [1:1000(1d)] 0.189 0.436 0.568 0.526 0.319 ...
+    ##  $ sigma: num [1:1000(1d)] 0.879 0.917 0.957 0.875 0.903 ...
+
+``` r
+pairs(m8_1stan)
+```
+
+![](ch8_markov-chain-monte-carlo_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+### 8.3.5 Using the samples
+
+  - we can use the samples just like before
+      - simulate predictions
+      - compute differences of parameters
+      - calculate DIC and WAIC,
+      - etc.
+
+<!-- end list -->
+
+``` r
+show(m8_1stan)
+```
+
+    ## map2stan model
+    ## 1000 samples from 1 chain
+    ## 
+    ## Sampling durations (seconds):
+    ##         warmup sample total
+    ## chain:1   0.36   0.37  0.73
+    ## 
+    ## Formula:
+    ## log_gdp ~ dnorm(mu, sigma)
+    ## mu <- a + bR * rugged + bA * cont_africa + bAR * rugged * cont_africa
+    ## a ~ dnorm(0, 100)
+    ## bR ~ dnorm(0, 10)
+    ## bA ~ dnorm(0, 10)
+    ## bAR ~ dnorm(0, 10)
+    ## sigma ~ dcauchy(0, 2)
+    ## 
+    ## WAIC (SE): 470 (14.8)
+    ## pWAIC: 5.2
+
+``` r
+WAIC(m8_1stan)
+```
+
+    ##       WAIC      lppd penalty  std_err
+    ## 1 469.5071 -229.5579 5.19567 14.76377
+
+### 8.3.6 Checking the chain
+
+  - the MC is guarunteed to converge eventually
+      - need to check it actually did in the time we gave it
+  - use the *trace plot* to plot the samples in sequential order
+      - this is the first plot that should be looked at after fitting
+        with MCMC
+      - grey region is the warm up (“adaptation”) where the chain is
+        learning to more efficiently sample from the posterior
+  - look for 2 characteristics of a “good” chain:
+      - *stationarity*: the path staying within the posterior
+        distribution
+          - the center of each path is relatively stable from start to
+            end
+      - *good mixing*: each successive sample within each parameter is
+        not highly correlated with the sample before it
+          - this is representated by a rapid zig-zap of the paths
+
+<!-- end list -->
+
+``` r
+plot(m8_1stan)
+```
+
+![](ch8_markov-chain-monte-carlo_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+  - can access the raw Stan code in case we want to make specific
+    changes not possible through `map2stan()`
+
+<!-- end list -->
+
+``` r
+str_split(m8_1stan@model, "\n")
+```
+
+    ## [[1]]
+    ##  [1] "//2020-05-12 07:22:09"                                                                       
+    ##  [2] "data{"                                                                                       
+    ##  [3] "    int<lower=1> N;"                                                                         
+    ##  [4] "    real log_gdp[N];"                                                                        
+    ##  [5] "    real rugged[N];"                                                                         
+    ##  [6] "    int cont_africa[N];"                                                                     
+    ##  [7] "}"                                                                                           
+    ##  [8] "parameters{"                                                                                 
+    ##  [9] "    real a;"                                                                                 
+    ## [10] "    real bR;"                                                                                
+    ## [11] "    real bA;"                                                                                
+    ## [12] "    real bAR;"                                                                               
+    ## [13] "    real<lower=0> sigma;"                                                                    
+    ## [14] "}"                                                                                           
+    ## [15] "model{"                                                                                      
+    ## [16] "    vector[N] mu;"                                                                           
+    ## [17] "    sigma ~ cauchy( 0 , 2 );"                                                                
+    ## [18] "    bAR ~ normal( 0 , 10 );"                                                                 
+    ## [19] "    bA ~ normal( 0 , 10 );"                                                                  
+    ## [20] "    bR ~ normal( 0 , 10 );"                                                                  
+    ## [21] "    a ~ normal( 0 , 100 );"                                                                  
+    ## [22] "    for ( i in 1:N ) {"                                                                      
+    ## [23] "        mu[i] = a + bR * rugged[i] + bA * cont_africa[i] + bAR * rugged[i] * cont_africa[i];"
+    ## [24] "    }"                                                                                       
+    ## [25] "    log_gdp ~ normal( mu , sigma );"                                                         
+    ## [26] "}"                                                                                           
+    ## [27] "generated quantities{"                                                                       
+    ## [28] "    vector[N] mu;"                                                                           
+    ## [29] "    for ( i in 1:N ) {"                                                                      
+    ## [30] "        mu[i] = a + bR * rugged[i] + bA * cont_africa[i] + bAR * rugged[i] * cont_africa[i];"
+    ## [31] "    }"                                                                                       
+    ## [32] "}"                                                                                           
+    ## [33] ""                                                                                            
+    ## [34] ""
+
+## 8.4 Care and feeding of your Markov chain
+
+  - it is not necessary to fully understand the MCMC, but some
+    understadning of the process is necessary to be able to check if it
+    worked
+
+### 8.4.1 How many samples do you need?
+
+  - defaults: `iter = 2000` and `warmup = iter/2`
+      - gives 1000 warmups and 1000 samples
+      - this is a good place to start to make sure the model is defined
+        correctly
+  - the number of samples needed for inference depends on many factors:
+      - the *effective* number of samples is the important part
+          - is an estimate of the number of independent samples from the
+            posterior distribution
+          - chains can become *autocorrelated*
+      - what do we want to know?
+          - if we just want posterior means, not many samples are needed
+          - if we care about the shape of the posterior tails/extreme
+            values, then need many samples
+          - Gaussian posterior distributions should need about 2000
+            samples, but skewed distribtuions likely need more
+  - for warmup, we want as few as possible so more time is spent on
+    sampling, but more warmups helps the MCMC sample more efficiently
+      - for Stan models, it is good to devote half of the total samples
+        to warmup
+      - for the very simple models we have fit so far, don’t need very
+        much warmup
+
+### 8.4.2 How many chains do you need?
+
+  - general workflow
+    1.  when debugging a model, use one chain
+    2.  run multiple chains to make sure the chains are working
+    3.  for final model (whose samples will be use for inference), only
+        one chain is really needed, but running multiple in parallel can
+        help speed it up
+  - for typical regression models: “four short chains to check, one long
+    chain for inference”
+  - when sampling is not working right, it is usually very obvious
+      - we will see some bad chains in the sections below
+  - Rhat tells us if the chains converged
+      - use it as a diagnositc signal of danger (when it is above 1.00),
+        but not as a sign of safety (when it is 1.00)
+
+### 8.4.3 Taming a wild chain

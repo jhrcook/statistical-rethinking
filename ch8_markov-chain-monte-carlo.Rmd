@@ -210,7 +210,7 @@ dd_trim <- dd %>%
 
 - can now fit the model with HMC using `map2stan()`
 
-```{r}
+```{r, cache=TRUE}
 m8_1stan <- map2stan(
     alist(
         log_gdp ~ dnorm(mu, sigma),
@@ -240,3 +240,98 @@ precis(m8_1stan)
         - `Rhat4`: an estimate of the convergence of the Markov chains (1 is good)
 
 ### 8.3.3 Sampling again, in parallel
+
+- specific advice on the number of samples to run will be given later
+- a compiled model can be resampled from again
+    * multiple chains can also be used and run in parallel
+
+```{r}
+m8_1stan_4chains <- map2stan(m8_1stan, chains = 4, cores = 4)
+precis(m8_1stan_4chains)
+```
+
+### 8.3.4 Visualization
+
+- can plot the samples
+    * interesting to see how Gaussian the distribution actually was
+
+```{r}
+post <- extract.samples(m8_1stan)
+str(post)
+```
+
+```{r}
+pairs(m8_1stan)
+```
+
+### 8.3.5 Using the samples
+
+- we can use the samples just like before
+    * simulate predictions
+    * compute differences of parameters
+    * calculate DIC and WAIC,
+    * etc.
+
+```{r}
+show(m8_1stan)
+WAIC(m8_1stan)
+```
+
+### 8.3.6 Checking the chain
+
+- the MC is guarunteed to converge eventually
+    * need to check it actually did in the time we gave it
+- use the *trace plot* to plot the samples in sequential order
+    * this is the first plot that should be looked at after fitting with MCMC
+    * grey region is the warm up ("adaptation") where the chain is learning to more efficiently sample from the posterior
+- look for 2 characteristics of a "good" chain:
+    * *stationarity*: the path staying within the posterior distribution
+        - the center of each path is relatively stable from start to end
+    * *good mixing*: each successive sample within each parameter is not highly correlated with the sample before it
+        - this is representated by a rapid zig-zap of the paths
+
+```{r}
+plot(m8_1stan)
+```
+
+- can access the raw Stan code in case we want to make specific changes not possible through `map2stan()`
+
+```{r}
+str_split(m8_1stan@model, "\n")
+```
+
+## 8.4 Care and feeding of your Markov chain
+
+- it is not necessary to fully understand the MCMC, but some understadning of the process is necessary to be able to check if it worked
+
+### 8.4.1 How many samples do you need?
+
+- defaults: `iter = 2000` and `warmup = iter/2`
+    * gives 1000 warmups and 1000 samples
+    * this is a good place to start to make sure the model is defined correctly
+- the number of samples needed for inference depends on many factors:
+    * the *effective* number of samples is the important part
+        - is an estimate of the number of independent samples from the posterior distribution
+        - chains can become *autocorrelated*
+    * what do we want to know?
+        - if we just want posterior means, not many samples are needed
+        - if we care about the shape of the posterior tails/extreme values, then need many samples
+        - Gaussian posterior distributions should need about 2000 samples, but skewed distribtuions likely need more
+- for warmup, we want as few as possible so more time is spent on sampling, but more warmups helps the MCMC sample more efficiently
+    * for Stan models, it is good to devote half of the total samples to warmup
+    * for the very simple models we have fit so far, don't need very much warmup
+
+### 8.4.2 How many chains do you need?
+
+- general workflow
+    1. when debugging a model, use one chain
+    2. run multiple chains to make sure the chains are working
+    3. for final model (whose samples will be use for inference), only one chain is really needed, but running multiple in parallel can help speed it up
+- for typical regression models: "four short chains to check, one long chain for inference"
+- when sampling is not working right, it is usually very obvious
+    * we will see some bad chains in the sections below
+- Rhat tells us if the chains converged
+    * use it as a diagnositc signal of danger (when it is above 1.00), but not as a sign of safety (when it is 1.00)
+
+### 8.4.3 Taming a wild chain
+
