@@ -41,14 +41,14 @@ set.seed(0)
 
 - a tale of the Good King Markov
     * he was kings of a ring of 10 islands
-    * the second island had twice the population of the first, the third had three times the populaiton of the first, etc.
+    * the second island had twice the population of the first, the third had three times the population of the first, etc.
     * the king wanted to visit the islands in proportion to the population size, but didn't want to have to keep track of a schedule
     * he would also only travel between adjacent islands
     * he used the *Metropolis algorithm* to decide which island to visit next
-        1. the king decides to stay or travel by a cion flip
+        1. the king decides to stay or travel by a coin flip
         2. if the coin is heads, the king considers moving clockwise; if tails, he considers moving counter-clockwise; call this next island the "proposal" island
         3. to decide whether not to move, the king collects the number of seashells in proportion to the population size of the proposed island, and collects the number of stones relative to the population of the current island
-        4. if there are more seashells, the king moves to the poposed island; else he discards the number of stones equal to the number of seashells and randomly selects from the remaining seashells and stones; if he selects a shell, he travels to the proposed island, else he stays
+        4. if there are more seashells, the king moves to the proposed island; else he discards the number of stones equal to the number of seashells and randomly selects from the remaining seashells and stones; if he selects a shell, he travels to the proposed island, else he stays
 - below is a simulation of this process
 
 ```{r}
@@ -138,7 +138,7 @@ tibble(wk = seq(1, num_weeks),
 - Gibbs sampling is used in BUGS (Bayesian inference Using Gibbs Sampling) and JAGS (Just Another Gibbs Sampler)
 - limitations:
     * don't always want to use the conjugate priors
-    * Gibbs sampling becomes very innefficient for models with hundreds or thousands of parameters
+    * Gibbs sampling becomes very inefficient for models with hundreds or thousands of parameters
 
 ### 8.2.2 Hamiltonian Monte Carlo (HMC)
 
@@ -147,20 +147,20 @@ tibble(wk = seq(1, num_weeks),
 - an analogy using King Monty:
     * king of a continuous stretch of land, not discrete islands
     * wants to visit his citizens in proportion to their local density
-    * decides to travel back and forth across the length of the country, slowing down the vehicle when houses grow more dense, and speeing up when the houses are more sparse
+    * decides to travel back and forth across the length of the country, slowing down the vehicle when houses grow more dense, and speeding up when the houses are more sparse
     * requires knowledge of how quickly the population is changing at the current location
 - in this analogy:
     * "royal vehicle": the current vector of parameter values
     * the log-posterior forms a bowl with the MAP at the nadir
     * the vehicle sweeps across the bowl, adjust the speed in proportion to the height on the bowl
-- HMC does run a sort of physics simultation
-    * a vector of parameters gives the position of a frictionless particle
+- HMC does run a sort of physics simulation
+    * a vector of parameters gives the position of a friction-less particle
     * the log-posterior provides the surface
 - limitations:
     * HMC requires continuous parameters
     * HMC needs to be tuned to a particular model and its data
         - the particle needs mass (so it can have momentum)
-        - other hyperparameters of MCMC is handeled by Stan
+        - other hyperparameters of MCMC is handled by Stan
 
 ## 8.3 Easy HMC: `map2stan`
 
@@ -232,7 +232,7 @@ precis(m8_1stan)
     * it is a useful, "thick-tailed" probability
     * related to the Student $t$ distribution
     * can think of it as a weakly-regularizing prior for the standard deviation
-- the estimates from this model are simillar to those from the quadratic prior
+- the estimates from this model are similar to those from the quadratic prior
 - a few differences to note about the output of `precis()` (`summary()`):
     * the *highest probability density intervals* (HPDI) are shown, not just percentiles intervals (PI), like before
     * two new columns (they will be discussed further later):
@@ -279,16 +279,16 @@ WAIC(m8_1stan)
 
 ### 8.3.6 Checking the chain
 
-- the MC is guarunteed to converge eventually
+- the MC is guaranteed to converge eventually
     * need to check it actually did in the time we gave it
 - use the *trace plot* to plot the samples in sequential order
     * this is the first plot that should be looked at after fitting with MCMC
     * grey region is the warm up ("adaptation") where the chain is learning to more efficiently sample from the posterior
 - look for 2 characteristics of a "good" chain:
-    * *stationarity*: the path staying within the posterior distribution
+    * *stationary*: the path staying within the posterior distribution
         - the center of each path is relatively stable from start to end
     * *good mixing*: each successive sample within each parameter is not highly correlated with the sample before it
-        - this is representated by a rapid zig-zap of the paths
+        - this is represented by a rapid zig-zap of the paths
 
 ```{r}
 plot(m8_1stan)
@@ -302,12 +302,12 @@ str_split(m8_1stan@model, "\n")
 
 ## 8.4 Care and feeding of your Markov chain
 
-- it is not necessary to fully understand the MCMC, but some understadning of the process is necessary to be able to check if it worked
+- it is not necessary to fully understand the MCMC, but some understanding of the process is necessary to be able to check if it worked
 
 ### 8.4.1 How many samples do you need?
 
 - defaults: `iter = 2000` and `warmup = iter/2`
-    * gives 1000 warmups and 1000 samples
+    * gives 1000 warm-ups and 1000 samples
     * this is a good place to start to make sure the model is defined correctly
 - the number of samples needed for inference depends on many factors:
     * the *effective* number of samples is the important part
@@ -316,10 +316,10 @@ str_split(m8_1stan@model, "\n")
     * what do we want to know?
         - if we just want posterior means, not many samples are needed
         - if we care about the shape of the posterior tails/extreme values, then need many samples
-        - Gaussian posterior distributions should need about 2000 samples, but skewed distribtuions likely need more
-- for warmup, we want as few as possible so more time is spent on sampling, but more warmups helps the MCMC sample more efficiently
-    * for Stan models, it is good to devote half of the total samples to warmup
-    * for the very simple models we have fit so far, don't need very much warmup
+        - Gaussian posterior distributions should need about 2000 samples, but skewed distributions likely need more
+- for warm-up, we want as few as possible so more time is spent on sampling, but more warm-ups helps the MCMC sample more efficiently
+    * for Stan models, it is good to devote half of the total samples to warm-up
+    * for the very simple models we have fit so far, don't need very much warm-up
 
 ### 8.4.2 How many chains do you need?
 
@@ -331,7 +331,7 @@ str_split(m8_1stan@model, "\n")
 - when sampling is not working right, it is usually very obvious
     * we will see some bad chains in the sections below
 - Rhat tells us if the chains converged
-    * use it as a diagnositc signal of danger (when it is above 1.00), but not as a sign of safety (when it is 1.00)
+    * use it as a diagnostic signal of danger (when it is above 1.00), but not as a sign of safety (when it is 1.00)
 
 ### 8.4.3 Taming a wild chain
 
@@ -367,7 +367,7 @@ plot(m8_2)
 - even weakly informative priors can fix this problem
     * the above example just has such little data with two y values and uninformative priors
     * with little data, the priors become more important
-- here's the same model with weak, but more imformative priors
+- here's the same model with weak, but more informative priors
 
 ```{r}
 m8_3 <- map2stan(
@@ -419,3 +419,97 @@ post_tibble %>%
 ```
 
 ### 8.4.4. Non-identifiable parameters
+
+- see the result of highly correlated predictors on a Markov chain
+    * produce a characteristic shape in the chain
+    * as an example, fit the following model without any priors on the $\alpha$'s.
+
+$$
+y_i \sim \text{Normal}(\mu, \sigma) \\
+\mu = \alpha_1 + \alpha_2 \\
+\sigma \sim \text{HalfCauchy}(0, 1)
+$$
+
+```{r}
+y <- rnorm(100, 0, 1)
+
+m8_4 <- map2stan(
+    alist(
+        y ~ dnorm(mu, sigma),
+        mu <- a1 + a2,
+        sigma ~ dcauchy(0, 1)
+    ),
+    data = list(y = y),
+    start = list(a1 = 0, a2 = 0, sigma = 1),
+    chains = 2,
+    iter = 4e3,
+    warmup = 1e3
+)
+
+precis(m8_4, digits = 3)
+plot(m8_4)
+```
+- the chains wander very far and never converge
+    * the `n_eff` and `Rhat` values are horrible
+    * these samples should not be used
+- using weak priors helps a lot
+
+```{r}
+m8_5 <- map2stan(
+    alist(
+        y ~ dnorm(mu, sigma),
+        mu <- a1 + a2,
+        c(a1, a2) ~ dnorm(0, 10),
+        sigma ~ dcauchy(0, 1)
+    ),
+    data = list(y = y),
+    start = list(a1 = 0, a2 = 0, sigma = 1),
+    chains = 2,
+    iter = 4e3,
+    warmup = 1e3
+)
+
+precis(m8_5, digits = 3)
+plot(m8_5)
+```
+
+## 8.6 Practice
+
+(I skipped to the problems that seemed interesting.)
+
+**8H1. Run the model below and then inspect the posterior distribution and explain what it is accomplishing. Compare the samples for the parameters a and b. Can you explain the different trace plots, using what you know about the Cauchy distribution?**
+
+```{r}
+# Code from the question:
+mp <- map2stan(
+    alist(
+        a ~ dnorm(0, 1),
+        b ~ dcauchy(0, 1)
+    ),
+    data = list(y = 1),
+    start = list(a = 0, b = 0),
+    iter = 1e4,
+    warmup = 1e2,
+    WAIC = FALSE
+)
+###
+```
+
+```{r}
+precis(mp, digits = 3)
+plot(mp)
+```
+
+```{r}
+post <- extract.samples(mp, clean = FALSE)
+enframe(post) %>%
+    unnest(value) %>%
+    ggplot(aes(x = value, color = name)) +
+    geom_density(size = 1.3) +
+    scale_x_continuous(limits = c(-10, 10)) +
+    scale_color_brewer(palette = "Set1")
+```
+
+The posterior plots basically look like their priors.
+Parameter `b` has fatter tails which are descriptive of the Cauchy compared to a Gaussian.
+With only one data point, the priors will be very important in defining the posterior distributions.
