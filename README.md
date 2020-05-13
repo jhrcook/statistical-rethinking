@@ -47,3 +47,6 @@ Criteria](ch6_overfitting-regularization-and-information-criteria.md)
 [Chapter 7. Interactions](ch7_interactions.md)
 
 [Chapter 8. Markov Chain Monte Carlo](ch8_markov-chain-monte-carlo.md)
+
+[Chapter 9. Big Entropy and the Generalized Linear
+Model](ch9_big-entropy-and-the-generalized-linear-model.md)

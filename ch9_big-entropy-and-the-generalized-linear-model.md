@@ -1,0 +1,50 @@
+Chapter 9. Big Entropy and the Generalized Linear Model
+================
+
+  - Gaussian distributions work well very frequently
+  - there are times it is better to use a different distribution
+  - if using a different distribution: *use the distribution with the
+    biggest entropy*, because:
+    1.  the biggest entory is the widest and least informative
+        distribution that still contrains the problem to values that are
+        possible
+    2.  nature tends to produce emperical distributions with high
+        entropy
+    3.  it works (pragmatic justification)
+  - this chapter is an introduction to *generalized linear models* (GLM)
+    and the principle of *maximum entropy*
+  - GLMs are similar to the linear regressions we have used previously
+      - but they need not use Gaussian likelihoods
+      - any likelihood function can be used
+      - parameters can be atached to any of the parameters that describe
+        its shape
+  - the principle of maximum entropy helps choose the likelihood
+    functions
+      - choose the most conservative prior with the known constraints
+  - the following chapters look more closely as a few specific GLM types
+    (counts, ordinal outcomes, mixtures)
+
+## 9.1 Maximum entropy
+
+  - information theory *seeks to find a measure of uncertainty that
+    satisfies the following criteria*:
+    1.  measure should be continuous
+    2.  it should increase as the number of possible events increases
+    3.  should be additive
+  - the resulting measure of uncertainty of a probability distribution
+    \(p\) with probabilities \(p_i\) for each possible event \(i\) is
+    the average log-probability, *information entropy*:
+
+\[
+H(p) = -\sum_i p_i \log p_i
+\]
+
+  - the principle of maximum entropy applied this measure of uncertainty
+    to the problem of chooseing among probability distributions:
+      - *The distribution that can happen the most ways is also the
+        distribution with the biggest information entropy. The
+        distribution with the biggest entropy is the most conservative
+        distribution that obeys its constraints.*
+  - *maximum entropy distribution*: the most plausible distribution
+
+### 9.1.1 Gaussian
