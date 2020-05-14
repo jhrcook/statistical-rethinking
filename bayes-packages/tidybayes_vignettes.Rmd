@@ -1,0 +1,75 @@
+---
+title: "'tidybayes'"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(glue)
+library(patchwork)
+library(tidyverse)
+library(conflicted)
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("rename", "dplyr")
+
+theme_set(theme_minimal())
+source_scripts()
+set.seed(0)
+```
+
+date: 2020-05-13
+
+[Get started](http://mjskay.github.io/tidybayes/articles/tidybayes.html)  
+[Extracting and visualizing tidy draws from **rstanarm** models](http://mjskay.github.io/tidybayes/articles/tidy-rstanarm.html)
+
+Below are my notes from looking at the vignettes of the 'tidybayes' package.
+
+```{r}
+library(tidybayes)
+```
+
+## Supported model types:
+
+The following is a list of packages/models that are supported by 'tidybayes'
+
+- rstan, brms, rstanarm, MCMCglmmm, and others
+- the ['tidybayes.rethinking'](https://github.com/mjskay/tidybayes.rethinking) package can take objects from the 'rethinking' package
+
+### Example dataset
+
+```{r}
+set.seed(5)
+n <- 10
+n_condition <- 5
+ABC <- tibble(condition = rep(c("A","B","C","D","E"), n),
+              response = rnorm(n * 5, c(0,1,2,1,-1), 0.5))
+head(ABC)
+```
+
+```{r}
+ABC %>%
+    ggplot(aes(x = response, y = fct_rev(condition))) +
+    geom_point(alpha = 0.5) +
+    ylab("condition")
+```
+
+### 'rstanarm' model
+
+```{r}
+library(rstanarm)
+```
+
+
+```{r}
+m <- stan_lmer(response ~ (1|condition), 
+               data = ABC,
+               prior = normal(0, 1, autoscale = FALSE),
+               prior_aux = student_t(3, 0, 1, autoscale = FALSE),
+               adapt_delta = .99)
+
+summary(m)
+```
+
