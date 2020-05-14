@@ -49,6 +49,8 @@ devtools::install_github("rmcelreath/rethinking")
 
 [Chapter 9. Big Entropy and the Generalized Linear Model](ch9_big-entropy-and-the-generalized-linear-model.md)
 
+[Chapter 10. Counting and Classification](ch10_counting-and-classification.md)
+
 ---
 
 ## Other R packages for Bayes

@@ -51,6 +51,9 @@ Criteria](ch6_overfitting-regularization-and-information-criteria.md)
 [Chapter 9. Big Entropy and the Generalized Linear
 Model](ch9_big-entropy-and-the-generalized-linear-model.md)
 
+[Chapter 10. Counting and
+Classification](ch10_counting-and-classification.md)
+
 -----
 
 ## Other R packages for Bayes
@@ -58,7 +61,8 @@ Model](ch9_big-entropy-and-the-generalized-linear-model.md)
 Below are some of the common packages for using Baysian statistics in R.
 The purpose of this collection is to serve as a reference for future
 work. As I work through their vignettes (and possible other associated
-tutorals/articles), the markdown files will be linked below.
+tutorals/articles), the markdown files will be linked
+below.
 
 **[‘rstanarm’](https://mc-stan.org/rstanarm/index.html)**
 
