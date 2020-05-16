@@ -173,7 +173,7 @@ logistic
     ##     p <- ifelse(x == Inf, 1, p)
     ##     p
     ## }
-    ## <bytecode: 0x7facfb897f90>
+    ## <bytecode: 0x7ffb9d958048>
     ## <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -261,3 +261,221 @@ plot(compare(m10_1, m10_2, m10_3))
         in the predictor
           - the author claims that this effect can be misleading because
             they ignore the other parameters
+  - the relative effect:
+      - consider the relative effect size of `prosoc_left` and its
+        parameter `bp`
+      - the customary measure of relativ effect for logisitic model is
+        the *proportional change in odds*
+          - just the exponent of the parameter estimate
+          - it is \(\exp(0.61) \approx 1.84\) for `bp`
+          - odds are the ratio of the probability an even happens to the
+            probability that it does not
+      - for `bp`, the logodds of pulling the left-hand level (the
+        outcome variable) is increased by 0.61
+          - alternatively, the odds are multiplied by 1.84
+      - the difficulty with proportional odds is that the actual change
+        in probability depends on the intercept and the other predictor
+        variables
+          - for example, consider that the intercept \(\alpha = 4\),
+            then the probability of pulling the left-lever, ignoring all
+            else, is \(\text{logistic}(4) = 0.98\)
+          - then the increase from `bp` would be
+            \(\text{logistic}(4 + 0.61) = 0.99\)
+          - the difference from `bp` is really not very much on the
+            absolute scale
+  - the absolute effect:
+      - consider the model-average posterior predictive check to get a
+        sense of the absolute effect of each treatment on the
+        probability of pulling the left-hand lever
+          - use th `ensemble()` function to take a weighted average (by
+            WAIC) over the three models
+          - in the following plot, this is compared to the proportion of
+            times the left-hand lever was pull by each chimp in all four
+            conditions
+      - interpreting the plot
+          - the chimps, on average, tended to pull the prosocial option
+            on the left (“1,0” and “1,1”)
+          - the partner condition did not seem to matter because the
+            heights of the lines did not tend to move when the condition
+            was changed and hand of the lever was held constant
+
+<!-- end list -->
+
+``` r
+d_pred <- tibble(
+    prosoc_left = c(0, 1, 0, 1),
+    condition = c(0, 0, 1, 1)
+)
+
+# Build an ensemble from all three models weighted by WAIC.
+chimp_ensemble <- ensemble(m10_1, m10_2, m10_3, data = d_pred)
+
+# Summarize the predictions.
+pred_p <- apply(chimp_ensemble$link, 2, mean)
+pred_p_pi <- apply(chimp_ensemble$link, 2, PI)
+
+pred_tibble <- d_pred %>%
+    mutate(pred_p = pred_p) %>%
+    bind_cols(pi_to_df(pred_p_pi)) %>%
+    mutate(group = paste(prosoc_left, condition, sep = ","),
+           group = factor(group))
+```
+
+``` r
+chimp_data <- d %>%
+    group_by(prosoc_left, condition, actor) %>%
+    summarise(p = mean(pulled_left)) %>%
+    ungroup() %>%
+    mutate(group = paste(prosoc_left, condition, sep = ","),
+           group = factor(group))
+
+chimp_data %>%
+    ggplot() +
+    geom_line(aes(x = group, y = p, group = actor),
+              color = "skyblue2") +
+    geom_line(data = pred_tibble,
+              aes(x = group,  y = pred_p, group = "1"),
+              color = "black") +
+    geom_ribbon(data = pred_tibble,
+              aes(x = group, group = "1",
+                  ymin = x5_percent, ymax = x94_percent),
+              alpha = 0.2) +
+    labs(x = "prosoc_left, condition",
+         y = "proportion pulled left",
+         title = "",
+         subtitle = "Each blue line is a separate chimp in each combination of 'prosoc_left' and 'condition'.")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+  - the predictions are quite poor because they are averages across all
+    chimps
+      - a lot of variation among individuals could mask the association
+        of interest
+      - we can model this variation between individuals
+  - the chimps showed signs of handedness - some preferred pulling the
+    left lever and others perferred pulling the right lever
+      - estimate handedness as a distinct intercept for each chimp
+  - below is the model to fit
+      - the intercept \(\alpha\) has a subscript, one for each chimp
+      - \(alpha\) is a vector of parameters
+
+\[
+L_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{ACTOR}[i]} + (\beta_P + \beta_{PC} C_i) P_i \\
+\alpha_text{ACTOR} \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 10) \\
+\beta_PC \sim \text{Normal}(0, 10)
+\]
+
+  - this model is coded and fit using MCMC below
+
+<!-- end list -->
+
+``` r
+# Clean up data frame for use with `map2stan()`.
+d2 <- d %>% select(pulled_left, actor, condition, prosoc_left)
+
+m10_4 <- map2stan(
+    alist(
+        pulled_left ~ dbinom(1, p),
+        logit(p) <- a[actor] + (bp + bpc*condition)*prosoc_left,
+        a[actor] ~ dnorm(0, 10),
+        bp ~ dnorm(0, 10),
+        bpc ~ dnorm(0, 10)
+    ),
+    data = d2, chains = 2, iter = 2500, warmup = 500
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+    ## 
+    ## SAMPLING FOR MODEL '44c7fa10e9005d16ff70926afdea4099' NOW (CHAIN 1).
+    ## Chain 1: 
+    ## Chain 1: Gradient evaluation took 0.000167 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.67 seconds.
+    ## Chain 1: Adjust your expectations accordingly!
+    ## Chain 1: 
+    ## Chain 1: 
+    ## Chain 1: Iteration:    1 / 2500 [  0%]  (Warmup)
+    ## Chain 1: Iteration:  250 / 2500 [ 10%]  (Warmup)
+    ## Chain 1: Iteration:  500 / 2500 [ 20%]  (Warmup)
+    ## Chain 1: Iteration:  501 / 2500 [ 20%]  (Sampling)
+    ## Chain 1: Iteration:  750 / 2500 [ 30%]  (Sampling)
+    ## Chain 1: Iteration: 1000 / 2500 [ 40%]  (Sampling)
+    ## Chain 1: Iteration: 1250 / 2500 [ 50%]  (Sampling)
+    ## Chain 1: Iteration: 1500 / 2500 [ 60%]  (Sampling)
+    ## Chain 1: Iteration: 1750 / 2500 [ 70%]  (Sampling)
+    ## Chain 1: Iteration: 2000 / 2500 [ 80%]  (Sampling)
+    ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
+    ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
+    ## Chain 1: 
+    ## Chain 1:  Elapsed Time: 1.29917 seconds (Warm-up)
+    ## Chain 1:                2.81414 seconds (Sampling)
+    ## Chain 1:                4.11331 seconds (Total)
+    ## Chain 1: 
+    ## 
+    ## SAMPLING FOR MODEL '44c7fa10e9005d16ff70926afdea4099' NOW (CHAIN 2).
+    ## Chain 2: 
+    ## Chain 2: Gradient evaluation took 7.8e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.78 seconds.
+    ## Chain 2: Adjust your expectations accordingly!
+    ## Chain 2: 
+    ## Chain 2: 
+    ## Chain 2: Iteration:    1 / 2500 [  0%]  (Warmup)
+    ## Chain 2: Iteration:  250 / 2500 [ 10%]  (Warmup)
+    ## Chain 2: Iteration:  500 / 2500 [ 20%]  (Warmup)
+    ## Chain 2: Iteration:  501 / 2500 [ 20%]  (Sampling)
+    ## Chain 2: Iteration:  750 / 2500 [ 30%]  (Sampling)
+    ## Chain 2: Iteration: 1000 / 2500 [ 40%]  (Sampling)
+    ## Chain 2: Iteration: 1250 / 2500 [ 50%]  (Sampling)
+    ## Chain 2: Iteration: 1500 / 2500 [ 60%]  (Sampling)
+    ## Chain 2: Iteration: 1750 / 2500 [ 70%]  (Sampling)
+    ## Chain 2: Iteration: 2000 / 2500 [ 80%]  (Sampling)
+    ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
+    ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
+    ## Chain 2: 
+    ## Chain 2:  Elapsed Time: 1.11507 seconds (Warm-up)
+    ## Chain 2:                4.96331 seconds (Sampling)
+    ## Chain 2:                6.07838 seconds (Total)
+    ## Chain 2:
+
+    ## Computing WAIC
+
+``` r
+precis(m10_4)
+```
+
+    ## 7 vector or matrix parameters hidden. Use depth=2 to show them.
+
+    ##           mean        sd       5.5%     94.5%    n_eff     Rhat4
+    ## bp   0.8361716 0.2671018  0.4087367 1.2634672 2937.053 0.9999706
+    ## bpc -0.1244372 0.3064914 -0.6096928 0.3681643 3952.925 0.9998774
+
+``` r
+plot(m10_4)
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
