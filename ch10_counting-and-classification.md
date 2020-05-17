@@ -173,7 +173,7 @@ logistic
     ##     p <- ifelse(x == Inf, 1, p)
     ##     p
     ## }
-    ## <bytecode: 0x7ffb9d958048>
+    ## <bytecode: 0x7fe3fda0f8b8>
     ## <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -412,10 +412,10 @@ m10_4 <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '44c7fa10e9005d16ff70926afdea4099' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'cdc347c73e0e84a6c03f2abfe3f6f6b5' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000167 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.67 seconds.
+    ## Chain 1: Gradient evaluation took 0.000147 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.47 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -432,15 +432,15 @@ m10_4 <- map2stan(
     ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.29917 seconds (Warm-up)
-    ## Chain 1:                2.81414 seconds (Sampling)
-    ## Chain 1:                4.11331 seconds (Total)
+    ## Chain 1:  Elapsed Time: 1.37911 seconds (Warm-up)
+    ## Chain 1:                2.97111 seconds (Sampling)
+    ## Chain 1:                4.35022 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '44c7fa10e9005d16ff70926afdea4099' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'cdc347c73e0e84a6c03f2abfe3f6f6b5' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 7.8e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.78 seconds.
+    ## Chain 2: Gradient evaluation took 7.5e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.75 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -457,25 +457,325 @@ m10_4 <- map2stan(
     ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 1.11507 seconds (Warm-up)
-    ## Chain 2:                4.96331 seconds (Sampling)
-    ## Chain 2:                6.07838 seconds (Total)
+    ## Chain 2:  Elapsed Time: 1.18998 seconds (Warm-up)
+    ## Chain 2:                5.40355 seconds (Sampling)
+    ## Chain 2:                6.59353 seconds (Total)
     ## Chain 2:
 
     ## Computing WAIC
 
 ``` r
-precis(m10_4)
+precis(m10_4, depth = 2)
 ```
 
-    ## 7 vector or matrix parameters hidden. Use depth=2 to show them.
-
-    ##           mean        sd       5.5%     94.5%    n_eff     Rhat4
-    ## bp   0.8361716 0.2671018  0.4087367 1.2634672 2937.053 0.9999706
-    ## bpc -0.1244372 0.3064914 -0.6096928 0.3681643 3952.925 0.9998774
+    ##            mean        sd       5.5%      94.5%    n_eff     Rhat4
+    ## a[1] -0.7403970 0.2697560 -1.1781237 -0.3114903 4004.673 0.9996487
+    ## a[2] 11.0686316 5.3658495  4.6188930 21.0303959 1456.332 1.0010439
+    ## a[3] -1.0543496 0.2827338 -1.5206078 -0.6116062 3836.378 0.9997755
+    ## a[4] -1.0543866 0.2849159 -1.5125557 -0.6046764 4068.610 1.0000999
+    ## a[5] -0.7381053 0.2765060 -1.1847997 -0.2971693 4148.511 0.9996860
+    ## a[6]  0.2162808 0.2695097 -0.2102277  0.6459626 3976.974 0.9998150
+    ## a[7]  1.8079037 0.3933077  1.2017656  2.4602113 4610.516 0.9996526
+    ## bp    0.8361716 0.2671018  0.4087367  1.2634672 2937.053 0.9999706
+    ## bpc  -0.1244372 0.3064914 -0.6096928  0.3681643 3952.925 0.9998774
 
 ``` r
 plot(m10_4)
 ```
 
 ![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+  - the posterior is not Guassian
+      - e.g. the distribution for `a[2]`
+          - the values are all positive, indicating a left-hand bias
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m10_4)
+
+tibble(a_2 = post$a[, 2]) %>%
+    ggplot(aes(x = a_2)) +
+    geom_density(fill = "grey50", alpha = 0.1) +
+    labs(x = "alpha[actor == 2]", y = "probability density",
+         title = "Posterior distribution for alpha when actor is 2")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+  - plotting the posterior predictive plots for each of the chimps shows
+    how the intercept changes for each
+
+<!-- end list -->
+
+``` r
+chimp <- 1
+
+d_pred <- tibble(
+    pulled_left = rep(0, 4), 
+    prosoc_left = c(0, 1, 0, 1), 
+    condition = c(0, 0, 1, 1)
+)
+
+d_pred_all <- tibble(
+    actor = 1:7,
+    data = rep(list(d_pred), 7)
+) %>%
+    unnest(data)
+
+link_m10_4 <- link(m10_4, data = d_pred_all) %>% 
+    as.data.frame() %>%
+    as_tibble()
+```
+
+    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+
+``` r
+link_names <- c("0/0", "1/0", "0/1", "1/1")
+link_names <- map(1:7, ~ paste0("chimp", .x, "_", link_names)) %>%
+    unlist()
+colnames(link_m10_4) <- link_names
+
+link_m10_4 %>%
+    mutate(sample_idx = row_number()) %>%
+    pivot_longer(-sample_idx, names_to = "name", values_to = "value") %>%
+    group_by(name) %>%
+    summarise(avg = mean(value),
+              pi = list(PI(value) %>% pi_to_df())) %>%
+    ungroup() %>%
+    unnest(pi) %>%
+    mutate(actor = str_extract(name, "(?<=chimp)[:digit:]"),
+           actor = as.numeric(actor),
+           name = str_remove_all(name, "chimp[:digit:]_"),
+           name = factor(name)) %>%
+    ggplot() +
+    facet_wrap(~ actor) +
+    geom_line(aes(x = name, y = avg, group = "1"),
+              size = 0.8, color = "black") +
+    geom_ribbon(aes(x = as.numeric(name), 
+                    ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.2, fill = "black") +
+    scale_y_continuous(limits = c(0, 1.1)) +
+    labs(x = "presoc_left/condition",
+         y = "proportion pulled left",
+         title = "A model with a different intercept for each chimp",
+         subtitle = "Each subplot shows the proportion of times the left lever was pulled for a single chimp.")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+### 10.1.2. Aggregated binomial: Chimpanzees again, condensed
+
+  - above, we looked at the proportion of times the chimp pulled the
+    left-hand lever for each set of predictors
+      - could also just count the number of pulls, as long as we don’t
+        care about the sequence
+
+<!-- end list -->
+
+``` r
+d <- as_tibble(chimpanzees)
+d_aggregated <- d %>%
+    group_by(prosoc_left, condition, actor) %>%
+    summarise(x = sum(pulled_left)) %>%
+    ungroup()
+d_aggregated
+```
+
+    ## # A tibble: 28 x 4
+    ##    prosoc_left condition actor     x
+    ##          <int>     <int> <int> <int>
+    ##  1           0         0     1     6
+    ##  2           0         0     2    18
+    ##  3           0         0     3     5
+    ##  4           0         0     4     6
+    ##  5           0         0     5     6
+    ##  6           0         0     6    14
+    ##  7           0         0     7    14
+    ##  8           0         1     1     5
+    ##  9           0         1     2    18
+    ## 10           0         1     3     3
+    ## # … with 18 more rows
+
+  - can define the model using these counts
+      - there were 18 trials for each animal
+
+<!-- end list -->
+
+``` r
+m10_5 <- quap(
+    alist(
+        x ~ dbinom(18, p),
+        logit(p) <- a + (bp + bpc*condition)*prosoc_left,
+        a ~ dnorm(0, 10),
+        bp ~ dnorm(0, 10),
+        bpc ~ dnorm(0, 10)
+    ),
+    data = d_aggregated
+)
+
+precis(m10_5)
+```
+
+    ##            mean        sd       5.5%     94.5%
+    ## a    0.04771729 0.1260040 -0.1536615 0.2490961
+    ## bp   0.60967130 0.2261462  0.2482460 0.9710966
+    ## bpc -0.10396774 0.2635904 -0.5252361 0.3173006
+
+### 10.1.3 Aggregated binomial: Graduate school admissions
+
+  - often, the number of trials per condition is not constant
+      - in these cases, must use another variable for the first
+        parameter in `dbinom()`
+  - use UC Berkeley admission data as an example
+      - only 12 rows with information about admissions to 6 departments,
+        separated by male and female applicants
+
+<!-- end list -->
+
+``` r
+data("UCBadmit")
+d <- as_tibble(UCBadmit) %>% janitor::clean_names()
+d
+```
+
+    ## # A tibble: 12 x 5
+    ##    dept  applicant_gender admit reject applications
+    ##    <fct> <fct>            <int>  <int>        <int>
+    ##  1 A     male               512    313          825
+    ##  2 A     female              89     19          108
+    ##  3 B     male               353    207          560
+    ##  4 B     female              17      8           25
+    ##  5 C     male               120    205          325
+    ##  6 C     female             202    391          593
+    ##  7 D     male               138    279          417
+    ##  8 D     female             131    244          375
+    ##  9 E     male                53    138          191
+    ## 10 E     female              94    299          393
+    ## 11 F     male                22    351          373
+    ## 12 F     female              24    317          341
+
+  - goal: to estimate if there is gender bias in the admissions
+  - fit two models:
+      - a binomial regression that models `admit` as a function of each
+        applicant’s gender
+          - estimates the association between gender and probability of
+            admission
+      - a binomial regression that models `admit` as a constant,
+        ignoring gender
+          - this provides a sense of any overfitting in the first model
+  - below is the formula for the first model
+      - \(n_{\text{admit},i}\): the applications indexed by row number
+      - \(m_i\): a dummy variable for male (1) vs. female (0)
+
+\[
+n_{\text{admit},i} \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha + \beta_m m_i \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_m \sim \text{Normal}(0, 10)
+\]
+
+``` r
+d$male <- as.numeric(d$applicant_gender == "male")
+
+m10_6 <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a + bm*male,
+        a ~ dnorm(0, 10),
+        bm ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+m10_7 <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a,
+        a ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+precis(m10_6)
+```
+
+    ##          mean         sd       5.5%      94.5%
+    ## a  -0.8304493 0.05077041 -0.9115902 -0.7493084
+    ## bm  0.6103061 0.06389095  0.5081960  0.7124162
+
+``` r
+precis(m10_7)
+```
+
+    ##         mean         sd       5.5%      94.5%
+    ## a -0.4567352 0.03050691 -0.5054911 -0.4079792
+
+``` r
+compare(m10_6, m10_7)
+```
+
+    ##            WAIC       SE    dWAIC      dSE     pWAIC       weight
+    ## m10_6  993.1292 316.4766  0.00000       NA 114.82319 1.000000e+00
+    ## m10_7 1045.7502 313.4376 52.62097 168.7304  82.87369 3.745434e-12
+
+``` r
+plot(compare(m10_6, m10_7))
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+  - interpretation of the models:
+      - the WAIC indicates that including the gender created a better
+        model
+      - this indicates that the gender matters a lot
+          - being a male is an advantage: \(exp(0.61) \approx 1.84\)
+          - the male applicant’s odds were 184% that of a female’s
+      - the difference on the absolute scale is shown below
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m10_6)
+p_admit_male <- logistic(post$a + post$bm)
+p_admit_female <- logistic(post$a)
+
+diff_admit <- p_admit_male - p_admit_female
+quantile(diff_admit, c(0.025, 0.50, 0.975))
+```
+
+    ##      2.5%       50%     97.5% 
+    ## 0.1132111 0.1416335 0.1698377
+
+  - plot posterior predictions for the model
+      - can use the function `postcheck()`, though I also made a plot of
+        the same
+data
+
+<!-- end list -->
+
+``` r
+postcheck(m10_6, n = 1e4)
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
+``` r
+pred <- link(m10_6)
+
+# TODO: plot the estimates and 89% PI in `pred` along with the plot below.
+
+d %>%
+    mutate(case = factor(row_number()),
+           prop_admit = admit / applications) %>%
+    ggplot(aes(x = case, y = prop_admit)) +
+    facet_wrap(~ dept, scales = "free_x", nrow = 1) +
+    geom_line(aes(group = dept)) +
+    geom_point(aes(color = applicant_gender)) +
+    scale_color_brewer(palette = "Set2") +
+    labs(x = "case", y = "proportion admitted",
+         title = "Admission proportions per department",
+         subtitle = "Admission data are separated by gender of applicant.")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
