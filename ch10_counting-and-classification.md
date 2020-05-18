@@ -173,7 +173,7 @@ logistic
     ##     p <- ifelse(x == Inf, 1, p)
     ##     p
     ## }
-    ## <bytecode: 0x7fe3fda0f8b8>
+    ## <bytecode: 0x7fbc2bf13cf8>
     ## <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -412,10 +412,10 @@ m10_4 <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL 'cdc347c73e0e84a6c03f2abfe3f6f6b5' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'c361b87dbce26a93a1953cd717be5cfd' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000147 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.47 seconds.
+    ## Chain 1: Gradient evaluation took 0.000139 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.39 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -432,15 +432,15 @@ m10_4 <- map2stan(
     ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.37911 seconds (Warm-up)
-    ## Chain 1:                2.97111 seconds (Sampling)
-    ## Chain 1:                4.35022 seconds (Total)
+    ## Chain 1:  Elapsed Time: 1.40574 seconds (Warm-up)
+    ## Chain 1:                2.94159 seconds (Sampling)
+    ## Chain 1:                4.34733 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL 'cdc347c73e0e84a6c03f2abfe3f6f6b5' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'c361b87dbce26a93a1953cd717be5cfd' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 7.5e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.75 seconds.
+    ## Chain 2: Gradient evaluation took 9.3e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.93 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -457,9 +457,9 @@ m10_4 <- map2stan(
     ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 1.18998 seconds (Warm-up)
-    ## Chain 2:                5.40355 seconds (Sampling)
-    ## Chain 2:                6.59353 seconds (Total)
+    ## Chain 2:  Elapsed Time: 1.1757 seconds (Warm-up)
+    ## Chain 2:                5.31638 seconds (Sampling)
+    ## Chain 2:                6.49207 seconds (Total)
     ## Chain 2:
 
     ## Computing WAIC
@@ -749,8 +749,7 @@ quantile(diff_admit, c(0.025, 0.50, 0.975))
 
   - plot posterior predictions for the model
       - can use the function `postcheck()`, though I also made a plot of
-        the same
-data
+        the same data
 
 <!-- end list -->
 
@@ -763,15 +762,19 @@ postcheck(m10_6, n = 1e4)
 ``` r
 pred <- link(m10_6)
 
-# TODO: plot the estimates and 89% PI in `pred` along with the plot below.
+pred_tib <- tibble(avg = apply(pred, 2, mean)) %>%
+    bind_cols(apply(pred, 2, PI) %>% pi_to_df())
 
 d %>%
     mutate(case = factor(row_number()),
            prop_admit = admit / applications) %>%
-    ggplot(aes(x = case, y = prop_admit)) +
+    bind_cols(pred_tib) %>%
+    ggplot(aes(x = case)) +
     facet_wrap(~ dept, scales = "free_x", nrow = 1) +
-    geom_line(aes(group = dept)) +
-    geom_point(aes(color = applicant_gender)) +
+    geom_line(aes(y = prop_admit, group = dept)) +
+    geom_point(aes(y = prop_admit, color = applicant_gender)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent), alpha = 0.5) +
+    geom_point(aes(y = avg), shape = 1) +
     scale_color_brewer(palette = "Set2") +
     labs(x = "case", y = "proportion admitted",
          title = "Admission proportions per department",
@@ -779,3 +782,395 @@ d %>%
 ```
 
 ![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+  - from this plot we can see that there were only 2 deptartments with
+    ower admission for females, yet the model says females should have a
+    14% lower chance of admission
+      - the problem is that the departments that take the most students
+        had fewer applications from females
+  - change our question:
+      - previous question: “What are the average probabilties of
+        admission for females and males *across all departments*?”
+      - new question: “What is the average *difference* in probability
+        of admission between females and males *within departments*?”
+          - fit each department with its own intercept
+
+\[
+n_{\text{admit},i} \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{DEPT}[i]} + \beta_m m_i \\
+\alpha_{\text{DEPT}} \sim \text{Normal}(0, 10) \\
+\beta_m \sim \text{Normal}(0, 10)
+\] - this model and one without accounting for gender (to check for
+overfitting) are fit below
+
+``` r
+d$dept_id <- as.numeric(factor(d$dept))
+
+m10_8 <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a[dept_id],
+        a[dept_id] ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+m10_9 <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a[dept_id] + bm*male,
+        a[dept_id] ~ dnorm(0, 10),
+        bm ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+precis(m10_8, depth = 2)
+```
+
+    ##            mean         sd       5.5%      94.5%
+    ## a[1]  0.5934318 0.06837899  0.4841490  0.7027146
+    ## a[2]  0.5428257 0.08575109  0.4057789  0.6798725
+    ## a[3] -0.6156597 0.06916048 -0.7261916 -0.5051279
+    ## a[4] -0.6648324 0.07502755 -0.7847409 -0.5449239
+    ## a[5] -1.0894021 0.09534034 -1.2417744 -0.9370298
+    ## a[6] -2.6750254 0.15237508 -2.9185503 -2.4315006
+
+``` r
+precis(m10_9, depth = 2)
+```
+
+    ##             mean         sd       5.5%       94.5%
+    ## a[1]  0.68193883 0.09910200  0.5235547  0.84032296
+    ## a[2]  0.63852955 0.11556510  0.4538342  0.82322490
+    ## a[3] -0.58062958 0.07465092 -0.6999362 -0.46132299
+    ## a[4] -0.61262191 0.08596001 -0.7500026 -0.47524121
+    ## a[5] -1.05727046 0.09872297 -1.2150488 -0.89949209
+    ## a[6] -2.62392097 0.15766768 -2.8759044 -2.37193757
+    ## bm   -0.09992549 0.08083548 -0.2291162  0.02926521
+
+``` r
+compare(m10_6, m10_7, m10_8, m10_9)
+```
+
+    ##            WAIC        SE      dWAIC        dSE      pWAIC        weight
+    ## m10_8  106.0196  17.48822   0.000000         NA   6.958918  8.203223e-01
+    ## m10_9  109.0567  15.46693   3.037065   4.346089   9.556102  1.796777e-01
+    ## m10_6  997.5737 315.88694 891.554064 326.811184 116.820221 2.067661e-194
+    ## m10_7 1032.1294 308.43062 926.109820 319.745124  78.505708 6.483244e-202
+
+``` r
+plot(compare(m10_6, m10_7, m10_8, m10_9))
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+  - now the best model is the one with a different intercept for each
+    department and no male predictor
+      - still, the one with the different intercepts and male has some
+        of the weight
+      - now the odds are in favor of female admission with males have
+        about 90% the odds of admission as a female in the same
+        department
+
+<!-- end list -->
+
+``` r
+exp(m10_9@coef[["bm"]])
+```
+
+    ## [1] 0.9049048
+
+``` r
+postcheck(m10_9)
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+``` r
+pred <- link(m10_9)
+
+pred_tib <- tibble(avg = apply(pred, 2, mean)) %>%
+    bind_cols(apply(pred, 2, PI) %>% pi_to_df())
+
+d %>%
+    mutate(case = factor(row_number()),
+           prop_admit = admit / applications) %>%
+    bind_cols(pred_tib) %>%
+    ggplot(aes(x = case)) +
+    facet_wrap(~ dept, scales = "free_x", nrow = 1) +
+    geom_line(aes(y = prop_admit, group = dept)) +
+    geom_point(aes(y = prop_admit, color = applicant_gender)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent), alpha = 0.5) +
+    geom_point(aes(y = avg), shape = 1) +
+    scale_color_brewer(palette = "Set2") +
+    labs(x = "case", y = "proportion admitted",
+         title = "Admission proportions per department",
+         subtitle = "Admission data are separated by gender of applicant.")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+### 10.1.4 Fitting binomial regressions with `glm()`
+
+``` r
+m10_9glm <- glm(cbind(admit, reject) ~ male + dept, 
+                data = d, 
+                family = binomial)
+
+summary(m10_9glm)
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = cbind(admit, reject) ~ male + dept, family = binomial, 
+    ##     data = d)
+    ## 
+    ## Deviance Residuals: 
+    ##       1        2        3        4        5        6        7        8  
+    ## -1.2487   3.7189  -0.0560   0.2706   1.2533  -0.9243   0.0826  -0.0858  
+    ##       9       10       11       12  
+    ##  1.2205  -0.8509  -0.2076   0.2052  
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error z value Pr(>|z|)    
+    ## (Intercept)  0.68192    0.09911   6.880 5.97e-12 ***
+    ## male        -0.09987    0.08085  -1.235    0.217    
+    ## deptB       -0.04340    0.10984  -0.395    0.693    
+    ## deptC       -1.26260    0.10663 -11.841  < 2e-16 ***
+    ## deptD       -1.29461    0.10582 -12.234  < 2e-16 ***
+    ## deptE       -1.73931    0.12611 -13.792  < 2e-16 ***
+    ## deptF       -3.30648    0.16998 -19.452  < 2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for binomial family taken to be 1)
+    ## 
+    ##     Null deviance: 877.056  on 11  degrees of freedom
+    ## Residual deviance:  20.204  on  5  degrees of freedom
+    ## AIC: 103.14
+    ## 
+    ## Number of Fisher Scoring iterations: 4
+
+## 10.2 Poisson regression
+
+  - when a binomial has a small probability of an event \(p\) and a
+    large number of trials \(n\)
+      - a binomial has an expected value of \(np\) and a variance
+        \(np(1-p)\)
+      - when \(n\) is large and \(p\) small, these become about the same
+  - example:
+      - employ 1000 monks in a monastery to copy manuscripts (before the
+        printing press)
+      - on average, one monk finishes a manuscript per day
+      - but each monk is working independently and the manuscripts vary
+        in length
+      - so some days 3 manuscripts finish, but many days it is none
+      - variance: \(np(1-p) = 1000(0.001)(1-0.001) \approx 1\)
+      - this is simulated with \(1 \time 10^6\) monks below
+
+<!-- end list -->
+
+``` r
+set.seed(0)
+y <- rbinom(1e6, 1000, 1/1000)
+c(mean(y), var(y))
+```
+
+    ## [1] 0.9995910 0.9979418
+
+  - this special binomial is a *Poisson distribution*
+      - useful for modeling binomial events with an unknown or very
+        large number of trials \(n\)
+  - the model form for a Poisson is even simpler than for a binomial or
+    Gaussian
+      - because there is only one parameter
+
+\[
+y \sim \text{Poisson}(\lambda_i)
+\]
+
+  - for the GLM, the link function is the log link
+      - the log link makes \(\lambda_i\) always positive
+      - also implies an exponential relationship between predictors and
+        the expected value
+
+\[
+y \sim \text{Poisson}(\lambda_i) \\
+\log(\lambda_i) = \alpha + \beta x_i
+\]
+
+  - \(\lambda_i\) is the expected value and commonly thought of as a
+    *rate*
+      - allows to make models for the *exposure* varies across cases
+  - example:
+      - one monastary is counting books completed per week, and another
+        is counting per day
+      - can analyze both in the same models even though the counts are
+        aggregated over different amounts of time
+      - treat \(\lambda_i\) as the number of events \(\mu\) per unit
+        time (or distance) \(\tau\); \(\lambda_i = \mu / \tau\)
+      - the \(\tau_i\) values are the different exposures
+          - when \(\tau_i = 1\) (of some unit) then \(\log \tau_i = 0\)
+            and the formula is identical to the first
+          - when there are different values for the exposure (i.e. per
+            day vs per week), this value currects for that
+
+\[
+y_i \sim \text{Poisson}(\lambda_i) \\
+\log \lambda_i = \log(\frac{\mu_i}{\tau_i}) = \alpha + \beta x_i \\
+\log \lambda_i = \log \mu_i - \log \tau_i = \alpha + \beta x_i \\
+\log \mu_i = \log \tau_i + \alpha + \beta x_i \\
+\]
+
+### 10.2.1 Example: Oceanic tool complexity
+
+  - setup:
+      - the old island societies of Oceania provide an example of
+        technological evolution
+          - they made fish hooks, axes, boats, hand plows, etc.
+      - theorize that larger populations develop and sustain more
+        complex tool kits
+      - contact rates among populations increases population size, too
+  - the data and models:
+      - `total_tools` is the outcome predictor
+      - model the number of tools as the log of the `population`
+      - the number of tools increases with `contact` rate
+      - the impact of `population` counts is increased by high `contact`
+        using a interaction term
+
+<!-- end list -->
+
+``` r
+data("Kline")
+d <- as_tibble(Kline) %>% 
+    janitor::clean_names() %>%
+    mutate(log_pop = log(population),
+           contact_high = as.numeric(contact == "high"))
+d
+```
+
+    ## # A tibble: 10 x 7
+    ##    culture    population contact total_tools mean_tu log_pop contact_high
+    ##    <fct>           <int> <fct>         <int>   <dbl>   <dbl>        <dbl>
+    ##  1 Malekula         1100 low              13     3.2    7.00            0
+    ##  2 Tikopia          1500 low              22     4.7    7.31            0
+    ##  3 Santa Cruz       3600 low              24     4      8.19            0
+    ##  4 Yap              4791 high             43     5      8.47            1
+    ##  5 Lau Fiji         7400 high             33     5      8.91            1
+    ##  6 Trobriand        8000 high             19     4      8.99            1
+    ##  7 Chuuk            9200 high             40     3.8    9.13            1
+    ##  8 Manus           13000 low              28     6.6    9.47            0
+    ##  9 Tonga           17500 high             55     5.4    9.77            1
+    ## 10 Hawaii         275000 low              71     6.6   12.5             0
+
+  - the model formula:
+      - \(P\) is `population`, \(C\) is `contact_high`
+      - the priors are strongly regularizing due to the small amount of
+        data
+
+\[
+T_i \sim \text{Poisson}(\lambda_i) \\
+\log \lambda_i = \alpha + \beta+P \log P_i + \beta_C C_i + \beta_{PC} C_i \log P_i \\
+\alpha \sim \text{Normal}(0, 100) \\
+\beta_P \sim \text{Normal}(0, 1) \\
+\beta_C \sim \text{Normal}(0, 1) \\
+\beta_{PC} \sim \text{Normal}(0, 1)
+\]
+
+  - fit the model with the quadratic approximation
+
+<!-- end list -->
+
+``` r
+m10_10 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop + bc*contact_high + bpc*contact_high*log_pop,
+        a ~ dnorm(0, 100),
+        c(bp, bc, bpc) ~ dnorm(0, 1)
+    ),
+    data = d
+)
+
+precis(m10_10, corr = TRUE)
+```
+
+    ##            mean         sd       5.5%     94.5%
+    ## a    0.94356226 0.36009898  0.3680545 1.5190700
+    ## bp   0.26408201 0.03466757  0.2086765 0.3194875
+    ## bc  -0.09091811 0.84140385 -1.4356440 1.2538077
+    ## bpc  0.04264538 0.09227125 -0.1048219 0.1901127
+
+``` r
+plot(precis(m10_10))
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+
+  - interpretation:
+      - the main effect of log-population `bp` is positive and both `bc`
+        and `bpc` overlap zero substantially
+      - could think that log-population is reliably associated with
+        total tools, but that would be incorrect
+          - easy to be mislead by tables of estimates, especially with
+            interaction terms
+  - analyze the model by plotting counterfactual predictions
+      - consider two islands with log-population of 8, but one is high
+        contact and the other is low contact
+      - calculate \(\lambda\), the expected tool count, for each
+          - sample from the posterior, convert with the linear model,
+            take the exponential to reverse the logarithm
+      - can plot the difference in the number of tools and find the
+        percent of samples where the high contact group had more tools
+        than the low contact group
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m10_10)
+lambda_high <- exp(post$a + post$bc + (post$bp + post$bpc)*8)
+lambda_low <- exp(post$a + post$bp*8)
+
+tibble(diff_vals = lambda_high - lambda_low) %>%
+    ggplot(aes(x = diff_vals)) +
+    geom_density(color = "skyblue4") +
+    geom_vline(xintercept = 0, lty = 2, size = 0.8, color = "grey50") +
+    labs(x = "lambda_high - lambda_low",
+         y = "density")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+
+``` r
+sum(lambda_high - lambda_low > 0) / length(lambda_high)
+```
+
+    ## [1] 0.9586
+
+  - there is a 95% plausibilty that the high-contact island has more
+    tools than the low-contact island, holding population constant
+      - suggests that contact is important even though the model
+        estimates are not informative
+      - this is because the uncertainty is `bc` and `bpc` are negatively
+        correlated
+          - when one is high, the other is low
+
+<!-- end list -->
+
+``` r
+as_tibble(post) %>%
+    ggplot(aes(x = bc, y = bpc)) +
+    geom_point(alpha = 0.5, size = 0.3, color = "skyblue3")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+  - a better way to tell if a predictor is expected to improve
+    prediction is to use model comparison
+
+<!-- end list -->
+
+``` r
+# TODO: fit all of the models and compare
+```

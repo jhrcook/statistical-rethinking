@@ -477,18 +477,259 @@ postcheck(m10_6, n = 1e4)
 ```{r}
 pred <- link(m10_6)
 
-# TODO: plot the estimates and 89% PI in `pred` along with the plot below.
+pred_tib <- tibble(avg = apply(pred, 2, mean)) %>%
+    bind_cols(apply(pred, 2, PI) %>% pi_to_df())
 
 d %>%
     mutate(case = factor(row_number()),
            prop_admit = admit / applications) %>%
-    ggplot(aes(x = case, y = prop_admit)) +
+    bind_cols(pred_tib) %>%
+    ggplot(aes(x = case)) +
     facet_wrap(~ dept, scales = "free_x", nrow = 1) +
-    geom_line(aes(group = dept)) +
-    geom_point(aes(color = applicant_gender)) +
+    geom_line(aes(y = prop_admit, group = dept)) +
+    geom_point(aes(y = prop_admit, color = applicant_gender)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent), alpha = 0.5) +
+    geom_point(aes(y = avg), shape = 1) +
     scale_color_brewer(palette = "Set2") +
     labs(x = "case", y = "proportion admitted",
          title = "Admission proportions per department",
          subtitle = "Admission data are separated by gender of applicant.")
+```
+
+- from this plot we can see that there were only 2 deptartments with ower admission for females, yet the model says females should have a 14% lower chance of admission
+    * the problem is that the departments that take the most students had fewer applications from females
+- change our question:
+    * previous question: "What are the average probabilties of admission for females and males *across all departments*?"
+    * new question: "What is the average *difference* in probability of admission between females and males *within departments*?"
+        - fit each department with its own intercept
+
+$$
+n_{\text{admit},i} \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{DEPT}[i]} + \beta_m m_i \\
+\alpha_{\text{DEPT}} \sim \text{Normal}(0, 10) \\
+\beta_m \sim \text{Normal}(0, 10)
+$$
+- this model and one without accounting for gender (to check for overfitting) are fit below
+
+```{r}
+d$dept_id <- as.numeric(factor(d$dept))
+
+m10_8 <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a[dept_id],
+        a[dept_id] ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+m10_9 <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a[dept_id] + bm*male,
+        a[dept_id] ~ dnorm(0, 10),
+        bm ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+precis(m10_8, depth = 2)
+precis(m10_9, depth = 2)
+compare(m10_6, m10_7, m10_8, m10_9)
+plot(compare(m10_6, m10_7, m10_8, m10_9))
+```
+
+- now the best model is the one with a different intercept for each department and no male predictor
+    * still, the one with the different intercepts and male has some of the weight
+    * now the odds are in favor of female admission with males have about 90% the odds of admission as a female in the same department
+
+```{r}
+exp(m10_9@coef[["bm"]])
+```
+
+```{r}
+postcheck(m10_9)
+```
+
+```{r}
+pred <- link(m10_9)
+
+pred_tib <- tibble(avg = apply(pred, 2, mean)) %>%
+    bind_cols(apply(pred, 2, PI) %>% pi_to_df())
+
+d %>%
+    mutate(case = factor(row_number()),
+           prop_admit = admit / applications) %>%
+    bind_cols(pred_tib) %>%
+    ggplot(aes(x = case)) +
+    facet_wrap(~ dept, scales = "free_x", nrow = 1) +
+    geom_line(aes(y = prop_admit, group = dept)) +
+    geom_point(aes(y = prop_admit, color = applicant_gender)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent), alpha = 0.5) +
+    geom_point(aes(y = avg), shape = 1) +
+    scale_color_brewer(palette = "Set2") +
+    labs(x = "case", y = "proportion admitted",
+         title = "Admission proportions per department",
+         subtitle = "Admission data are separated by gender of applicant.")
+```
+
+### 10.1.4 Fitting binomial regressions with `glm()`
+
+```{r}
+m10_9glm <- glm(cbind(admit, reject) ~ male + dept, 
+                data = d, 
+                family = binomial)
+
+summary(m10_9glm)
+```
+
+## 10.2 Poisson regression
+
+- when a binomial has a small probability of an event $p$ and a large number of trials $n$
+    * a binomial has an expected value of $np$ and a variance $np(1-p)$
+    * when $n$ is large and $p$ small, these become about the same
+- example:
+    * employ 1000 monks in a monastery to copy manuscripts (before the printing press)
+    * on average, one monk finishes a manuscript per day
+    * but each monk is working independently and the manuscripts vary in length
+    * so some days 3 manuscripts finish, but many days it is none
+    * variance: $np(1-p) = 1000(0.001)(1-0.001) \approx 1$
+    * this is simulated with $1 \time 10^6$ monks below
+
+```{r}
+set.seed(0)
+y <- rbinom(1e6, 1000, 1/1000)
+c(mean(y), var(y))
+```
+
+- this special binomial is a *Poisson distribution*
+    * useful for modeling binomial events with an unknown or very large number of trials $n$
+- the model form for a Poisson is even simpler than for a binomial or Gaussian
+    * because there is only one parameter
+
+$$
+y \sim \text{Poisson}(\lambda_i)
+$$
+
+- for the GLM, the link function is the log link
+    * the log link makes $\lambda_i$ always positive
+    * also implies an exponential relationship between predictors and the expected value
+
+$$
+y \sim \text{Poisson}(\lambda_i) \\
+\log(\lambda_i) = \alpha + \beta x_i
+$$
+
+- $\lambda_i$ is the expected value and commonly thought of as a *rate*
+    * allows to make models for the *exposure* varies across cases
+- example:
+    * one monastary is counting books completed per week, and another is counting per day
+    * can analyze both in the same models even though the counts are aggregated over different amounts of time
+    * treat $\lambda_i$ as the number of events $\mu$ per unit time (or distance) $\tau$; $\lambda_i = \mu / \tau$
+    * the $\tau_i$ values are the different exposures
+        - when $\tau_i = 1$ (of some unit) then $\log \tau_i = 0$ and the formula is identical to the first
+        - when there are different values for the exposure (i.e. per day vs per week), this value currects for that
+
+$$
+y_i \sim \text{Poisson}(\lambda_i) \\
+\log \lambda_i = \log(\frac{\mu_i}{\tau_i}) = \alpha + \beta x_i \\
+\log \lambda_i = \log \mu_i - \log \tau_i = \alpha + \beta x_i \\
+\log \mu_i = \log \tau_i + \alpha + \beta x_i \\
+$$
+
+### 10.2.1 Example: Oceanic tool complexity
+
+- setup:
+    * the old island societies of Oceania provide an example of technological evolution
+        - they made fish hooks, axes, boats, hand plows, etc.
+    * theorize that larger populations develop and sustain more complex tool kits
+    * contact rates among populations increases population size, too
+- the data and models:
+    * `total_tools` is the outcome predictor
+    * model the number of tools as the log of the `population`
+    * the number of tools increases with `contact` rate
+    * the impact of `population` counts is increased by high `contact` using a interaction term
+
+```{r}
+data("Kline")
+d <- as_tibble(Kline) %>% 
+    janitor::clean_names() %>%
+    mutate(log_pop = log(population),
+           contact_high = as.numeric(contact == "high"))
+d
+```
+
+- the model formula:
+    * $P$ is `population`, $C$ is `contact_high`
+    * the priors are strongly regularizing due to the small amount of data
+
+$$
+T_i \sim \text{Poisson}(\lambda_i) \\
+\log \lambda_i = \alpha + \beta+P \log P_i + \beta_C C_i + \beta_{PC} C_i \log P_i \\
+\alpha \sim \text{Normal}(0, 100) \\
+\beta_P \sim \text{Normal}(0, 1) \\
+\beta_C \sim \text{Normal}(0, 1) \\
+\beta_{PC} \sim \text{Normal}(0, 1)
+$$
+
+- fit the model with the quadratic approximation
+
+```{r}
+m10_10 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop + bc*contact_high + bpc*contact_high*log_pop,
+        a ~ dnorm(0, 100),
+        c(bp, bc, bpc) ~ dnorm(0, 1)
+    ),
+    data = d
+)
+
+precis(m10_10, corr = TRUE)
+plot(precis(m10_10))
+```
+
+- interpretation:
+    * the main effect of log-population `bp` is positive and both `bc` and `bpc` overlap zero substantially
+    * could think that log-population is reliably associated with total tools, but that would be incorrect
+        - easy to be mislead by tables of estimates, especially with interaction terms
+- analyze the model by plotting counterfactual predictions
+    * consider two islands with log-population of 8, but one is high contact and the other is low contact
+    * calculate $\lambda$, the expected tool count, for each
+        - sample from the posterior, convert with the linear model, take the exponential to reverse the logarithm
+    * can plot the difference in the number of tools and find the percent of samples where the high contact group had more tools than the low contact group
+
+```{r}
+post <- extract.samples(m10_10)
+lambda_high <- exp(post$a + post$bc + (post$bp + post$bpc)*8)
+lambda_low <- exp(post$a + post$bp*8)
+
+tibble(diff_vals = lambda_high - lambda_low) %>%
+    ggplot(aes(x = diff_vals)) +
+    geom_density(color = "skyblue4") +
+    geom_vline(xintercept = 0, lty = 2, size = 0.8, color = "grey50") +
+    labs(x = "lambda_high - lambda_low",
+         y = "density")
+```
+
+```{r}
+sum(lambda_high - lambda_low > 0) / length(lambda_high)
+```
+
+- there is a 95% plausibilty that the high-contact island has more tools than the low-contact island, holding population constant
+    * suggests that contact is important even though the model estimates are not informative
+    * this is because the uncertainty is `bc` and `bpc` are negatively correlated
+        - when one is high, the other is low
+
+```{r}
+as_tibble(post) %>%
+    ggplot(aes(x = bc, y = bpc)) +
+    geom_point(alpha = 0.5, size = 0.3, color = "skyblue3")
+```
+
+- a better way to tell if a predictor is expected to improve prediction is to use model comparison
+
+```{r}
+# TODO: fit all of the models and compare
 ```
 
