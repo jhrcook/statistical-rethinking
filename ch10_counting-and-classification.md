@@ -173,7 +173,7 @@ logistic
     ##     p <- ifelse(x == Inf, 1, p)
     ##     p
     ## }
-    ## <bytecode: 0x7fbc2bf13cf8>
+    ## <bytecode: 0x7fa4583a7760>
     ## <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -412,10 +412,10 @@ m10_4 <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL 'c361b87dbce26a93a1953cd717be5cfd' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'ec16cbb78e5a12676b2c31fad4471cf1' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000139 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.39 seconds.
+    ## Chain 1: Gradient evaluation took 0.000146 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.46 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -432,15 +432,15 @@ m10_4 <- map2stan(
     ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.40574 seconds (Warm-up)
-    ## Chain 1:                2.94159 seconds (Sampling)
-    ## Chain 1:                4.34733 seconds (Total)
+    ## Chain 1:  Elapsed Time: 1.25629 seconds (Warm-up)
+    ## Chain 1:                2.8491 seconds (Sampling)
+    ## Chain 1:                4.10539 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL 'c361b87dbce26a93a1953cd717be5cfd' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'ec16cbb78e5a12676b2c31fad4471cf1' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 9.3e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.93 seconds.
+    ## Chain 2: Gradient evaluation took 8.3e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.83 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -457,9 +457,9 @@ m10_4 <- map2stan(
     ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 1.1757 seconds (Warm-up)
-    ## Chain 2:                5.31638 seconds (Sampling)
-    ## Chain 2:                6.49207 seconds (Total)
+    ## Chain 2:  Elapsed Time: 1.15032 seconds (Warm-up)
+    ## Chain 2:                4.96789 seconds (Sampling)
+    ## Chain 2:                6.11821 seconds (Total)
     ## Chain 2:
 
     ## Computing WAIC
@@ -749,7 +749,8 @@ quantile(diff_admit, c(0.025, 0.50, 0.975))
 
   - plot posterior predictions for the model
       - can use the function `postcheck()`, though I also made a plot of
-        the same data
+        the same
+data
 
 <!-- end list -->
 
@@ -1172,5 +1173,600 @@ as_tibble(post) %>%
 <!-- end list -->
 
 ``` r
-# TODO: fit all of the models and compare
+# Without interaction
+m10_11 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop + bc*contact_high,
+        a ~ dnorm(0, 100),
+        c(bp, bc) ~ dnorm(0, 1)
+    ),
+    data = d
+)
+# With only log-population.
+m10_12 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop,
+        a ~ dnorm(0, 100),
+        bp ~ dnorm(0, 1)
+    ),
+    data = d
+)
+# With only contact rate.
+m10_13 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bc*contact_high,
+        a ~ dnorm(0, 100),
+        bc ~ dnorm(0, 1)
+    ),
+    data = d
+)
+# Intercept only.
+m10_14 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a,
+        a ~ dnorm(0, 100)
+    ),
+    data = d
+)
+(islands_compare <- compare(m10_10, m10_11, m10_12, m10_13, m10_14))
 ```
+
+    ##             WAIC        SE      dWAIC        dSE     pWAIC       weight
+    ## m10_11  78.96686 10.928225  0.0000000         NA  4.153861 5.660464e-01
+    ## m10_10  79.64939 11.047835  0.6825349  0.9855065  4.583836 4.023847e-01
+    ## m10_12  84.73987  8.853414  5.7730089  8.0937951  3.882621 3.156887e-02
+    ## m10_14 142.03343 31.717655 63.0665718 34.4458805  8.695272 1.143194e-14
+    ## m10_13 148.54902 43.401936 69.5821609 45.3132300 15.657562 4.398229e-16
+
+``` r
+plot(islands_compare)
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+  - interpretation:
+      - the top models include both predictors, but the weight is split
+        50:50 between the model without the interaction and the one with
+        the interaction
+          - indicates both predictors are informative
+          - suggests the interaction is probably not important
+  - plot counterfactual predictions using the ensemble of the top 3
+    models
+      - the input data is the log-population over the natural range with
+        `contact_high` set to both 0 and 1
+      - both trends curve up as log-pop increases
+      - the impact of contact rate can be seen by the distance between
+        the curves a little overlap of the 89% intervals
+
+<!-- end list -->
+
+``` r
+log_pop_seq <- seq(6, 13, length.out = 30)
+d_pred <- bind_rows(
+    tibble(log_pop = log_pop_seq,
+           contact_high = 1),
+    tibble(log_pop = log_pop_seq,
+           contact_high = 0)
+)
+lambda_pred <- ensemble(m10_10, m10_11, m10_12, data = d_pred)
+lambda_med <- apply(lambda_pred$link, 2, median)
+lambda_pi <- apply(lambda_pred$link, 2, PI) %>% pi_to_df()
+
+d_pred %>%
+    mutate(lambda_med,
+           contact_high = factor(contact_high)) %>%
+    bind_cols(lambda_pi) %>%
+    ggplot(aes(x = log_pop)) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent, 
+                    fill = contact_high), 
+                alpha = 0.2) +
+    geom_line(aes(y = lambda_med, group = contact_high,
+                  color = contact_high)) +
+    geom_point(data = d, aes(y = total_tools, shape = factor(contact_high))) +
+    scale_fill_brewer(palette = "Set1") +
+    scale_color_brewer(palette = "Set1") +
+    labs(x = "log-population", y = "total tools",
+         color = "contact high", shape = "contact high",
+         title = "Ensemble posterior predictions for the islands model set")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+
+### 10.2.2 MCM islands
+
+  - verify that the MAP estimates made above accurately describe the
+    shape of the posterior by fitting with
+    MCMC
+
+<!-- end list -->
+
+``` r
+m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+    ## 
+    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 1).
+    ## Chain 1: 
+    ## Chain 1: Gradient evaluation took 2e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
+    ## Chain 1: Adjust your expectations accordingly!
+    ## Chain 1: 
+    ## Chain 1: 
+    ## Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 1: 
+    ## Chain 1:  Elapsed Time: 0.341033 seconds (Warm-up)
+    ## Chain 1:                0.669822 seconds (Sampling)
+    ## Chain 1:                1.01086 seconds (Total)
+    ## Chain 1: 
+    ## 
+    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 2).
+    ## Chain 2: 
+    ## Chain 2: Gradient evaluation took 1.2e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.12 seconds.
+    ## Chain 2: Adjust your expectations accordingly!
+    ## Chain 2: 
+    ## Chain 2: 
+    ## Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 2: 
+    ## Chain 2:  Elapsed Time: 0.400155 seconds (Warm-up)
+    ## Chain 2:                0.661995 seconds (Sampling)
+    ## Chain 2:                1.06215 seconds (Total)
+    ## Chain 2: 
+    ## 
+    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 3).
+    ## Chain 3: 
+    ## Chain 3: Gradient evaluation took 6e-06 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
+    ## Chain 3: Adjust your expectations accordingly!
+    ## Chain 3: 
+    ## Chain 3: 
+    ## Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 3: 
+    ## Chain 3:  Elapsed Time: 0.373127 seconds (Warm-up)
+    ## Chain 3:                0.667341 seconds (Sampling)
+    ## Chain 3:                1.04047 seconds (Total)
+    ## Chain 3: 
+    ## 
+    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 4).
+    ## Chain 4: 
+    ## Chain 4: Gradient evaluation took 8e-06 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
+    ## Chain 4: Adjust your expectations accordingly!
+    ## Chain 4: 
+    ## Chain 4: 
+    ## Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 4: 
+    ## Chain 4:  Elapsed Time: 0.390189 seconds (Warm-up)
+    ## Chain 4:                0.628798 seconds (Sampling)
+    ## Chain 4:                1.01899 seconds (Total)
+    ## Chain 4:
+
+    ## Computing WAIC
+
+``` r
+precis(m10_10_stan)
+```
+
+    ##            mean         sd       5.5%     94.5%    n_eff     Rhat4
+    ## a    0.93389061 0.36832229  0.3421917 1.5250656 2815.741 0.9997277
+    ## bp   0.26449956 0.03543803  0.2066513 0.3214904 2824.928 0.9998159
+    ## bc  -0.10597410 0.84915292 -1.4868720 1.2513143 2327.525 1.0003112
+    ## bpc  0.04450725 0.09290992 -0.1039679 0.1940830 2360.142 1.0004414
+
+``` r
+plot(m10_10_stan)
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+
+  - the MAP estimates are the same as before, so the posterior is
+    approximately Gaussian
+  - look at pairs plots of the posterior distributions from the MCMC
+      - samples of the intercept and coefficient for contact rate are
+        high correlated
+      - MCMC can help overcome problems from correlated coefficients,
+        though it is still best to try to avoid them
+      - try centering log-population and re-fitting `m10_10_stan`
+      - this removes the correlation between the intercept and
+        coefficient for `contact_high`
+          - the chains were also more efficient (more *effective
+            samples*; larger `n_eff`)
+
+<!-- end list -->
+
+``` r
+extract.samples(m10_10_stan) %>%
+    as_tibble() %>%
+    sample_n(100) %>%
+    GGally::ggscatmat(alpha = 0.5) +
+    labs(title = "MCMC posterior samples from `m10_10_stan`")
+```
+
+    ## Registered S3 method overwritten by 'GGally':
+    ##   method from   
+    ##   +.gg   ggplot2
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+d$log_pop_c <- d$log_pop - mean(d$log_pop)
+
+m10_10_stan_c <- map2stan(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop_c + bc*contact_high + bcp*log_pop_c*contact_high,
+        a ~ dnorm(0, 10),
+        bp ~ dnorm(0, 1),
+        bc ~ dnorm(0, 1),
+        bcp ~ dnorm(0, 1)
+    ),
+    data = d,
+    iter = 3e3,
+    warmup = 1e3,
+    chains = 4
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+    ## 
+    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 1).
+    ## Chain 1: 
+    ## Chain 1: Gradient evaluation took 1.9e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.19 seconds.
+    ## Chain 1: Adjust your expectations accordingly!
+    ## Chain 1: 
+    ## Chain 1: 
+    ## Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 1: 
+    ## Chain 1:  Elapsed Time: 0.065314 seconds (Warm-up)
+    ## Chain 1:                0.116593 seconds (Sampling)
+    ## Chain 1:                0.181907 seconds (Total)
+    ## Chain 1: 
+    ## 
+    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 2).
+    ## Chain 2: 
+    ## Chain 2: Gradient evaluation took 1.3e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
+    ## Chain 2: Adjust your expectations accordingly!
+    ## Chain 2: 
+    ## Chain 2: 
+    ## Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 2: 
+    ## Chain 2:  Elapsed Time: 0.054003 seconds (Warm-up)
+    ## Chain 2:                0.11891 seconds (Sampling)
+    ## Chain 2:                0.172913 seconds (Total)
+    ## Chain 2: 
+    ## 
+    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 3).
+    ## Chain 3: 
+    ## Chain 3: Gradient evaluation took 7e-06 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    ## Chain 3: Adjust your expectations accordingly!
+    ## Chain 3: 
+    ## Chain 3: 
+    ## Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 3: 
+    ## Chain 3:  Elapsed Time: 0.061457 seconds (Warm-up)
+    ## Chain 3:                0.113586 seconds (Sampling)
+    ## Chain 3:                0.175043 seconds (Total)
+    ## Chain 3: 
+    ## 
+    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 4).
+    ## Chain 4: 
+    ## Chain 4: Gradient evaluation took 2e-05 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
+    ## Chain 4: Adjust your expectations accordingly!
+    ## Chain 4: 
+    ## Chain 4: 
+    ## Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
+    ## Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    ## Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    ## Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    ## Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    ## Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    ## Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    ## Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    ## Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    ## Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
+    ## Chain 4: 
+    ## Chain 4:  Elapsed Time: 0.061327 seconds (Warm-up)
+    ## Chain 4:                0.108804 seconds (Sampling)
+    ## Chain 4:                0.170131 seconds (Total)
+    ## Chain 4:
+
+    ## Computing WAIC
+
+``` r
+precis(m10_10_stan_c)
+```
+
+    ##           mean         sd        5.5%     94.5%    n_eff     Rhat4
+    ## a   3.31211115 0.08803574  3.16829054 3.4499535 3668.477 1.0001824
+    ## bp  0.26243043 0.03539480  0.20582172 0.3192452 4501.052 1.0000469
+    ## bc  0.28351337 0.11558201  0.09742375 0.4667983 3656.985 0.9998995
+    ## bcp 0.06956193 0.16888891 -0.19728697 0.3409903 5417.343 1.0006650
+
+``` r
+plot(m10_10_stan_c)
+
+extract.samples(m10_10_stan_c) %>%
+    as_tibble() %>%
+    sample_n(100) %>%
+    GGally::ggscatmat(alpha = 0.5) +
+    labs(title = "MCMC posterior samples from `m10_10_stan_c`")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-34-2.png)<!-- -->
+
+### 10.2.3 Example: Exposure and the offset
+
+  - use an example where the exposure varies across observations
+      - e.g. length of observation, area of sampling, intensity of
+        sampling
+      - Poisson assumes the rate of events is constant in time or space
+      - *offset*: add the logarithm of exposure to the linear model as
+        another term
+  - simulated data:
+      - own a monastery where the monks copy books by hand
+      - we know the rate at which manuscripts are completed each day
+      - suppose the true rate is \(\lambda=1.5\) manuscripts per day
+
+<!-- end list -->
+
+``` r
+set.seed(0)
+num_days <- 30
+y <- rpois(num_days, 1.5)
+table(y)
+```
+
+    ## y
+    ## 0 1 2 3 4 5 
+    ## 7 8 8 4 2 1
+
+  - are thinking of purchasing another monastery, but want to know the
+    productivity of the new monastery
+      - but only have data for the other monastery on a per week basis
+      - suppose the daily rate of the new monastery is actually
+        \(\lambda=0.5\) manuscripts per day
+          - thus, the real per week rate if
+            \(\lambda = 0.5 \times 7 = 3.5\)
+
+<!-- end list -->
+
+``` r
+set.seed(0)
+num_weeks <- 4
+y_new <- rpois(num_weeks, 0.5*7)
+table(y_new)
+```
+
+    ## y_new
+    ## 2 3 4 6 
+    ## 1 1 1 1
+
+  - build a data frame with data from both monasteries
+
+<!-- end list -->
+
+``` r
+y_all <- c(y, y_new)
+exposure <- c(rep(1, length(y)), rep(7, length(y_new)))
+monastery <- c(rep(0, length(y)), rep(1, length(y_new)))
+d <- tibble(y = y_all, days = exposure, monastery)
+d
+```
+
+    ## # A tibble: 34 x 3
+    ##        y  days monastery
+    ##    <int> <dbl>     <dbl>
+    ##  1     3     1         0
+    ##  2     1     1         0
+    ##  3     1     1         0
+    ##  4     2     1         0
+    ##  5     3     1         0
+    ##  6     0     1         0
+    ##  7     3     1         0
+    ##  8     4     1         0
+    ##  9     2     1         0
+    ## 10     2     1         0
+    ## # … with 24 more rows
+
+  - fit the model to estimate the rate of manuscript production at each
+    monastery
+      - include log of exposure as a variable in the linear model
+
+<!-- end list -->
+
+``` r
+d$log_days <- log(d$days)
+m10_15 <- quap(
+    alist(
+        y ~ dpois(lambda),
+        log(lambda) ~ log_days + a + b*monastery,
+        a ~ dnorm(0, 100),
+        b ~ dnorm(0, 1)
+    ),
+    data = d
+)
+
+precis(m10_15)
+```
+
+    ##         mean        sd       5.5%      94.5%
+    ## a  0.4694331 0.1429827  0.2409192  0.6979470
+    ## b -1.0273421 0.2772045 -1.4703683 -0.5843158
+
+  - compute the posterior distribution of \(\lambda\) in each monastery
+      - sample from the posterior and use the linear model *without* the
+        offset
+      - don’t use the offset again because the parameters are already on
+        the daily scale
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m10_15)
+lambda_old <- exp(post$a + post$b * 0)
+lambda_new <- exp(post$a + post$b * 1)
+precis(tibble(lambda_old, lambda_new))
+```
+
+    ##                 mean        sd      5.5%     94.5%     histogram
+    ## lambda_old 1.6149928 0.2325102 1.2754919 2.0144941     ▁▁▃▇▇▃▁▁▁
+    ## lambda_new 0.5907316 0.1443564 0.3898033 0.8423707 ▁▂▅▇▅▃▁▁▁▁▁▁▁
+
+``` r
+tibble(`old monastery` = lambda_old,
+       `new monastery` = lambda_new) %>%
+    pivot_longer(c("old monastery", "new monastery")) %>%
+    ggplot(aes(x = value, color = name, fill = name)) +
+    geom_density(alpha = 0.2) +
+    scale_color_brewer(palette = "Set2") +
+    scale_fill_brewer(palette = "Set2") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    theme(legend.title = element_blank(),
+          legend.position = c(0.8, 0.8)) +
+    labs(x = "posterior samples of manuscripts per day (lambda)",
+         y = "probability density",
+         title = "Model the production rates of two monasteries")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+
+  - interpretation
+      - the MAP of the two posteriors are pretty close to the known
+        rates of manuscript production per day
+      - the new monastery is predicted to produce 0.6 manuscripts per
+        day while the old monastery produces 1.6 per day
+      - the 89% intervals are well above 0 and not overlapping
+
+## 10.3 Other count regressions

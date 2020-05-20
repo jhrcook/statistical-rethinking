@@ -730,6 +730,228 @@ as_tibble(post) %>%
 - a better way to tell if a predictor is expected to improve prediction is to use model comparison
 
 ```{r}
-# TODO: fit all of the models and compare
+# Without interaction
+m10_11 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop + bc*contact_high,
+        a ~ dnorm(0, 100),
+        c(bp, bc) ~ dnorm(0, 1)
+    ),
+    data = d
+)
+# With only log-population.
+m10_12 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop,
+        a ~ dnorm(0, 100),
+        bp ~ dnorm(0, 1)
+    ),
+    data = d
+)
+# With only contact rate.
+m10_13 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bc*contact_high,
+        a ~ dnorm(0, 100),
+        bc ~ dnorm(0, 1)
+    ),
+    data = d
+)
+# Intercept only.
+m10_14 <- quap(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a,
+        a ~ dnorm(0, 100)
+    ),
+    data = d
+)
+(islands_compare <- compare(m10_10, m10_11, m10_12, m10_13, m10_14))
+plot(islands_compare)
 ```
+
+- interpretation:
+    * the top models include both predictors, but the weight is split 50:50 between the model without the interaction and the one with the interaction
+        - indicates both predictors are informative
+        - suggests the interaction is probably not important
+- plot counterfactual predictions using the ensemble of the top 3 models
+    * the input data is the log-population over the natural range with `contact_high` set to both 0 and 1
+    * both trends curve up as log-pop increases
+    * the impact of contact rate can be seen by the distance between the curves a little overlap of the 89% intervals
+
+```{r}
+log_pop_seq <- seq(6, 13, length.out = 30)
+d_pred <- bind_rows(
+    tibble(log_pop = log_pop_seq,
+           contact_high = 1),
+    tibble(log_pop = log_pop_seq,
+           contact_high = 0)
+)
+lambda_pred <- ensemble(m10_10, m10_11, m10_12, data = d_pred)
+lambda_med <- apply(lambda_pred$link, 2, median)
+lambda_pi <- apply(lambda_pred$link, 2, PI) %>% pi_to_df()
+
+d_pred %>%
+    mutate(lambda_med,
+           contact_high = factor(contact_high)) %>%
+    bind_cols(lambda_pi) %>%
+    ggplot(aes(x = log_pop)) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent, 
+                    fill = contact_high), 
+                alpha = 0.2) +
+    geom_line(aes(y = lambda_med, group = contact_high,
+                  color = contact_high)) +
+    geom_point(data = d, aes(y = total_tools, shape = factor(contact_high))) +
+    scale_fill_brewer(palette = "Set1") +
+    scale_color_brewer(palette = "Set1") +
+    labs(x = "log-population", y = "total tools",
+         color = "contact high", shape = "contact high",
+         title = "Ensemble posterior predictions for the islands model set")
+```
+
+### 10.2.2 MCM islands
+
+- verify that the MAP estimates made above accurately describe the shape of the posterior by fitting with MCMC
+
+```{r}
+m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
+precis(m10_10_stan)
+plot(m10_10_stan)
+```
+
+- the MAP estimates are the same as before, so the posterior is approximately Gaussian
+- look at pairs plots of the posterior distributions from the MCMC
+    * samples of the intercept and coefficient for contact rate are high correlated
+    * MCMC can help overcome problems from correlated coefficients, though it is still best to try to avoid them
+    * try centering log-population and re-fitting `m10_10_stan`
+    * this removes the correlation between the intercept and coefficient for `contact_high`
+        - the chains were also more efficient (more *effective samples*; larger `n_eff`)
+
+```{r}
+extract.samples(m10_10_stan) %>%
+    as_tibble() %>%
+    sample_n(100) %>%
+    GGally::ggscatmat(alpha = 0.5) +
+    labs(title = "MCMC posterior samples from `m10_10_stan`")
+
+d$log_pop_c <- d$log_pop - mean(d$log_pop)
+
+m10_10_stan_c <- map2stan(
+    alist(
+        total_tools ~ dpois(lambda),
+        log(lambda) <- a + bp*log_pop_c + bc*contact_high + bcp*log_pop_c*contact_high,
+        a ~ dnorm(0, 10),
+        bp ~ dnorm(0, 1),
+        bc ~ dnorm(0, 1),
+        bcp ~ dnorm(0, 1)
+    ),
+    data = d,
+    iter = 3e3,
+    warmup = 1e3,
+    chains = 4
+)
+
+precis(m10_10_stan_c)
+plot(m10_10_stan_c)
+
+extract.samples(m10_10_stan_c) %>%
+    as_tibble() %>%
+    sample_n(100) %>%
+    GGally::ggscatmat(alpha = 0.5) +
+    labs(title = "MCMC posterior samples from `m10_10_stan_c`")
+```
+
+### 10.2.3 Example: Exposure and the offset
+
+- use an example where the exposure varies across observations
+    * e.g. length of observation, area of sampling, intensity of sampling
+    * Poisson assumes the rate of events is constant in time or space
+    * *offset*: add the logarithm of exposure to the linear model as another term
+- simulated data:
+    * own a monastery where the monks copy books by hand
+    * we know the rate at which manuscripts are completed each day
+    * suppose the true rate is $\lambda=1.5$ manuscripts per day
+
+```{r}
+set.seed(0)
+num_days <- 30
+y <- rpois(num_days, 1.5)
+table(y)
+```
+
+- are thinking of purchasing another monastery, but want to know the productivity of the new monastery
+    * but only have data for the other monastery on a per week basis
+    * suppose the daily rate of the new monastery is actually $\lambda=0.5$ manuscripts per day
+        - thus, the real per week rate if $\lambda = 0.5 \times 7 = 3.5$
+```{r}
+set.seed(0)
+num_weeks <- 4
+y_new <- rpois(num_weeks, 0.5*7)
+table(y_new)
+```
+
+- build a data frame with data from both monasteries
+
+```{r}
+y_all <- c(y, y_new)
+exposure <- c(rep(1, length(y)), rep(7, length(y_new)))
+monastery <- c(rep(0, length(y)), rep(1, length(y_new)))
+d <- tibble(y = y_all, days = exposure, monastery)
+d
+```
+
+- fit the model to estimate the rate of manuscript production at each monastery
+    * include log of exposure as a variable in the linear model
+
+```{r}
+d$log_days <- log(d$days)
+m10_15 <- quap(
+    alist(
+        y ~ dpois(lambda),
+        log(lambda) ~ log_days + a + b*monastery,
+        a ~ dnorm(0, 100),
+        b ~ dnorm(0, 1)
+    ),
+    data = d
+)
+
+precis(m10_15)
+```
+
+- compute the posterior distribution of $\lambda$ in each monastery
+    * sample from the posterior and use the linear model *without* the offset
+    * don't use the offset again because the parameters are already on the daily scale
+
+```{r}
+post <- extract.samples(m10_15)
+lambda_old <- exp(post$a + post$b * 0)
+lambda_new <- exp(post$a + post$b * 1)
+precis(tibble(lambda_old, lambda_new))
+```
+
+```{r}
+tibble(`old monastery` = lambda_old,
+       `new monastery` = lambda_new) %>%
+    pivot_longer(c("old monastery", "new monastery")) %>%
+    ggplot(aes(x = value, color = name, fill = name)) +
+    geom_density(alpha = 0.2) +
+    scale_color_brewer(palette = "Set2") +
+    scale_fill_brewer(palette = "Set2") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    theme(legend.title = element_blank(),
+          legend.position = c(0.8, 0.8)) +
+    labs(x = "posterior samples of manuscripts per day (lambda)",
+         y = "probability density",
+         title = "Model the production rates of two monasteries")
+```
+
+- interpretation
+    * the MAP of the two posteriors are pretty close to the known rates of manuscript production per day
+    * the new monastery is predicted to produce 0.6 manuscripts per day while the old monastery produces 1.6 per day
+    * the 89% intervals are well above 0 and not overlapping
+
+## 10.3 Other count regressions
 
