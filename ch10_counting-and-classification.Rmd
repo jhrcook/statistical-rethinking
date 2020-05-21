@@ -955,3 +955,175 @@ tibble(`old monastery` = lambda_old,
 
 ## 10.3 Other count regressions
 
+- binomial works when there are only 2 outcomes, but there are situations where we are counting more than two outcomes
+- *multinomial distribution*: when more than two types of unordered events are possible and the probability of each type of event is constant across trials
+    * the binomial is actually just a special case of this distribution
+    * also called *categorical regression* or *maximum extropy classifier* (in ML)
+
+$$
+\Pr(y_1, ..., y_k | n, p_1, ..., p_K) = \frac{n!}{\Pi_i y_i !} \Pi_{i=1}^{K} p_i^{y_i}
+$$
+
+- two approaches to modeling the multinomial:
+    1. *explicit approach*: directly uses the multinomial likelihood, and uses a generalization of the logit link function
+    2. transform the multinomial likelihood into a series of Poisson likelihoods
+
+#### 10.3.1.1 Explicit multinomial models
+
+- use the multinomial logit as the link function
+    * takes a vector of "scores", one for each of $K$ event types
+    * computes the probability of a particular type of event $k$ as
+    * available using the `softmax()` function from the 'rethinking' package
+
+$$
+\Pr(k | s_1, ..., s_K) = \frac{exp(s_k)}{\sum_{i=1}^{K} exp(s_i)}
+$$
+
+- use the multinomial logit to create a *multinomial logistic regression*
+    * actually build $K-1$ linear models
+    * each can use different predictors
+- two types of cases when building a *multinomial logistic regression*:
+    1. the predictors have different value for different types of events
+        * useful when each type of event has its own traits
+        * want to estimate the association of those traits wtih the probability of each type of event
+    2. parameters are distinct for each type of event
+        * useful when interesting in features of some entity that produces each event
+- example of case 1: modeling choice of career for many people
+    * a relevant predictor is expected income
+        - $\beta_{\text{INCOME}}$ will be in each model
+        - a different income value multiplies the parameter in each linear model
+    * simulated data of 500 people with 3 career choices
+        - each career has a different expected income
+
+```{r}
+N <- 500               # number of individuals
+income <- 1:3          # expected income for each career
+score <- 0.5 * income  # scores for each career based on income
+
+# convert scores to probabilities
+p <- softmax(score[1], score[2], score[3])
+
+# Sample chosen careers for each person
+set.seed(0)
+career <- map_dbl(1:N, ~ sample(1:3, size = 1, prob = p))
+
+tibble(career) %>%
+    ggplot(aes(x = factor(career))) +
+    geom_bar(fill = "skyblue3") +
+    labs(x = "career", y = "count", 
+         title = "Career choices of 500 individuals",
+         subtitle = "Simulated data for multinomial logistic regression")
+```
+
+- fit the model with `dcategorical()` likelihood
+    * the multinomial logistic regression distribution
+    * works when each value of the outcome variable (`career`) contains individual event types on each row
+- convert all the scores to probabilities using `softmax()`
+    * this is the multinomial logit link
+- one of the event types will be used as the reference type
+    * this is why there are $K-1$ linear models (where $K$ is the number of event types)
+    * instead of getting a linear model, this event type is assigned a constant
+    * the other linear models contain parameters relative to the reference type
+
+```{r}
+m10_16 <- quap(
+    alist(
+        career ~ dcategorical(softmax(0, s2, s3)),
+        s2 <- b*2,
+        s3 <- b*3,
+        b ~ dnorm(0, 5)
+    ),
+    data = list(career = career)
+)
+
+precis(m10_16)
+```
+
+- parameter estimates are difficult to interpret
+    * must instead convert them to a vector of probabilities to make sense of them
+    * the estimate's value depends upon which event type is assigned as the reference
+
+```{r}
+b_income <- m10_16@coef["b"]
+tibble(
+    career = 1:3,
+    real = p,
+    estimate = softmax(1*0, 2*b_income, 3*b_income)
+)
+```
+
+- example of case 2:
+    * still modeling career choice
+    * now want to estimate the association between each person's family income and the career choice
+    * the predictor variable will have the same value in each linear model, for each row of data
+    * instead, there is a unique parameter multiplying it in each model
+        - is the estimate of the impact of family income on the choice of career
+
+```{r}
+set.seed(0)
+
+N <- 100                   # number of people
+family_income <- runif(N)  # family income for each person
+b <- seq(1, -1)            # real coefficient values
+
+# Sample the career for each person
+career <- map_dbl(1:N, function(i) {
+    score <- 0.5 * 1:3 + b*family_income[i]
+    p <- softmax(score[1], score[2], score[3])
+    return(sample(1:3, size = 1, prob = p))
+})
+
+tibble(career) %>%
+    ggplot(aes(x = factor(career), y = family_income)) +
+    geom_boxplot(color = "grey50", fill = "skyblue3",
+                 alpha = 0.3, width = 0.2) +
+    ggbeeswarm::geom_quasirandom() +
+    labs(x = "career", y = "family income", 
+         title = "Career choices of 500 individuals",
+         subtitle = "Simulated data for multinomial logistic regression")
+```
+
+```{r}
+career_data <- tibble(career, family_income)
+
+m10_17 <- quap(
+    alist(
+        career ~ dcategorical(softmax(0, s2, s3)),
+        s2 <- a2 + b2*family_income,
+        s3 <- a3 + b3*family_income,
+        c(a2, a3, b2, b3) ~ dnorm(0, 5)
+    ),
+    data = career_data
+)
+
+precis(m10_17)
+```
+
+- again, the estimates are difficult to interpret without computing implied predictions
+
+```{r}
+pred_data <- tibble(
+    career = rep(1:3, each = 10),
+    family_income = rep(seq(0, 1, length.out = 10), 3)
+)
+
+pred <- sim(m10_17, pred_data)
+
+pred_data %>%
+    mutate(estimate = apply(pred, 2, mean)) %>%
+    group_by(family_income) %>%
+    mutate(estimate = softmax(estimate)) %>%
+    ungroup() %>%
+    arrange(family_income, career) %>%
+    ggplot(aes(x = factor(career), y = family_income)) +
+    geom_point(aes(size = estimate, color = estimate)) +
+    scale_color_viridis_c() +
+    labs(x = "career",
+         y = "family income",
+         title = "Probability of career choice given family income",
+         subtitle = "Probabilities were estimated using a multinomial logisitic regression.",
+         color = "estimate", size = "estimate")
+```
+
+#### 10.3.1.2 Multinomial in disguise as Poisson
+
