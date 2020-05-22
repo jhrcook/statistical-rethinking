@@ -173,7 +173,7 @@ logistic
     ##     p <- ifelse(x == Inf, 1, p)
     ##     p
     ## }
-    ## <bytecode: 0x7fa4583a7760>
+    ## <bytecode: 0x7fd2648abf40>
     ## <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -412,10 +412,10 @@ m10_4 <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL 'ec16cbb78e5a12676b2c31fad4471cf1' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL '10257fad5e768069c966b0a6bcb5d14f' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000146 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.46 seconds.
+    ## Chain 1: Gradient evaluation took 0.000383 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 3.83 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -432,15 +432,15 @@ m10_4 <- map2stan(
     ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.25629 seconds (Warm-up)
-    ## Chain 1:                2.8491 seconds (Sampling)
-    ## Chain 1:                4.10539 seconds (Total)
+    ## Chain 1:  Elapsed Time: 1.91246 seconds (Warm-up)
+    ## Chain 1:                4.21142 seconds (Sampling)
+    ## Chain 1:                6.12387 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL 'ec16cbb78e5a12676b2c31fad4471cf1' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL '10257fad5e768069c966b0a6bcb5d14f' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 8.3e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.83 seconds.
+    ## Chain 2: Gradient evaluation took 0.000254 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 2.54 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -457,9 +457,9 @@ m10_4 <- map2stan(
     ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 1.15032 seconds (Warm-up)
-    ## Chain 2:                4.96789 seconds (Sampling)
-    ## Chain 2:                6.11821 seconds (Total)
+    ## Chain 2:  Elapsed Time: 1.69655 seconds (Warm-up)
+    ## Chain 2:                7.69624 seconds (Sampling)
+    ## Chain 2:                9.39279 seconds (Total)
     ## Chain 2:
 
     ## Computing WAIC
@@ -1312,10 +1312,10 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
+    ## Chain 1: Gradient evaluation took 2.2e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.22 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -1332,15 +1332,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.341033 seconds (Warm-up)
-    ## Chain 1:                0.669822 seconds (Sampling)
-    ## Chain 1:                1.01086 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.370429 seconds (Warm-up)
+    ## Chain 1:                0.724097 seconds (Sampling)
+    ## Chain 1:                1.09453 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 1.2e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.12 seconds.
+    ## Chain 2: Gradient evaluation took 6e-06 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -1357,15 +1357,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.400155 seconds (Warm-up)
-    ## Chain 2:                0.661995 seconds (Sampling)
-    ## Chain 2:                1.06215 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.524945 seconds (Warm-up)
+    ## Chain 2:                0.795224 seconds (Sampling)
+    ## Chain 2:                1.32017 seconds (Total)
     ## Chain 2: 
     ## 
-    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 3).
     ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 6e-06 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
+    ## Chain 3: Gradient evaluation took 1.3e-05 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
     ## Chain 3: Adjust your expectations accordingly!
     ## Chain 3: 
     ## Chain 3: 
@@ -1382,15 +1382,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.373127 seconds (Warm-up)
-    ## Chain 3:                0.667341 seconds (Sampling)
-    ## Chain 3:                1.04047 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.498511 seconds (Warm-up)
+    ## Chain 3:                1.08801 seconds (Sampling)
+    ## Chain 3:                1.58652 seconds (Total)
     ## Chain 3: 
     ## 
-    ## SAMPLING FOR MODEL 'dd2f0b0542e8315a42a85b8764edb8e7' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 4).
     ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 8e-06 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
+    ## Chain 4: Gradient evaluation took 4.2e-05 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.42 seconds.
     ## Chain 4: Adjust your expectations accordingly!
     ## Chain 4: 
     ## Chain 4: 
@@ -1407,9 +1407,9 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.390189 seconds (Warm-up)
-    ## Chain 4:                0.628798 seconds (Sampling)
-    ## Chain 4:                1.01899 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.480642 seconds (Warm-up)
+    ## Chain 4:                0.929775 seconds (Sampling)
+    ## Chain 4:                1.41042 seconds (Total)
     ## Chain 4:
 
     ## Computing WAIC
@@ -1502,10 +1502,10 @@ m10_10_stan_c <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 1.9e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.19 seconds.
+    ## Chain 1: Gradient evaluation took 2.6e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.26 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -1522,15 +1522,15 @@ m10_10_stan_c <- map2stan(
     ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.065314 seconds (Warm-up)
-    ## Chain 1:                0.116593 seconds (Sampling)
-    ## Chain 1:                0.181907 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.05832 seconds (Warm-up)
+    ## Chain 1:                0.104379 seconds (Sampling)
+    ## Chain 1:                0.162699 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 1.3e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
+    ## Chain 2: Gradient evaluation took 8e-06 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -1547,15 +1547,15 @@ m10_10_stan_c <- map2stan(
     ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.054003 seconds (Warm-up)
-    ## Chain 2:                0.11891 seconds (Sampling)
-    ## Chain 2:                0.172913 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.066172 seconds (Warm-up)
+    ## Chain 2:                0.123607 seconds (Sampling)
+    ## Chain 2:                0.189779 seconds (Total)
     ## Chain 2: 
     ## 
-    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 3).
     ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 7e-06 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    ## Chain 3: Gradient evaluation took 9e-06 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.09 seconds.
     ## Chain 3: Adjust your expectations accordingly!
     ## Chain 3: 
     ## Chain 3: 
@@ -1572,15 +1572,15 @@ m10_10_stan_c <- map2stan(
     ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.061457 seconds (Warm-up)
-    ## Chain 3:                0.113586 seconds (Sampling)
-    ## Chain 3:                0.175043 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.059699 seconds (Warm-up)
+    ## Chain 3:                0.118521 seconds (Sampling)
+    ## Chain 3:                0.17822 seconds (Total)
     ## Chain 3: 
     ## 
-    ## SAMPLING FOR MODEL '79af820b4c7cb47f49ebdf61adf7e01f' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 4).
     ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 2e-05 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
+    ## Chain 4: Gradient evaluation took 7e-06 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
     ## Chain 4: Adjust your expectations accordingly!
     ## Chain 4: 
     ## Chain 4: 
@@ -1597,9 +1597,9 @@ m10_10_stan_c <- map2stan(
     ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.061327 seconds (Warm-up)
-    ## Chain 4:                0.108804 seconds (Sampling)
-    ## Chain 4:                0.170131 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.059476 seconds (Warm-up)
+    ## Chain 4:                0.088307 seconds (Sampling)
+    ## Chain 4:                0.147783 seconds (Total)
     ## Chain 4:
 
     ## Computing WAIC
@@ -1770,3 +1770,439 @@ tibble(`old monastery` = lambda_old,
       - the 89% intervals are well above 0 and not overlapping
 
 ## 10.3 Other count regressions
+
+  - binomial works when there are only 2 outcomes, but there are
+    situations where we are counting more than two outcomes
+  - *multinomial distribution*: when more than two types of unordered
+    events are possible and the probability of each type of event is
+    constant across trials
+      - the binomial is actually just a special case of this
+        distribution
+      - also called *categorical regression* or *maximum extropy
+        classifier* (in ML)
+
+\[
+\Pr(y_1, ..., y_k | n, p_1, ..., p_K) = \frac{n!}{\Pi_i y_i !} \Pi_{i=1}^{K} p_i^{y_i}
+\]
+
+  - two approaches to modeling the multinomial:
+    1.  *explicit approach*: directly uses the multinomial likelihood,
+        and uses a generalization of the logit link function
+    2.  transform the multinomial likelihood into a series of Poisson
+        likelihoods
+
+#### 10.3.1.1 Explicit multinomial models
+
+  - use the multinomial logit as the link function
+      - takes a vector of “scores”, one for each of \(K\) event types
+      - computes the probability of a particular type of event \(k\) as
+      - available using the `softmax()` function from the ‘rethinking’
+        package
+
+\[
+\Pr(k | s_1, ..., s_K) = \frac{exp(s_k)}{\sum_{i=1}^{K} exp(s_i)}
+\]
+
+  - use the multinomial logit to create a *multinomial logistic
+    regression*
+      - actually build \(K-1\) linear models
+      - each can use different predictors
+  - two types of cases when building a *multinomial logistic
+    regression*:
+    1.  the predictors have different value for different types of
+        events
+          - useful when each type of event has its own traits
+          - want to estimate the association of those traits wtih the
+            probability of each type of event
+    2.  parameters are distinct for each type of event
+          - useful when interesting in features of some entity that
+            produces each event
+  - example of case 1: modeling choice of career for many people
+      - a relevant predictor is expected income
+          - \(\beta_{\text{INCOME}}\) will be in each model
+          - a different income value multiplies the parameter in each
+            linear model
+      - simulated data of 500 people with 3 career choices
+          - each career has a different expected income
+
+<!-- end list -->
+
+``` r
+N <- 500               # number of individuals
+income <- 1:3          # expected income for each career
+score <- 0.5 * income  # scores for each career based on income
+
+# convert scores to probabilities
+p <- softmax(score[1], score[2], score[3])
+
+# Sample chosen careers for each person
+set.seed(0)
+career <- map_dbl(1:N, ~ sample(1:3, size = 1, prob = p))
+
+tibble(career) %>%
+    ggplot(aes(x = factor(career))) +
+    geom_bar(fill = "skyblue3") +
+    labs(x = "career", y = "count", 
+         title = "Career choices of 500 individuals",
+         subtitle = "Simulated data for multinomial logistic regression")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+
+  - fit the model with `dcategorical()` likelihood
+      - the multinomial logistic regression distribution
+      - works when each value of the outcome variable (`career`)
+        contains individual event types on each row
+  - convert all the scores to probabilities using `softmax()`
+      - this is the multinomial logit link
+  - one of the event types will be used as the reference type
+      - this is why there are \(K-1\) linear models (where \(K\) is the
+        number of event types)
+      - instead of getting a linear model, this event type is assigned a
+        constant
+      - the other linear models contain parameters relative to the
+        reference type
+
+<!-- end list -->
+
+``` r
+m10_16 <- quap(
+    alist(
+        career ~ dcategorical(softmax(0, s2, s3)),
+        s2 <- b*2,
+        s3 <- b*3,
+        b ~ dnorm(0, 5)
+    ),
+    data = list(career = career)
+)
+
+precis(m10_16)
+```
+
+    ##      mean         sd      5.5%     94.5%
+    ## b 0.38192 0.04258927 0.3138541 0.4499859
+
+  - parameter estimates are difficult to interpret
+      - must instead convert them to a vector of probabilities to make
+        sense of them
+      - the estimate’s value depends upon which event type is assigned
+        as the reference
+
+<!-- end list -->
+
+``` r
+b_income <- m10_16@coef["b"]
+tibble(
+    career = 1:3,
+    real = p,
+    estimate = softmax(1*0, 2*b_income, 3*b_income)
+)
+```
+
+    ## # A tibble: 3 x 3
+    ##   career  real estimate
+    ##    <int> <dbl>    <dbl>
+    ## 1      1 0.186    0.159
+    ## 2      2 0.307    0.341
+    ## 3      3 0.506    0.500
+
+  - example of case 2:
+      - still modeling career choice
+      - now want to estimate the association between each person’s
+        family income and the career choice
+      - the predictor variable will have the same value in each linear
+        model, for each row of data
+      - instead, there is a unique parameter multiplying it in each
+        model
+          - is the estimate of the impact of family income on the choice
+            of career
+
+<!-- end list -->
+
+``` r
+set.seed(0)
+
+N <- 100                   # number of people
+family_income <- runif(N)  # family income for each person
+b <- seq(1, -1)            # real coefficient values
+
+# Sample the career for each person
+career <- map_dbl(1:N, function(i) {
+    score <- 0.5 * 1:3 + b*family_income[i]
+    p <- softmax(score[1], score[2], score[3])
+    return(sample(1:3, size = 1, prob = p))
+})
+
+tibble(career) %>%
+    ggplot(aes(x = factor(career), y = family_income)) +
+    geom_boxplot(color = "grey50", fill = "skyblue3",
+                 alpha = 0.3, width = 0.2) +
+    ggbeeswarm::geom_quasirandom() +
+    labs(x = "career", y = "family income", 
+         title = "Career choices of 500 individuals",
+         subtitle = "Simulated data for multinomial logistic regression")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
+
+``` r
+career_data <- tibble(career, family_income)
+
+m10_17 <- quap(
+    alist(
+        career ~ dcategorical(softmax(0, s2, s3)),
+        s2 <- a2 + b2*family_income,
+        s3 <- a3 + b3*family_income,
+        c(a2, a3, b2, b3) ~ dnorm(0, 5)
+    ),
+    data = career_data
+)
+
+precis(m10_17)
+```
+
+    ##          mean        sd       5.5%      94.5%
+    ## a2  1.5917877 0.5617334  0.6940293  2.4895461
+    ## a3  0.5383479 0.6201641 -0.4527942  1.5294900
+    ## b2 -2.4413279 0.9357371 -3.9368164 -0.9458393
+    ## b3 -1.0002994 0.9801092 -2.5667032  0.5661044
+
+  - again, the estimates are difficult to interpret without computing
+    implied predictions
+
+<!-- end list -->
+
+``` r
+pred_data <- tibble(
+    career = rep(1:3, each = 10),
+    family_income = rep(seq(0, 1, length.out = 10), 3)
+)
+
+pred <- sim(m10_17, pred_data)
+
+pred_data %>%
+    mutate(estimate = apply(pred, 2, mean)) %>%
+    group_by(family_income) %>%
+    mutate(estimate = softmax(estimate)) %>%
+    ungroup() %>%
+    arrange(family_income, career) %>%
+    ggplot(aes(x = factor(career), y = family_income)) +
+    geom_point(aes(size = estimate, color = estimate)) +
+    scale_color_viridis_c() +
+    labs(x = "career",
+         y = "family income",
+         title = "Probability of career choice given family income",
+         subtitle = "Probabilities were estimated using a multinomial logisitic regression.",
+         color = "estimate", size = "estimate")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
+
+#### 10.3.1.2 Multinomial in disguise as Poisson
+
+  - another way to fit a multinomial likelihood is to refactor it into a
+    series of Poisson likelihoods
+      - is mathematically sound and computationally efficient
+  - example: UC Berkeley admissions data
+      - this is binomial, but that is just a special case of the
+        multinomial
+      - build both the binmial and Poisson models to compare them
+
+<!-- end list -->
+
+``` r
+d <- as_tibble(UCBadmit) %>% 
+    janitor::clean_names() %>%
+    rename(rej = "reject")
+
+# Binomial model of overall admission probability.
+m_binom <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a,
+        a ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+# Poisson model of overall admission rate and rejection rate
+m_pois <- map2stan(
+    alist(
+        admit ~ dpois(lambda1),
+        rej ~ dpois(lambda2),
+        log(lambda1) <- a1,
+        log(lambda2) <- a2,
+        c(a1, a2) ~ dnorm(0, 10)
+    ),
+    data = d,
+    chains = 3, 
+    cores = 3
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+
+    ## Computing WAIC
+
+``` r
+plot(m_pois)
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-47-1.png)<!-- -->
+
+  - for simplicity, only inspect the posterior means
+  - the inferred binomial probability of admission over the entire data
+    set:
+
+<!-- end list -->
+
+``` r
+logistic(coef(m_binom))
+```
+
+    ##         a 
+    ## 0.3877606
+
+  - calculate the implied probability of admission for the Poisson model
+
+\[
+p_\text{ADMIT} = \frac{\lambda_1}{\lambda_1 + \lambda_2} = \frac{\exp(a_1)}{\exp(a_1) + \exp(a_2)}
+\]
+
+``` r
+k <- as.numeric(coef(m_pois))
+exp(k[1]) / (exp(k[1]) + exp(k[2]))
+```
+
+    ## [1] 0.3876319
+
+  - the inferences are the same
+
+### 10.3.2 Geometric
+
+  - have a count variable of the number of events until something
+    happened
+      - a.k.a. *event history analysis* or *survival analysis*
+      - *geometric distribution*: likelihood function for when the
+        probability of the terminating event is constant through time
+        (or space) and the units of time (or distance) are discrete
+          - \(y\): number of time steps (Events) until the terminating
+            event
+          - \(p\): the probabilirt of the event at each time point
+
+\[
+\Pr(y | p) = p(1-p)^{y-1}
+\]
+
+  - simulation example
+
+<!-- end list -->
+
+``` r
+set.seed(0)
+N <- 1e2
+x <- runif(N)            # a predictor variable
+p <- logistic(-1 + 2*x)  # probability of failure given a value `x`
+y <- rgeom(N, prob = p)  # the number of steps until failure
+
+d <- tibble(x, y)
+
+m10_18 <- quap(
+    alist(
+        y ~ dgeom(p),
+        logit(p) <- a + b*x,
+        a ~ dnorm(0, 10),
+        b ~ dnorm(0, 1)
+    ),
+    data = d
+)
+
+precis(m10_18)
+```
+
+    ##         mean        sd       5.5%      94.5%
+    ## a -0.6846385 0.2684581 -1.1136864 -0.2555906
+    ## b  1.7184947 0.5062962  0.9093355  2.5276538
+
+``` r
+post_p <- link(m10_18)
+post_p_avg <- apply(post_p, 2, mean)
+post_p_pi <- apply(post_p, 2, PI) %>% pi_to_df()
+
+tibble(x, post_p_avg) %>%
+    bind_cols(post_p_pi) %>%
+    ggplot(aes(x = x, y = post_p_avg)) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.2) +
+    geom_point() +
+    labs(x = "predictor 'x'",
+         y = "probability of failure",
+         title = "Probability of failure as a function of predictor 'x'")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-51-1.png)<!-- -->
+
+``` r
+num_events <- seq(0, max(y))
+expand.grid(num_events, post_p_avg) %>%
+    as_tibble() %>%
+    set_names(c("num_events", "p")) %>%
+    mutate(density = map2_dbl(num_events, p, ~ dgeom(.x, .y))) %>%
+    group_by(num_events) %>% 
+    summarise(
+        avg_density = mean(density),
+        density_pi = list(pi_to_df(PI(density)))
+    ) %>% 
+    ungroup() %>%
+    unnest(density_pi) %>%
+    ggplot(aes(x = num_events, y = avg_density)) +
+    geom_pointrange(aes(ymin = x5_percent, ymax = x94_percent)) +
+    geom_line() +
+    labs(x = "number of events",
+         y = "likelihood of failure",
+         title = "Geometric distribution")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-52-1.png)<!-- -->
+
+### 10.3.3 Negative-binomial and beta-binomial
+
+  - example:
+      - we have several bags of marbles, each containing some number of
+        blue and white marbles
+      - we sample from one bag at a time, counting the number of blue
+        marbles
+      - because we are using different sets of marbles, the counts of
+        blues will vary more than if we only used one bag
+  - this is an example of a *mixture*
+      - multiple different maximum entropy distributions
+      - we will explore these more in the next chapter
+      - the most common generalizations of count GLMs for mixtures are
+        *beta-binomial* and *negative-binomial*
+          - used then the counts are thought to be *over-dispersed*: the
+            variation exceeds the expected from just a binomial or
+            Poisson
+
+## 10.5 Practice

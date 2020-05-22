@@ -1127,3 +1127,149 @@ pred_data %>%
 
 #### 10.3.1.2 Multinomial in disguise as Poisson
 
+- another way to fit a multinomial likelihood is to refactor it into a series of Poisson likelihoods
+    * is mathematically sound and computationally efficient
+- example: UC Berkeley admissions data
+    * this is binomial, but that is just a special case of the multinomial
+    * build both the binmial and Poisson models to compare them
+
+```{r}
+d <- as_tibble(UCBadmit) %>% 
+    janitor::clean_names() %>%
+    rename(rej = "reject")
+
+# Binomial model of overall admission probability.
+m_binom <- quap(
+    alist(
+        admit ~ dbinom(applications, p),
+        logit(p) <- a,
+        a ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+# Poisson model of overall admission rate and rejection rate
+m_pois <- map2stan(
+    alist(
+        admit ~ dpois(lambda1),
+        rej ~ dpois(lambda2),
+        log(lambda1) <- a1,
+        log(lambda2) <- a2,
+        c(a1, a2) ~ dnorm(0, 10)
+    ),
+    data = d,
+    chains = 3, 
+    cores = 3
+)
+
+plot(m_pois)
+```
+
+- for simplicity, only inspect the posterior means
+- the inferred binomial probability of admission over the entire data set:
+
+```{r}
+logistic(coef(m_binom))
+```
+
+- calculate the implied probability of admission for the Poisson model
+
+$$
+p_\text{ADMIT} = \frac{\lambda_1}{\lambda_1 + \lambda_2} = \frac{\exp(a_1)}{\exp(a_1) + \exp(a_2)}
+$$
+
+```{r}
+k <- as.numeric(coef(m_pois))
+exp(k[1]) / (exp(k[1]) + exp(k[2]))
+```
+
+- the inferences are the same
+
+### 10.3.2 Geometric
+
+- have a count variable of the number of events until something happened
+    * a.k.a. *event history analysis* or *survival analysis*
+    * *geometric distribution*: likelihood function for when the probability of the terminating event is constant through time (or space) and the units of time (or distance) are discrete
+        - $y$: number of time steps (Events) until the terminating event
+        - $p$: the probabilirt of the event at each time point
+
+$$
+\Pr(y | p) = p(1-p)^{y-1}
+$$
+
+- simulation example
+
+```{r}
+set.seed(0)
+N <- 1e2
+x <- runif(N)            # a predictor variable
+p <- logistic(-1 + 2*x)  # probability of failure given a value `x`
+y <- rgeom(N, prob = p)  # the number of steps until failure
+
+d <- tibble(x, y)
+
+m10_18 <- quap(
+    alist(
+        y ~ dgeom(p),
+        logit(p) <- a + b*x,
+        a ~ dnorm(0, 10),
+        b ~ dnorm(0, 1)
+    ),
+    data = d
+)
+
+precis(m10_18)
+```
+
+```{r}
+post_p <- link(m10_18)
+post_p_avg <- apply(post_p, 2, mean)
+post_p_pi <- apply(post_p, 2, PI) %>% pi_to_df()
+
+tibble(x, post_p_avg) %>%
+    bind_cols(post_p_pi) %>%
+    ggplot(aes(x = x, y = post_p_avg)) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.2) +
+    geom_point() +
+    labs(x = "predictor 'x'",
+         y = "probability of failure",
+         title = "Probability of failure as a function of predictor 'x'")
+```
+
+```{r}
+num_events <- seq(0, max(y))
+expand.grid(num_events, post_p_avg) %>%
+    as_tibble() %>%
+    set_names(c("num_events", "p")) %>%
+    mutate(density = map2_dbl(num_events, p, ~ dgeom(.x, .y))) %>%
+    group_by(num_events) %>% 
+    summarise(
+        avg_density = mean(density),
+        density_pi = list(pi_to_df(PI(density)))
+    ) %>% 
+    ungroup() %>%
+    unnest(density_pi) %>%
+    ggplot(aes(x = num_events, y = avg_density)) +
+    geom_pointrange(aes(ymin = x5_percent, ymax = x94_percent)) +
+    geom_line() +
+    labs(x = "number of events",
+         y = "likelihood of failure",
+         title = "Geometric distribution")
+```
+
+
+### 10.3.3 Negative-binomial and beta-binomial
+
+- example:
+    * we have several bags of marbles, each containing some number of blue and white marbles
+    * we sample from one bag at a time, counting the number of blue marbles
+    * because we are using different sets of marbles, the counts of blues will vary more than if we only used one bag
+- this is an example of a *mixture*
+    * multiple different maximum entropy distributions
+    * we will explore these more in the next chapter
+    * the most common generalizations of count GLMs for mixtures are *beta-binomial* and *negative-binomial*
+        - used then the counts are thought to be *over-dispersed*: the variation exceeds the expected from just a binomial or Poisson
+
+## 10.5 Practice
+
