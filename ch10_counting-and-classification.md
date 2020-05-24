@@ -9,9 +9,9 @@ Chapter 10. Counting and Classification
       - interpretation is less intuitive
   - this chapter covers the two most popular count distributions:
     1.  *binomial regression*: model a binary classification
-          - dead/alive, accept/reject 2 *poisson regression*: models
+          - dead/alive, accept/reject 2 *Poisson regression*: models
             outcome without a known maximum
-          - a binomial models with a very large maximum and samll
+          - a binomial models with a very large maximum and small
             probability per trial
           - number of elephants in Kenya, number of people who apply to
             graduate school
@@ -37,10 +37,10 @@ Chapter 10. Counting and Classification
       - so both are sometimes called logistic regression and they can be
         converted between each other
 
-## 10.1.1 Logisitc regression: Prosocial chimpanzees
+## 10.1.1 Logistic regression: Prosocial chimpanzees
 
   - example experimental data
-      - measure the prosocial behaviour of chimps
+      - measure the prosocial behavior of chimps
       - a focal chimp has the option to pull two levers where the first
         only gives the focal chimp food and the other gives the focal
         chimp food, but not the other chimp
@@ -97,13 +97,13 @@ L_i \sim \text{Binomial}(1, p_i) \\
   - this model includes an interaction term for the left-hand option
     being pro-social and whether or not there is a second chimp
       - also there is no main effect of the `condition` \(C_i\) because
-        we do not expect the precense of a second chimp on its own to
+        we do not expect the presence of a second chimp on its own to
         predict whether the focal chimp pulls the left lever
   - the priors are gently regularizing
-  - as comparitive measures of overfitting, fit two other models with
+  - as comparative measures of overfitting, fit two other models with
     fewer parameters
       - one with just an intercept
-      - one without only th `prosoc_left` predictor (no predictor for
+      - one without only the `prosoc_left` predictor (no predictor for
         `condition` whether there is a second chimp)
 
 \[
@@ -173,7 +173,7 @@ logistic
     ##     p <- ifelse(x == Inf, 1, p)
     ##     p
     ## }
-    ## <bytecode: 0x7fd2648abf40>
+    ## <bytecode: 0x7fc419767a08>
     ## <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -241,7 +241,7 @@ plot(compare(m10_1, m10_2, m10_3))
 
   - from the WAIC, we can see that `m10_3` likely overfits a bit because
     its WAIC is greater than `m10_2`
-      - though the difference in WAIC is samll, the difference standard
+      - though the difference in WAIC is small, the difference standard
         error `dSE` is very small and suggests it is a real difference
   - but `m10_3` should not just be rejected, it still reflects the
     structure of the experiment
@@ -264,13 +264,13 @@ plot(compare(m10_1, m10_2, m10_3))
   - the relative effect:
       - consider the relative effect size of `prosoc_left` and its
         parameter `bp`
-      - the customary measure of relativ effect for logisitic model is
+      - the customary measure of relative effect for logistic model is
         the *proportional change in odds*
           - just the exponent of the parameter estimate
           - it is \(\exp(0.61) \approx 1.84\) for `bp`
           - odds are the ratio of the probability an even happens to the
             probability that it does not
-      - for `bp`, the logodds of pulling the left-hand level (the
+      - for `bp`, the log-odds of pulling the left-hand level (the
         outcome variable) is increased by 0.61
           - alternatively, the odds are multiplied by 1.84
       - the difficulty with proportional odds is that the actual change
@@ -287,7 +287,7 @@ plot(compare(m10_1, m10_2, m10_3))
       - consider the model-average posterior predictive check to get a
         sense of the absolute effect of each treatment on the
         probability of pulling the left-hand lever
-          - use th `ensemble()` function to take a weighted average (by
+          - use the `ensemble()` function to take a weighted average (by
             WAIC) over the three models
           - in the following plot, this is compared to the proportion of
             times the left-hand lever was pull by each chimp in all four
@@ -354,7 +354,7 @@ chimp_data %>%
         of interest
       - we can model this variation between individuals
   - the chimps showed signs of handedness - some preferred pulling the
-    left lever and others perferred pulling the right lever
+    left lever and others preferred pulling the right lever
       - estimate handedness as a distinct intercept for each chimp
   - below is the model to fit
       - the intercept \(\alpha\) has a subscript, one for each chimp
@@ -412,10 +412,10 @@ m10_4 <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '10257fad5e768069c966b0a6bcb5d14f' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL '8ff7109ced6674bc38e683b90b785c00' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000383 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 3.83 seconds.
+    ## Chain 1: Gradient evaluation took 0.000182 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.82 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -432,15 +432,15 @@ m10_4 <- map2stan(
     ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.91246 seconds (Warm-up)
-    ## Chain 1:                4.21142 seconds (Sampling)
-    ## Chain 1:                6.12387 seconds (Total)
+    ## Chain 1:  Elapsed Time: 1.14408 seconds (Warm-up)
+    ## Chain 1:                2.45878 seconds (Sampling)
+    ## Chain 1:                3.60286 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '10257fad5e768069c966b0a6bcb5d14f' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL '8ff7109ced6674bc38e683b90b785c00' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 0.000254 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 2.54 seconds.
+    ## Chain 2: Gradient evaluation took 7.5e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.75 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -457,9 +457,9 @@ m10_4 <- map2stan(
     ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 1.69655 seconds (Warm-up)
-    ## Chain 2:                7.69624 seconds (Sampling)
-    ## Chain 2:                9.39279 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.984371 seconds (Warm-up)
+    ## Chain 2:                4.4026 seconds (Sampling)
+    ## Chain 2:                5.38697 seconds (Total)
     ## Chain 2:
 
     ## Computing WAIC
@@ -485,7 +485,7 @@ plot(m10_4)
 
 ![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-  - the posterior is not Guassian
+  - the posterior is not Gaussian
       - e.g. the distribution for `a[2]`
           - the values are all positive, indicating a left-hand bias
 
@@ -784,13 +784,13 @@ d %>%
 
 ![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
-  - from this plot we can see that there were only 2 deptartments with
-    ower admission for females, yet the model says females should have a
+  - from this plot we can see that there were only 2 departments with
+    over admission for females, yet the model says females should have a
     14% lower chance of admission
       - the problem is that the departments that take the most students
         had fewer applications from females
   - change our question:
-      - previous question: “What are the average probabilties of
+      - previous question: “What are the average probabilities of
         admission for females and males *across all departments*?”
       - new question: “What is the average *difference* in probability
         of admission between females and males *within departments*?”
@@ -1005,7 +1005,7 @@ y \sim \text{Poisson}(\lambda_i) \\
     *rate*
       - allows to make models for the *exposure* varies across cases
   - example:
-      - one monastary is counting books completed per week, and another
+      - one monastery is counting books completed per week, and another
         is counting per day
       - can analyze both in the same models even though the counts are
         aggregated over different amounts of time
@@ -1015,7 +1015,7 @@ y \sim \text{Poisson}(\lambda_i) \\
           - when \(\tau_i = 1\) (of some unit) then \(\log \tau_i = 0\)
             and the formula is identical to the first
           - when there are different values for the exposure (i.e. per
-            day vs per week), this value currects for that
+            day vs per week), this value corrects for that
 
 \[
 y_i \sim \text{Poisson}(\lambda_i) \\
@@ -1149,7 +1149,7 @@ sum(lambda_high - lambda_low > 0) / length(lambda_high)
 
     ## [1] 0.9586
 
-  - there is a 95% plausibilty that the high-contact island has more
+  - there is a 95% plausibility that the high-contact island has more
     tools than the low-contact island, holding population constant
       - suggests that contact is important even though the model
         estimates are not informative
@@ -1312,10 +1312,10 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2.2e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.22 seconds.
+    ## Chain 1: Gradient evaluation took 2.5e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.25 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -1332,15 +1332,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.370429 seconds (Warm-up)
-    ## Chain 1:                0.724097 seconds (Sampling)
-    ## Chain 1:                1.09453 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.313352 seconds (Warm-up)
+    ## Chain 1:                0.602162 seconds (Sampling)
+    ## Chain 1:                0.915514 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 6e-06 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
+    ## Chain 2: Gradient evaluation took 8e-06 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -1357,15 +1357,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.524945 seconds (Warm-up)
-    ## Chain 2:                0.795224 seconds (Sampling)
-    ## Chain 2:                1.32017 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.437639 seconds (Warm-up)
+    ## Chain 2:                0.632751 seconds (Sampling)
+    ## Chain 2:                1.07039 seconds (Total)
     ## Chain 2: 
     ## 
-    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 3).
     ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 1.3e-05 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
+    ## Chain 3: Gradient evaluation took 8e-06 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
     ## Chain 3: Adjust your expectations accordingly!
     ## Chain 3: 
     ## Chain 3: 
@@ -1382,15 +1382,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.498511 seconds (Warm-up)
-    ## Chain 3:                1.08801 seconds (Sampling)
-    ## Chain 3:                1.58652 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.378785 seconds (Warm-up)
+    ## Chain 3:                0.618099 seconds (Sampling)
+    ## Chain 3:                0.996884 seconds (Total)
     ## Chain 3: 
     ## 
-    ## SAMPLING FOR MODEL '8d485c1b9a79fc75d6e0ac0d20e3f0e6' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 4).
     ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 4.2e-05 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.42 seconds.
+    ## Chain 4: Gradient evaluation took 6e-06 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
     ## Chain 4: Adjust your expectations accordingly!
     ## Chain 4: 
     ## Chain 4: 
@@ -1407,9 +1407,9 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.480642 seconds (Warm-up)
-    ## Chain 4:                0.929775 seconds (Sampling)
-    ## Chain 4:                1.41042 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.392125 seconds (Warm-up)
+    ## Chain 4:                0.542395 seconds (Sampling)
+    ## Chain 4:                0.93452 seconds (Total)
     ## Chain 4:
 
     ## Computing WAIC
@@ -1502,10 +1502,10 @@ m10_10_stan_c <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2.6e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.26 seconds.
+    ## Chain 1: Gradient evaluation took 2e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -1522,12 +1522,12 @@ m10_10_stan_c <- map2stan(
     ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.05832 seconds (Warm-up)
-    ## Chain 1:                0.104379 seconds (Sampling)
-    ## Chain 1:                0.162699 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.057338 seconds (Warm-up)
+    ## Chain 1:                0.10109 seconds (Sampling)
+    ## Chain 1:                0.158428 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 2).
     ## Chain 2: 
     ## Chain 2: Gradient evaluation took 8e-06 seconds
     ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
@@ -1547,15 +1547,15 @@ m10_10_stan_c <- map2stan(
     ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.066172 seconds (Warm-up)
-    ## Chain 2:                0.123607 seconds (Sampling)
-    ## Chain 2:                0.189779 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.053119 seconds (Warm-up)
+    ## Chain 2:                0.099911 seconds (Sampling)
+    ## Chain 2:                0.15303 seconds (Total)
     ## Chain 2: 
     ## 
-    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 3).
     ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 9e-06 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.09 seconds.
+    ## Chain 3: Gradient evaluation took 6e-06 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
     ## Chain 3: Adjust your expectations accordingly!
     ## Chain 3: 
     ## Chain 3: 
@@ -1572,15 +1572,15 @@ m10_10_stan_c <- map2stan(
     ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.059699 seconds (Warm-up)
-    ## Chain 3:                0.118521 seconds (Sampling)
-    ## Chain 3:                0.17822 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.061875 seconds (Warm-up)
+    ## Chain 3:                0.104505 seconds (Sampling)
+    ## Chain 3:                0.16638 seconds (Total)
     ## Chain 3: 
     ## 
-    ## SAMPLING FOR MODEL '7ac235c8cbdf7185f34cdac30d9cd495' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 4).
     ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 7e-06 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    ## Chain 4: Gradient evaluation took 6e-06 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
     ## Chain 4: Adjust your expectations accordingly!
     ## Chain 4: 
     ## Chain 4: 
@@ -1597,9 +1597,9 @@ m10_10_stan_c <- map2stan(
     ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.059476 seconds (Warm-up)
-    ## Chain 4:                0.088307 seconds (Sampling)
-    ## Chain 4:                0.147783 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.053745 seconds (Warm-up)
+    ## Chain 4:                0.083814 seconds (Sampling)
+    ## Chain 4:                0.137559 seconds (Total)
     ## Chain 4:
 
     ## Computing WAIC
@@ -1778,7 +1778,7 @@ tibble(`old monastery` = lambda_old,
     constant across trials
       - the binomial is actually just a special case of this
         distribution
-      - also called *categorical regression* or *maximum extropy
+      - also called *categorical regression* or *maximum entropy
         classifier* (in ML)
 
 \[
@@ -1812,7 +1812,7 @@ tibble(`old monastery` = lambda_old,
     1.  the predictors have different value for different types of
         events
           - useful when each type of event has its own traits
-          - want to estimate the association of those traits wtih the
+          - want to estimate the association of those traits with the
             probability of each type of event
     2.  parameters are distinct for each type of event
           - useful when interesting in features of some entity that
@@ -1992,7 +1992,7 @@ pred_data %>%
     labs(x = "career",
          y = "family income",
          title = "Probability of career choice given family income",
-         subtitle = "Probabilities were estimated using a multinomial logisitic regression.",
+         subtitle = "Probabilities were estimated using a multinomial logistic regression.",
          color = "estimate", size = "estimate")
 ```
 
@@ -2006,7 +2006,7 @@ pred_data %>%
   - example: UC Berkeley admissions data
       - this is binomial, but that is just a special case of the
         multinomial
-      - build both the binmial and Poisson models to compare them
+      - build both the binomial and Poisson models to compare them
 
 <!-- end list -->
 
@@ -2110,7 +2110,7 @@ exp(k[1]) / (exp(k[1]) + exp(k[2]))
         (or space) and the units of time (or distance) are discrete
           - \(y\): number of time steps (Events) until the terminating
             event
-          - \(p\): the probabilirt of the event at each time point
+          - \(p\): the probability of the event at each time point
 
 \[
 \Pr(y | p) = p(1-p)^{y-1}
@@ -2206,3 +2206,202 @@ expand.grid(num_events, post_p_avg) %>%
             Poisson
 
 ## 10.5 Practice
+
+### Easy
+
+**10E1. If an event has probability 0.35, what are the log-odds of this
+event?**
+
+\(\log\frac{0.35}{1 - 0.35} \approx -0.619\)
+
+**10E2. If an event has log-odds 3.2, what is the probability of this
+event?**
+
+\[
+y = \log \frac{p}{1-p} \\
+p = \frac{1}{1 + \exp(-x)} \\
+\text{logit} 3.2 \approx 0.961
+\]
+
+**10E3. Suppose that a coefficient in a logistic regression has value
+1.7. What does this imply about the proportional change in odds of the
+outcome?**
+
+Taking the exponent of the coefficient returns the *proportional change
+in odds*, a relative effect size for the predictor.
+
+\(\exp(1.7) \approx 5.47\)
+
+This implies that for each unit increase in the predictor, there is an
+increase in the odds of the event happening by 5.47.
+
+**10E4. Why do Poisson regressions sometimes require the use of an
+offset? Provide an example.**
+
+The offset is required when there are two different types of rates being
+used in the model for a single predictor. It effectively normalizes the
+values to use the same unit of rate.
+
+### Medium
+
+**10M1. As explained in the chapter, binomial data can be organized in
+aggregated and disaggregated forms, without any impact on inference. But
+the likelihood of the data does change when the data are converted
+between the two formats. Can you explain why?**
+
+Because we are moving from binomial events (i.e. 1 or 0) to a
+counts-based metric that is still discrete but not restricted to outcome
+of 0 and 1, we use a Poisson likelihood function instead of a binomial
+likelihood function.
+
+**10M2. If a coefficient in a Poisson regression has value 1.7, what
+does this imply about the change in the outcome?**
+
+An unit increase in the predictor is expected to have a
+\(\exp(1.7) = 5.47\) increase in the positive probability of the
+predicted event happening.
+
+**10M3. Explain why the logit link is appropriate for a binomial
+generalized linear model.**
+
+It resales a linear function to one that is bound between 0 and 1 so it
+will be a possible value of a probability.
+
+**10M4. Explain why the log link is appropriate for a Poisson
+generalized linear model.**
+
+It ensures that the parameter being estimated is restricted to positive
+values as expected for a value of a rate.
+
+**10M5. What would it imply to use a logit link for the mean of a
+Poisson generalized linear model? Can you think of a real research
+problem for which this would make sense?**
+
+It would constrain the value for the rate to be between 0 and 1.
+
+**10M6. State the constraints for which the binomial and Poisson
+distributions have maximum entropy. Are the constraints different at all
+for binomial and Poisson? Why or why not?**
+
+Both are only used when there are two possible outcomes. The probability
+of the outcome happening is constant.
+
+The constraints are not different because a Poisson is a generalization
+of the binomial GLM.
+
+### Hard
+
+**10H1. Use map to construct a quadratic approximate posterior
+distribution for the chimpanzee model that includes a unique intercept
+for each actor, m10.4 (page 299). Compare the quadratic approximation to
+the posterior distribution produced instead from MCMC. Can you explain
+both the differences and the similarities between the approximate and
+the MCMC distributions?**
+
+``` r
+d <- chimpanzees %>% 
+    as_tibble() %>% 
+    janitor::clean_names()
+
+m10h_1 <- quap(
+    alist(
+        pulled_left ~ dbinom(1, p),
+        logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
+        alpha[actor] ~ dnorm(0, 10),
+        c(bp, bpc) ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+m10h_2 <- map2stan(
+    alist(
+        pulled_left ~ dbinom(1, p),
+        logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
+        alpha[actor] ~ dnorm(0, 10),
+        c(bp, bpc) ~ dnorm(0, 10)
+    ),
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+
+    ## Computing WAIC
+
+``` r
+precis(m10h_1)
+```
+
+    ## 7 vector or matrix parameters hidden. Use depth=2 to show them.
+
+    ##           mean        sd       5.5%     94.5%
+    ## bp   0.8221311 0.2610079  0.4049901 1.2392721
+    ## bpc -0.1318304 0.2969351 -0.6063901 0.3427292
+
+``` r
+precis(m10h_2)
+```
+
+    ## 7 vector or matrix parameters hidden. Use depth=2 to show them.
+
+    ##           mean        sd       5.5%     94.5%    n_eff     Rhat4
+    ## bp   0.8308147 0.2624006  0.4169724 1.2488090 2425.713 1.0009298
+    ## bpc -0.1327711 0.2981443 -0.6170647 0.3407565 3302.758 0.9997208
+
+``` r
+m10h_1_link <- extract.samples(m10h_1, clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    pivot_longer(tidyselect::everything()) %>%
+    add_column(type = "QUAP")
+
+m10h_2_link <- extract.samples(m10h_2, clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    add_column(type = "MCMC") %>%
+    pivot_longer(-type, names_to = "name", values_to = "value")
+
+bind_rows(m10h_1_link, m10h_2_link) %>%
+    ggplot(aes(x = value, fill = type, color = type)) +
+    facet_wrap(~ name, scales = "free") +
+    geom_density(alpha = 0.2) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-54-1.png)<!-- -->
+
+The only obvious distinction between the samples from the quadratic
+approximation and the MCMC are for the intercept for actor number 2. The
+MCMC samples suggest that the distribution is not Gaussian, but instead
+highly skewed. This means we should not rely on the quadratic
+approximation for this analysis.
+
+**10H2. Use WAIC to compare the chimpanzee model that includes a unique
+intercept for each actor, m10.4 (page 299), to the simpler models fit in
+the same section.**

@@ -4,7 +4,7 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 library(glue)
 library(broom)
@@ -38,8 +38,8 @@ set.seed(0)
 - this chapter covers the two most popular count distributions:
     1. *binomial regression*: model a binary classification
         - dead/alive, accept/reject
-    2 *poisson regression*: models outcome without a known maximum
-        - a binomial models with a very large maximum and samll probability per trial
+    2 *Poisson regression*: models outcome without a known maximum
+        - a binomial models with a very large maximum and small probability per trial
         - number of elephants in Kenya, number of people who apply to graduate school
 
 ## 10.1 Binomial regression
@@ -56,10 +56,10 @@ $$
 - both GLMs use the same logit link function
     * so both are sometimes called logistic regression and they can be converted between each other
 
-## 10.1.1 Logisitc regression: Prosocial chimpanzees
+## 10.1.1 Logistic regression: Prosocial chimpanzees
 
 - example experimental data
-    * measure the prosocial behaviour of chimps
+    * measure the prosocial behavior of chimps
     * a focal chimp has the option to pull two levers where the first only gives the focal chimp food and the other gives the focal chimp food, but not the other chimp
     * therefore, the focal chimp always gets food and decides if the other chimp gets food
     * the control condition is to not have another chimp and the partner condition is to have the second chimp
@@ -89,11 +89,11 @@ L_i \sim \text{Binomial}(1, p_i) \\
 $$
 
 - this model includes an interaction term for the left-hand option being pro-social and whether or not there is a second chimp
-    * also there is no main effect of the `condition` $C_i$ because we do not expect the precense of a second chimp on its own to predict whether the focal chimp pulls the left lever
+    * also there is no main effect of the `condition` $C_i$ because we do not expect the presence of a second chimp on its own to predict whether the focal chimp pulls the left lever
 - the priors are gently regularizing
-- as comparitive measures of overfitting, fit two other models with fewer parameters
+- as comparative measures of overfitting, fit two other models with fewer parameters
     * one with just an intercept
-    * one without only th `prosoc_left` predictor (no predictor for `condition` whether there is a second chimp)
+    * one without only the `prosoc_left` predictor (no predictor for `condition` whether there is a second chimp)
 
 $$
 L_i \sim \text{Binomial}(1, p_i) \\
@@ -178,7 +178,7 @@ plot(compare(m10_1, m10_2, m10_3))
 ```
 
 - from the WAIC, we can see that `m10_3` likely overfits a bit because its WAIC is greater than `m10_2`
-    * though the difference in WAIC is samll, the difference standard error `dSE` is very small and suggests it is a real difference
+    * though the difference in WAIC is small, the difference standard error `dSE` is very small and suggests it is a real difference
 - but `m10_3` should not just be rejected, it still reflects the structure of the experiment
     * we do want to see why `m10_3` performs worse than `m10_2`
 - the estimates for `m10_3` show a negative interaction term with a large 89% interval
@@ -191,11 +191,11 @@ plot(compare(m10_1, m10_2, m10_3))
         - the author claims that this effect can be misleading because they ignore the other parameters
 - the relative effect:
     * consider the relative effect size of `prosoc_left` and its parameter `bp`
-    * the customary measure of relativ effect for logisitic model is the *proportional change in odds*
+    * the customary measure of relative effect for logistic model is the *proportional change in odds*
         - just the exponent of the parameter estimate
         - it is $\exp(0.61) \approx 1.84$ for `bp`
         - odds are the ratio of the probability an even happens to the probability that it does not
-    * for `bp`, the logodds of pulling the left-hand level (the outcome variable) is increased by 0.61
+    * for `bp`, the log-odds of pulling the left-hand level (the outcome variable) is increased by 0.61
         - alternatively, the odds are multiplied by 1.84
     * the difficulty with proportional odds is that the actual change in probability depends on the intercept and the other predictor variables
         - for example, consider that the intercept $\alpha = 4$, then the probability of pulling the left-lever, ignoring all else, is $\text{logistic}(4) = 0.98$ 
@@ -203,7 +203,7 @@ plot(compare(m10_1, m10_2, m10_3))
         - the difference from `bp` is really not very much on the absolute scale
 - the absolute effect:
     * consider the model-average posterior predictive check to get a sense of the absolute effect of each treatment on the probability of pulling the left-hand lever
-        - use th `ensemble()` function to take a weighted average (by WAIC) over the three models
+        - use the `ensemble()` function to take a weighted average (by WAIC) over the three models
         - in the following plot, this is compared to the proportion of times the left-hand lever was pull by each chimp in all four conditions
     * interpreting the plot
         - the chimps, on average, tended to pull the prosocial option on the left ("1,0" and "1,1")
@@ -259,7 +259,7 @@ chimp_data %>%
 - the predictions are quite poor because they are averages across all chimps
     * a lot of variation among individuals could mask the association of interest
     * we can model this variation between individuals
-- the chimps showed signs of handedness - some preferred pulling the left lever and others perferred pulling the right lever
+- the chimps showed signs of handedness - some preferred pulling the left lever and others preferred pulling the right lever
     * estimate handedness as a distinct intercept for each chimp
 - below is the model to fit
     * the intercept $\alpha$ has a subscript, one for each chimp
@@ -294,7 +294,7 @@ precis(m10_4, depth = 2)
 plot(m10_4)
 ```
 
-- the posterior is not Guassian
+- the posterior is not Gaussian
     * e.g. the distribution for `a[2]`
         - the values are all positive, indicating a left-hand bias
 
@@ -496,10 +496,10 @@ d %>%
          subtitle = "Admission data are separated by gender of applicant.")
 ```
 
-- from this plot we can see that there were only 2 deptartments with ower admission for females, yet the model says females should have a 14% lower chance of admission
+- from this plot we can see that there were only 2 departments with over admission for females, yet the model says females should have a 14% lower chance of admission
     * the problem is that the departments that take the most students had fewer applications from females
 - change our question:
-    * previous question: "What are the average probabilties of admission for females and males *across all departments*?"
+    * previous question: "What are the average probabilities of admission for females and males *across all departments*?"
     * new question: "What is the average *difference* in probability of admission between females and males *within departments*?"
         - fit each department with its own intercept
 
@@ -623,12 +623,12 @@ $$
 - $\lambda_i$ is the expected value and commonly thought of as a *rate*
     * allows to make models for the *exposure* varies across cases
 - example:
-    * one monastary is counting books completed per week, and another is counting per day
+    * one monastery is counting books completed per week, and another is counting per day
     * can analyze both in the same models even though the counts are aggregated over different amounts of time
     * treat $\lambda_i$ as the number of events $\mu$ per unit time (or distance) $\tau$; $\lambda_i = \mu / \tau$
     * the $\tau_i$ values are the different exposures
         - when $\tau_i = 1$ (of some unit) then $\log \tau_i = 0$ and the formula is identical to the first
-        - when there are different values for the exposure (i.e. per day vs per week), this value currects for that
+        - when there are different values for the exposure (i.e. per day vs per week), this value corrects for that
 
 $$
 y_i \sim \text{Poisson}(\lambda_i) \\
@@ -716,7 +716,7 @@ tibble(diff_vals = lambda_high - lambda_low) %>%
 sum(lambda_high - lambda_low > 0) / length(lambda_high)
 ```
 
-- there is a 95% plausibilty that the high-contact island has more tools than the low-contact island, holding population constant
+- there is a 95% plausibility that the high-contact island has more tools than the low-contact island, holding population constant
     * suggests that contact is important even though the model estimates are not informative
     * this is because the uncertainty is `bc` and `bpc` are negatively correlated
         - when one is high, the other is low
@@ -958,7 +958,7 @@ tibble(`old monastery` = lambda_old,
 - binomial works when there are only 2 outcomes, but there are situations where we are counting more than two outcomes
 - *multinomial distribution*: when more than two types of unordered events are possible and the probability of each type of event is constant across trials
     * the binomial is actually just a special case of this distribution
-    * also called *categorical regression* or *maximum extropy classifier* (in ML)
+    * also called *categorical regression* or *maximum entropy classifier* (in ML)
 
 $$
 \Pr(y_1, ..., y_k | n, p_1, ..., p_K) = \frac{n!}{\Pi_i y_i !} \Pi_{i=1}^{K} p_i^{y_i}
@@ -985,7 +985,7 @@ $$
 - two types of cases when building a *multinomial logistic regression*:
     1. the predictors have different value for different types of events
         * useful when each type of event has its own traits
-        * want to estimate the association of those traits wtih the probability of each type of event
+        * want to estimate the association of those traits with the probability of each type of event
     2. parameters are distinct for each type of event
         * useful when interesting in features of some entity that produces each event
 - example of case 1: modeling choice of career for many people
@@ -1121,7 +1121,7 @@ pred_data %>%
     labs(x = "career",
          y = "family income",
          title = "Probability of career choice given family income",
-         subtitle = "Probabilities were estimated using a multinomial logisitic regression.",
+         subtitle = "Probabilities were estimated using a multinomial logistic regression.",
          color = "estimate", size = "estimate")
 ```
 
@@ -1131,7 +1131,7 @@ pred_data %>%
     * is mathematically sound and computationally efficient
 - example: UC Berkeley admissions data
     * this is binomial, but that is just a special case of the multinomial
-    * build both the binmial and Poisson models to compare them
+    * build both the binomial and Poisson models to compare them
 
 ```{r}
 d <- as_tibble(UCBadmit) %>% 
@@ -1191,7 +1191,7 @@ exp(k[1]) / (exp(k[1]) + exp(k[2]))
     * a.k.a. *event history analysis* or *survival analysis*
     * *geometric distribution*: likelihood function for when the probability of the terminating event is constant through time (or space) and the units of time (or distance) are discrete
         - $y$: number of time steps (Events) until the terminating event
-        - $p$: the probabilirt of the event at each time point
+        - $p$: the probability of the event at each time point
 
 $$
 \Pr(y | p) = p(1-p)^{y-1}
@@ -1272,4 +1272,123 @@ expand.grid(num_events, post_p_avg) %>%
         - used then the counts are thought to be *over-dispersed*: the variation exceeds the expected from just a binomial or Poisson
 
 ## 10.5 Practice
+
+### Easy
+
+**10E1. If an event has probability 0.35, what are the log-odds of this event?**
+
+$\log\frac{0.35}{1 - 0.35} \approx -0.619$
+
+**10E2. If an event has log-odds 3.2, what is the probability of this event?**
+
+$$
+y = \log \frac{p}{1-p} \\
+p = \frac{1}{1 + \exp(-x)} \\
+\text{logit} 3.2 \approx 0.961
+$$
+
+**10E3. Suppose that a coefficient in a logistic regression has value 1.7. What does this imply about the proportional change in odds of the outcome?**
+
+Taking the exponent of the coefficient returns the *proportional change in odds*, a relative effect size for the predictor.
+
+$\exp(1.7) \approx 5.47$
+
+This implies that for each unit increase in the predictor, there is an increase in the odds of the event happening by 5.47.
+
+**10E4. Why do Poisson regressions sometimes require the use of an offset? Provide an example.**
+
+The offset is required when there are two different types of rates being used in the model for a single predictor.
+It effectively normalizes the values to use the same unit of rate.
+
+### Medium
+
+**10M1. As explained in the chapter, binomial data can be organized in aggregated and disaggregated forms, without any impact on inference. But the likelihood of the data does change when the data are converted between the two formats. Can you explain why?**
+
+Because we are moving from binomial events (i.e. 1 or 0) to a counts-based metric that is still discrete but not restricted to outcome of 0 and 1, we use a Poisson likelihood function instead of a binomial likelihood function.
+
+**10M2. If a coefficient in a Poisson regression has value 1.7, what does this imply about the change in the outcome?**
+
+An unit increase in the predictor is expected to have a $\exp(1.7) = 5.47$ increase in the positive probability of the predicted event happening.
+
+**10M3. Explain why the logit link is appropriate for a binomial generalized linear model.**
+
+It resales a linear function to one that is bound between 0 and 1 so it will be a possible value of a probability.
+
+**10M4. Explain why the log link is appropriate for a Poisson generalized linear model.**
+
+It ensures that the parameter being estimated is restricted to positive values as expected for a value of a rate.
+
+**10M5. What would it imply to use a logit link for the mean of a Poisson generalized linear model? Can you think of a real research problem for which this would make sense?**
+
+It would constrain the value for the rate to be between 0 and 1.
+
+**10M6. State the constraints for which the binomial and Poisson distributions have maximum entropy. Are the constraints different at all for binomial and Poisson? Why or why not?**
+
+Both are only used when there are two possible outcomes.
+The probability of the outcome happening is constant.
+
+The constraints are not different because a Poisson is a generalization of the binomial GLM.
+
+### Hard
+
+**10H1. Use map to construct a quadratic approximate posterior distribution for the chimpanzee model that includes a unique intercept for each actor, m10.4 (page 299). Compare the quadratic approximation to the posterior distribution produced instead from MCMC. Can you explain both the differences and the similarities between the approximate and the MCMC distributions?**
+
+```{r}
+d <- chimpanzees %>% 
+    as_tibble() %>% 
+    janitor::clean_names()
+
+m10h_1 <- quap(
+    alist(
+        pulled_left ~ dbinom(1, p),
+        logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
+        alpha[actor] ~ dnorm(0, 10),
+        c(bp, bpc) ~ dnorm(0, 10)
+    ),
+    data = d
+)
+
+m10h_2 <- map2stan(
+    alist(
+        pulled_left ~ dbinom(1, p),
+        logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
+        alpha[actor] ~ dnorm(0, 10),
+        c(bp, bpc) ~ dnorm(0, 10)
+    ),
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+
+precis(m10h_1)
+precis(m10h_2)
+```
+
+```{r}
+m10h_1_link <- extract.samples(m10h_1, clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    pivot_longer(tidyselect::everything()) %>%
+    add_column(type = "QUAP")
+
+m10h_2_link <- extract.samples(m10h_2, clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    add_column(type = "MCMC") %>%
+    pivot_longer(-type, names_to = "name", values_to = "value")
+
+bind_rows(m10h_1_link, m10h_2_link) %>%
+    ggplot(aes(x = value, fill = type, color = type)) +
+    facet_wrap(~ name, scales = "free") +
+    geom_density(alpha = 0.2) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1")
+```
+
+The only obvious distinction between the samples from the quadratic approximation and the MCMC are for the intercept for actor number 2.
+The MCMC samples suggest that the distribution is not Gaussian, but instead highly skewed.
+This means we should not rely on the quadratic approximation for this analysis.
+
+**10H2. Use WAIC to compare the chimpanzee model that includes a unique intercept for each actor, m10.4 (page 299), to the simpler models fit in the same section.**
 
