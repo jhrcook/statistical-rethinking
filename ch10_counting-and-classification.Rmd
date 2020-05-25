@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 library(glue)
 library(broom)
 library(patchwork)
+library(MASS)
 library(rethinking)
 library(tidyverse)
 library(conflicted)
@@ -25,6 +26,9 @@ conflict_prefer("rstudent", "rethinking")
 conflict_prefer("lag", "dplyr")
 conflict_prefer("map", "purrr")
 conflict_prefer("Position", "ggplot2")
+
+# To be able to use 'MASS':
+conflict_prefer("area", "patchwork")
 
 theme_set(theme_minimal())
 source_scripts()
@@ -1390,5 +1394,150 @@ The only obvious distinction between the samples from the quadratic approximatio
 The MCMC samples suggest that the distribution is not Gaussian, but instead highly skewed.
 This means we should not rely on the quadratic approximation for this analysis.
 
-**10H2. Use WAIC to compare the chimpanzee model that includes a unique intercept for each actor, m10.4 (page 299), to the simpler models fit in the same section.**
+**10H2. Use WAIC to compare the chimpanzee model that includes a unique intercept for each actor, `m10.4` (page 299), to the simpler models fit in the same section.**
 
+```{r}
+m10h_3 <- map2stan(
+    m10_1,
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+
+
+m10h_4 <- map2stan(
+    m10_2,
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+
+m10h_5 <- map2stan(
+    m10_3,
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+
+
+compare(m10h_2, m10h_3, m10h_4, m10h_5)
+```
+
+**10H3. The data contained in `library(MASS);data(eagles)` are records of salmon pirating attempts by Bald Eagles in Washington State. See `?eagles` for details. While one eagle feeds, sometimes another will swoop in and try to steal the salmon from it. Call the feeding eagle the “victim” and the thief the “pirate.” Use the available data to build a binomial GLM of successful pirating attempts.**
+
+**(a)  Consider the following model:**
+
+$$
+y_i ~ \text{Binomial}(n_i, p_i) \\
+\log \frac{p_i}{1 - p_i} = \alpha + \beta_P P_i + \beta_V V_i + \beta_A A_i \\
+\alpha ~ \text{Normal}(0, 10) \\
+\beta_P ~ \text{Normal}(0, 5) \\
+\beta_V ~ \text{Normal}(0, 5) \\
+\beta_A ~ \text{Normal}(0, 5)
+$$
+
+```{r}
+data("eagles")
+d <- as_tibble(eagles) %>% 
+    mutate(large_pirate = as.numeric(P == "L"),
+           adult_pirate = as.numeric(A == "A"),
+           large_victim = as.numeric(V == "L"))
+
+
+m10h3_1 <- quap(
+    alist(
+        y ~ dbinom(n, p),
+        logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
+        alpha ~ dnorm(0, 10),
+        c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
+    ),
+    data = d
+)
+
+m10h3_1_stan <- map2stan(
+    alist(
+        y ~ dbinom(n, p),
+        logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
+        alpha ~ dnorm(0, 10),
+        c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
+    ), 
+    data = d,
+    chains = 2, iter = 2e3, warmup = 500, cores = 2
+)
+
+precis(m10h3_1)
+precis(m10h3_1_stan)
+```
+
+```{r}
+m10h3_1_samples <- extract.samples(m10h3_1, 
+                                   clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    pivot_longer(tidyselect::everything()) %>%
+    add_column(type = "QUAP")
+
+m10h3_1_stan_samples <- extract.samples(m10h3_1_stan, 
+                                        clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    add_column(type = "MCMC") %>%
+    pivot_longer(-type, names_to = "name", values_to = "value")
+
+bind_rows(m10h3_1_samples, m10h3_1_stan_samples) %>%
+    ggplot(aes(x = value, fill = type, color = type)) +
+    facet_wrap(~ name, scales = "free") +
+    geom_density(alpha = 0.2) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1")
+```
+
+The quadratic approximation seems to undestimate the coefficient for the size of the pirate, and overestimate the coefficient for the size of the victim.
+Therefore, I will move forward using the `map2stan` results.
+
+**(b)  Now interpret the estimates. If the quadratic approximation turned out okay, then it’s okay to use the map estimates. Otherwise stick to map2stan estimates. Then plot the posterior predictions. Compute and display both (1) the predicted probability of success and its 89% interval for each row (i) in the data, as well as (2) the predicted success count and its 89% interval. What different information does each type of posterior prediction provide?**
+
+```{r}
+post <- link(m10h3_1_stan)
+pred_prob <- apply(post, 2, mean)
+pred_pi <- apply(post, 2, PI) %>% pi_to_df()
+
+d %>%
+    mutate(frac_success = y / n,
+           row_idx = row_number(),
+           prob_success = pred_prob) %>%
+    bind_cols(pred_pi) %>%
+    ggplot(aes(x = row_idx)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.6, size = 1) +
+    geom_point(aes(y = prob_success), 
+               shape = 15, color = "firebrick3", size = 4) +
+    geom_point(aes(y = frac_success), 
+               shape = 16, color = "cyan4", size = 4) +
+    labs(x = "measurement in 'eagles'",
+         y = "probability of success of the pirate bird",
+         title = "Estimated probability of the pirate successfully stealing from a victim",
+         subtitle = "Red squares are the estimates with 89% intervals and the blue points are the actual rates of success.")
+```
+
+```{r}
+d %>%
+    mutate(row_idx = row_number(),
+           prob_success = pred_prob,
+           pred_num_success = pred_prob * n) %>%
+    bind_cols(pred_pi) %>%
+    mutate(x5_percent = x5_percent * n,
+           x94_percent = x94_percent * n) %>%
+    ggplot(aes(x = row_idx)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.6, size = 1) +
+    geom_point(aes(y = pred_num_success), 
+               shape = 15, color = "firebrick3", size = 4) +
+    geom_point(aes(y = y), 
+               shape = 16, color = "cyan4", size = 4) +
+    labs(x = "measurement in 'eagles'",
+         y = "num. of successful events",
+         title = "Estimated number of successful raids by the pirate eagles",
+         subtitle = "Red squares are the estimates with 89% intervals and the blue points are the actual number of successful events.")
+```
+
+The most striking difference between the two plots is for the last column where the probability of success was outside of the 89% interval estimated by the model, but the actual number of successful events was quite accurate.

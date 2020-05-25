@@ -2403,5 +2403,309 @@ highly skewed. This means we should not rely on the quadratic
 approximation for this analysis.
 
 **10H2. Use WAIC to compare the chimpanzee model that includes a unique
-intercept for each actor, m10.4 (page 299), to the simpler models fit in
-the same section.**
+intercept for each actor, `m10.4` (page 299), to the simpler models fit
+in the same section.**
+
+``` r
+m10h_3 <- map2stan(
+    m10_1,
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+
+    ## Computing WAIC
+
+``` r
+m10h_4 <- map2stan(
+    m10_2,
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+
+    ## Computing WAIC
+
+``` r
+m10h_5 <- map2stan(
+    m10_3,
+    data = d,
+    chains = 3, iter = 2e3, warmup = 500, cores = 3
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+
+    ## Computing WAIC
+
+``` r
+compare(m10h_2, m10h_3, m10h_4, m10h_5)
+```
+
+    ##            WAIC        SE    dWAIC      dSE     pWAIC       weight
+    ## m10h_2 530.0120 19.912931   0.0000       NA 8.4052490 1.000000e+00
+    ## m10h_4 680.4815  9.315566 150.4695 19.20680 1.9923383 2.118214e-33
+    ## m10h_5 682.4296  9.360527 152.4176 19.14514 3.0437174 7.997284e-34
+    ## m10h_3 687.9198  7.022425 157.9079 19.88204 0.9885724 5.137414e-35
+
+**10H3. The data contained in `library(MASS);data(eagles)` are records
+of salmon pirating attempts by Bald Eagles in Washington State. See
+`?eagles` for details. While one eagle feeds, sometimes another will
+swoop in and try to steal the salmon from it. Call the feeding eagle the
+“victim” and the thief the “pirate.” Use the available data to build a
+binomial GLM of successful pirating attempts.**
+
+**(a) Consider the following model:**
+
+\[
+y_i ~ \text{Binomial}(n_i, p_i) \\
+\log \frac{p_i}{1 - p_i} = \alpha + \beta_P P_i + \beta_V V_i + \beta_A A_i \\
+\alpha ~ \text{Normal}(0, 10) \\
+\beta_P ~ \text{Normal}(0, 5) \\
+\beta_V ~ \text{Normal}(0, 5) \\
+\beta_A ~ \text{Normal}(0, 5)
+\]
+
+``` r
+data("eagles")
+d <- as_tibble(eagles) %>% 
+    mutate(large_pirate = as.numeric(P == "L"),
+           adult_pirate = as.numeric(A == "A"),
+           large_victim = as.numeric(V == "L"))
+
+
+m10h3_1 <- quap(
+    alist(
+        y ~ dbinom(n, p),
+        logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
+        alpha ~ dnorm(0, 10),
+        c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
+    ),
+    data = d
+)
+
+m10h3_1_stan <- map2stan(
+    alist(
+        y ~ dbinom(n, p),
+        logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
+        alpha ~ dnorm(0, 10),
+        c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
+    ), 
+    data = d,
+    chains = 2, iter = 2e3, warmup = 500, cores = 2
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+
+    ## Computing WAIC
+
+``` r
+precis(m10h3_1)
+```
+
+    ##               mean        sd       5.5%     94.5%
+    ## alpha     0.591543 0.6622741 -0.4668989  1.649985
+    ## b_psize   4.241824 0.8960189  2.8098125  5.673835
+    ## b_vsize  -4.592608 0.9613953 -6.1291039 -3.056113
+    ## b_padult  1.081411 0.5339213  0.2281017  1.934720
+
+``` r
+precis(m10h3_1_stan)
+```
+
+    ##                mean        sd       5.5%     94.5%    n_eff     Rhat4
+    ## alpha     0.6526202 0.6939466 -0.4164580  1.816973 1371.140 1.0006131
+    ## b_psize   4.6674406 1.0302069  3.2222577  6.405983 1021.768 0.9995875
+    ## b_vsize  -5.0674348 1.0940104 -6.9311348 -3.463096 1122.801 0.9997783
+    ## b_padult  1.1506664 0.5591677  0.2846772  2.045080 1411.255 1.0012064
+
+``` r
+m10h3_1_samples <- extract.samples(m10h3_1, 
+                                   clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    pivot_longer(tidyselect::everything()) %>%
+    add_column(type = "QUAP")
+
+m10h3_1_stan_samples <- extract.samples(m10h3_1_stan, 
+                                        clean = FALSE) %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    janitor::clean_names() %>%
+    add_column(type = "MCMC") %>%
+    pivot_longer(-type, names_to = "name", values_to = "value")
+
+bind_rows(m10h3_1_samples, m10h3_1_stan_samples) %>%
+    ggplot(aes(x = value, fill = type, color = type)) +
+    facet_wrap(~ name, scales = "free") +
+    geom_density(alpha = 0.2) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
+
+The quadratic approximation seems to undestimate the coefficient for the
+size of the pirate, and overestimate the coefficient for the size of the
+victim. Therefore, I will move forward using the `map2stan` results.
+
+**(b) Now interpret the estimates. If the quadratic approximation turned
+out okay, then it’s okay to use the map estimates. Otherwise stick to
+map2stan estimates. Then plot the posterior predictions. Compute and
+display both (1) the predicted probability of success and its 89%
+interval for each row (i) in the data, as well as (2) the predicted
+success count and its 89% interval. What different information does each
+type of posterior prediction
+    provide?**
+
+``` r
+post <- link(m10h3_1_stan)
+```
+
+    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+
+``` r
+pred_prob <- apply(post, 2, mean)
+pred_pi <- apply(post, 2, PI) %>% pi_to_df()
+
+d %>%
+    mutate(frac_success = y / n,
+           row_idx = row_number(),
+           prob_success = pred_prob) %>%
+    bind_cols(pred_pi) %>%
+    ggplot(aes(x = row_idx)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.6, size = 1) +
+    geom_point(aes(y = prob_success), 
+               shape = 15, color = "firebrick3", size = 4) +
+    geom_point(aes(y = frac_success), 
+               shape = 16, color = "cyan4", size = 4) +
+    labs(x = "measurement in 'eagles'",
+         y = "probability of success of the pirate bird",
+         title = "Estimated probability of the pirate successfully stealing from a victim",
+         subtitle = "Red squares are the estimates with 89% intervals and the blue points are the actual rates of success.")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
+
+``` r
+d %>%
+    mutate(row_idx = row_number(),
+           prob_success = pred_prob,
+           pred_num_success = pred_prob * n) %>%
+    bind_cols(pred_pi) %>%
+    mutate(x5_percent = x5_percent * n,
+           x94_percent = x94_percent * n) %>%
+    ggplot(aes(x = row_idx)) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.6, size = 1) +
+    geom_point(aes(y = pred_num_success), 
+               shape = 15, color = "firebrick3", size = 4) +
+    geom_point(aes(y = y), 
+               shape = 16, color = "cyan4", size = 4) +
+    labs(x = "measurement in 'eagles'",
+         y = "num. of successful events",
+         title = "Estimated number of successful raids by the pirate eagles",
+         subtitle = "Red squares are the estimates with 89% intervals and the blue points are the actual number of successful events.")
+```
+
+![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
+
+The most striking difference between the two plots is for the last
+column where the probability of success was outside of the 89% interval
+estimated by the model, but the actual number of successful events was
+quite accurate.
