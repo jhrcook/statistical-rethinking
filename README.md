@@ -54,6 +54,8 @@ Model](ch9_big-entropy-and-the-generalized-linear-model.md)
 [Chapter 10. Counting and
 Classification](ch10_counting-and-classification.md)
 
+[Chapter 11. Monsters and Mixtures](ch11_monsters-and-mixtures.md)
+
 -----
 
 ## Other R packages for Bayes
