@@ -57,7 +57,8 @@ set.seed(0)
 
 ```{r}
 data("Trolley")
-d <- as_tibble(Trolley)
+d <- as_tibble(Trolley) %>%
+    rename(q_case = case)
 ```
 
 ### 11.1.2 Describing an ordered distribution with intercepts
@@ -142,3 +143,127 @@ d %>%
          subtitle = "Blue lines indicate the likelihood for each response.")
 ```
 
+- below is the matematical form of the model using an ordered logit likelihood
+    * notation for these models can vary by author
+    * the *Ordered* distribution is just a categorical distribution that takes a vector $\text{p} = \{p_1, p_2, p_3, p_4, p_5, p_6\}$
+        - only 6 because the 7th level has the value 1 automatically
+    * each response value $k$ gets an intercept parameter $\alpha_k$
+
+$$
+R_i \sim \text{Ordered}(p) \\
+logit(P_k) = \alpha_k \\
+\alpha_k \sim \text{Normal}(0, 10)
+$$
+
+- the first model does not include any predictor vairables
+    * the link function is embedded in the likelihood function, already
+        - simpler to type and makes the calculations more efficient, too
+    * `phi` is a placeholder for now but will be used to add in predictor variables
+    * the start values are included to start the intercepts in the right order
+        - their exact values don't really matter, just the order
+
+```{r}
+m11_1 <- quap(
+    alist(
+        response ~ dordlogit(phi, c(a1, a2, a3, a4, a5, a6)),
+        phi <- 0,
+        c(a1, a2, a3, a4, a5, a6) ~ dnorm(0, 10)
+    ),
+    data = d,
+    start = list(a1 = -2, a2 = -1, a3 = 0, a4 = 1, a5 = 2, a6 = 2.5)
+)
+
+precis(m11_1)
+```
+
+- transform from log-cumulative-odds to cumulative probabilities
+
+```{r}
+logistic(coef(m11_1))
+```
+
+```{r}
+m11_1_link <- extract.samples(m11_1)
+m11_1_link %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    pivot_longer(tidyselect::everything()) %>%
+    ggplot(aes(x = value, y = name, color = name, fill = name)) +
+    ggridges::geom_density_ridges(size = 1, alpha = 0.4, ) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    theme(legend.position = "none") +
+    labs(x = "posterior samples",
+         y = "density",
+         title = "Posterior probability distributions of intercept from categorical model")
+```
+
+### 11.1.3 Adding predictor variables
+
+- to include predictor variables:
+    * *define the log-cumulative-odds of each response $k$ as a sum of its intercept $\alpha_k$ and a typical linear model*
+    * for example: add a predictor $x$ to the model
+        - define the linear model $\phi_i = \beta x_i$
+        - the cumulative logit becomes:
+
+$$
+\log \frac{\Pr(y_i \ge k)}{1 - \Pr(y_i \ge k)} = \alpha - \phi_i = \alpha - \beta x_i
+$$
+
+- this form keeps the correct ordering of the outcome values while still morphing the likelihood of each individual value as the predictor $x_i$ changes value
+- the linear model $\phi$ is subtracted from the intercept:
+    * because decreasing the log-cumulative-odds of every outcome value $k$ below the maximum shifts probability mass upwards towards higher outcome values
+    * a positive $\beta$ value indicates than an increase in the predictor variable $x$ results in an increase in the average response
+- for the Trolly data, we can icnlude predictor variables for the different types of questions: "action," "intention," and "contact"
+    * the formulation of the log-cumulative-odds of each response $k$ is shown below
+    * defines the log-odds of each possible response to be an additive model of the features of the story corresponding to each response
+
+$$
+\log \frac{\Pr(y_i \ge k)}{1 - \Pr(y_i \ge k)} = \alpha - \phi_i \\
+\phi_i = \beta_A A_i + \beta_I I_i + \beta_C C_i
+$$
+
+```{r}
+m11_2 <- quap(
+    alist(
+        response ~ dordlogit(phi, c(a1, a2, a3, a4, a5, a6)),
+        phi <- bA*action + bI*intention + bC*contact,
+        c(a1, a2, a3, a4, a5, a6) ~ dnorm(0, 10),
+        c(bA, bI, bC) ~ dnorm(0, 10)
+    ),
+    data = d,
+    start = list(a1 = -2, a2 = -1, a3 = 0, a4 = 1, a5 = 2, a6 = 2.5)
+)
+```
+
+- fit another model with interactions between action and intention and between contact and intention
+    * these two make sense in terms of the scenario we are modeling while an interaction between contact and action does not
+        - contact is a type of action
+
+```{r}
+m11_3 <- quap(
+    alist(
+        response ~ dordlogit(phi, c(a1, a2, a3, a4, a5, a6)),
+        phi <- bA*action + bI*intention + bC*contact + bAI*action*intention + bCI*contact*intention,
+        c(a1, a2, a3, a4, a5, a6) ~ dnorm(0, 10),
+        c(bA, bI, bC, bAI, bCI) ~ dnorm(0, 10)
+    ),
+    data = d,
+    start = list(a1 = -2, a2 = -1, a3 = 0, a4 = 1, a5 = 2, a6 = 2.5)
+)
+
+coeftab(m11_1, m11_2, m11_3)
+```
+
+- interpretation:
+    * the intercepts are difficult to interpret on their own, but act like regular intercepts in simpler models
+        - they are the relative frequencies of the outcomes when all predictors are set to 0
+    * there are 5 slope parameters: 3 main effects and 2 iinteractions
+        - they are all far from 0 (can check with `precis(m)`)
+        - they are all negative: each factor/interaction *reduces* the average response
+        - these values are difficult to interpret as is, so they are investigated more below
+- compare the models by WAIC
+
+```{r}
+compare(m11_1, m11_2, m11_3)
+```
