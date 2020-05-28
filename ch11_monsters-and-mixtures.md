@@ -314,6 +314,9 @@ coeftab(m11_1, m11_2, m11_3)
           - these values are difficult to interpret as is, so they are
             investigated more below
   - compare the models by WAIC
+      - the model with interaction terms is sufficiently better than the
+        other two, so we can safely proceed with just analyzing it and
+        ignoring the other two
 
 <!-- end list -->
 
@@ -325,3 +328,220 @@ compare(m11_1, m11_2, m11_3)
     ## m11_3 36929.15 81.16718   0.0000       NA 11.004379  1.000000e+00
     ## m11_2 37090.36 76.34564 161.2159 25.78738  9.253143  9.826897e-36
     ## m11_1 37854.49 57.63045 925.3444 62.65109  6.020406 1.158826e-201
+
+  - plot implied predictions to understand what model `m11_3` implies
+      - difficult to plot the predictions of log-cumulative-odds because
+        each prediction is a vector of probabilities, one for each
+        possible outcome
+      - as a predictor variable changes value, the entire vector changes
+  - one common plot is to use the horiztonal axis for the predictor
+    variable and the vertical axis for the cumulative probability
+      - plot a curve for each response value
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m11_3)
+
+get_m11_3_predictions <- function(kA, kC, kI) {
+    res <- tibble()
+    for (s in 1:100) {
+        p <- post[s, ]
+        ak <- as.numeric(p[1:6])
+        phi <- p$bA * kA + p$bI*kI + p$bC*kC + p$bAI*kA*kI + p$bCI*kC*kI
+        pk <- pordlogit(1:6, a = ak, phi = phi)
+        res <- bind_rows(
+            res,
+            tibble(lvl = 1:6, val = pk)
+        )
+    }
+    return(res)
+}
+
+
+implied_predictions <- expand.grid(kA = 0:1, kC = 0:1, kI = 0:1) %>%
+    as_tibble() %>%
+    filter(!(kA == 1 & kC == 1)) %>% 
+    group_by(kA, kC, kI) %>%
+    mutate(preds = list(get_m11_3_predictions(kA, kC, kI))) %>%
+    unnest(preds) %>%
+    ungroup()
+
+implied_predictions %>%
+    mutate(facet = paste0("action: ", kA, ", ", "contact: ", kC)) %>%
+    group_by(kA, kC, kI) %>%
+    mutate(row_idx = row_number()) %>%
+    ungroup() %>%
+    mutate(line_group = paste(lvl, row_idx)) %>%
+    ggplot(aes(x = kI, y = val, group = line_group)) +
+    facet_wrap(~ facet, nrow = 1) +
+    geom_hline(yintercept = 0:1, lty = 2, color = "grey70", size = 1) +
+    geom_line(aes(color = factor(lvl)), alpha = 0.1) +
+    scale_color_brewer(palette = "Dark2") +
+    labs(x = "intention", 
+         y = "probability",
+         color = "level",
+         title = "Implied predictions of model with interactions.")
+```
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+  - interpretation:
+      - each horizontal line is the bounday between levels
+      - the thickness of the boundary represents the variation in
+        prediction
+      - the change in height from intention changing from 0 to 1
+        indicates the predicted impact of changing a trolley story from
+        non-intention to intention
+          - the left-hand plot shows that there is not much change from
+            switching intention when action and contact are both 0
+          - the other two plots show the interaction between intention
+            and the other variable that is set to 1
+          - the middle plot shows that there is a large interaction
+            between contact and intention
+
+## 11.2 Zero-inflated outcomes
+
+  - *mixture model*: measurements arise from multiple proceesses;
+    different causes for the same observation
+      - uses more than one probability distribution
+  - common to need to use a mixture model for count variables
+      - a count of 0 can often arise in more than one way
+      - a 0 could occurr because nothing happens, because the rate of
+        the event is very low, or because the event-generating process
+        never began
+      - said to be *zero-inflated*
+
+### 11.2.1 Example: Zero-inflated Poisson
+
+  - previously, we use the monastery example to study the Poisson
+    distribution
+      - now imagine that the monks take breaks on some days and no
+        manuscripts are made
+      - want to estimate how often breaks are taken
+  - mixture model:
+      - a zero can arise from two processes:
+        1.  the monks took a break
+        2.  the monks workked but did not complete a manuscript
+      - let \(p\) be the probability the monks took a break on a day
+      - let \(\lambda\) be the mean number of manuscripts completed when
+        the monks work
+  - need a likelihood function that mixes these two processes:
+      - the following equation says this: “The probability of observing
+        a zero is the probability that the monks took a break OR (\(+\))
+        the probability the monks worked AND (\(\times\)) failed to
+        finish.”
+
+\[
+\Pr(0 | p, \lambda) = \Pr(\text{break} | p) + \Pr(\text{work} | p) \times \Pr(0 | \lambda) \\
+\Pr(0 | p, \lambda) = p + (1-p) e^{-\lambda}
+\]
+
+  - the likelihood of a non-zero value \(y\) is below
+      - the the probability that the monks work multiplied by the
+        probability that the working monks produce a manuscript
+
+\[
+\Pr(y | p, \lambda) = \Pr(\text{break} | p)(0) + \Pr(\text{work} | p) \Pr(y | \lambda) \\
+\Pr(y | p, \lambda) = (1 - p) \frac{\lambda^y e^{-\lambda}}{y!}
+\]
+
+  - can define `ZIPoisson` as the distribution above with parameters
+    \(p\) (probability of 0) and \(\lambda\) (mean of Poisson) to
+    describe the shape
+      - two linear models and two link functions, one for each process
+
+\[
+y_i \sim \text{ZIPoisson}(p_i, \lambda_i) \\
+\text{logit}(p_i) = \alpha_p + \beta_p x_i \\
+\log(\lambda_i) = \alpha_\lambda + \beta_\lambda x_i
+\]
+
+  - need to simulate data for the monks taking breaks
+
+<!-- end list -->
+
+``` r
+# They take a break on 20% of the days
+prob_break <- 0.2 
+
+# Average of 1 manuscript per working day.
+rate_work <- 1
+
+# Sample one year of production.
+N <- 365
+
+# Simulate which days the monks take breaks.
+break_days <- rbinom(N, 1, prob = prob_break)
+
+# Simulate the manuscripts completed.
+y <- (1-break_days) * rpois(N, rate_work)
+```
+
+``` r
+tibble(y, break_days) %>%
+    count(y, break_days) %>%
+    mutate(break_days = ifelse(break_days == 0, "work", "break"),
+           break_days = factor(break_days, levels = c("break", "work"))) %>%
+    ggplot(aes(x = y, y = n)) +
+    geom_col(aes(fill = break_days)) +
+    scale_fill_manual(
+        values = c("skyblue3", "grey50"),
+        guide = guide_legend(title.position = "left",
+                             title.hjust = 0.5,
+                             label.position = "top",
+                             ncol = 2)
+    ) +
+    theme(
+        legend.position = c(0.7, 0.7)
+    ) +
+    labs(x = "number of manuscripts completed on a day",
+         y = "count",
+         fill = "Did the monks take a break?",
+         title = "The number of manuscripts completed per day when monks can take breaks")
+```
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+  - now we can fit a model
+
+<!-- end list -->
+
+``` r
+m11_4 <- quap(
+    alist(
+        y ~ dzipois(p, lambda),
+        logit(p) <- ap,
+        log(lambda) <- al,
+        ap ~ dnorm(0, 1),
+        al ~ dnorm(0, 10)
+    ),
+    data = tibble(y)
+)
+
+precis(m11_4)
+```
+
+    ##           mean         sd        5.5%      94.5%
+    ## ap -1.08474003 0.27298308 -1.52101972 -0.6484603
+    ## al  0.04329227 0.08613731 -0.09437178  0.1809563
+
+``` r
+logistic(m11_4@coef[["ap"]])
+```
+
+    ## [1] 0.2526101
+
+``` r
+exp(m11_4@coef[["al"]])
+```
+
+    ## [1] 1.044243
+
+  - can get a very accurate prediction for the proportion of days taken
+    off by the monks and the rate of manuscript production per working
+    day
+      - though, cannot determine whether the monks took any particular
+        day off
+
+## 11.3 Over-dispersed outcomes
