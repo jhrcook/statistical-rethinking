@@ -439,3 +439,101 @@ exp(m11_4@coef[["al"]])
     * though, cannot determine whether the monks took any particular day off
 
 ## 11.3 Over-dispersed outcomes
+
+- *over-dispersion*: the variance of a variable exceededs the expected amount for a model
+    * e.g.: for a binomial, the expected value is $np$ and its variance $np(1-p)$
+    * for a count model, this suggests that a necessary variable has been omitted
+- ideally, would just include the missing variable to remove over-dispersion, but not always the case/possible
+- two strategies for mitigating the effects of over-dispersion
+    * use a *continuous mixture* model: a linear model is attached to a distribution of observations
+        - common models: *beta-binomial* and *gamma-Poisson* (negative-binomial)
+        - these are demonstrated in the following sections
+    * employ a multilevel model (GLMM) and estimate the residuals of each observation and the distribution of those residuals
+        - easier to fit than beta-binmial and gamma-Poisson GLMs
+        - more flexible
+        - handle over-dispersion and other kinds of heterogineity simulatneously
+        - *GLMMs are covered in the next chapter*
+
+### 11.3.1 Beta-binomial
+
+- beta-binomial models assumes that each binomial count observation has its own probability of a success
+    * estimates the distribution of probabilities of success across cases
+        - instead of a single probability of success
+    * predictor variables change the shape of this distribution instead of directly determining the probability of each success
+- example: UCB admissions data
+    * if we ignore the department, the data is very over-dispersed
+        - because the departments vary a lot in baseline admission rates
+    * therefore, ignoring the inter-department variation results in an incorrect inference about applicant gender
+    * can fit a beta-binomial model, ignoring department
+- a beta-binomial model will assume that each row of the data has a unique, unobserved probability of admission
+    * these probabilities of admission have a common distribution described by the *beta distribution*
+        - use the beta distribution because it can be used to calculate the likelihood function that averages over the unknown probabilities for each observation
+    * beta-distribution has 2 parameters:
+        1. $\bar{\textbf{p}}$: average probability
+        2. $\theta$: shape parameter
+    * shape parameter describes the spread of the distribution
+
+```{r}
+pbar <- 0.5
+thetas <- c(1, 2, 5, 10, 20)
+x_vals <- seq(0, 1, length.out = 50)
+beta_dist_res <- tibble()
+for (theta in thetas) {
+    beta_dist_res <- bind_rows(
+        beta_dist_res,
+        tibble(theta = theta, 
+               pbar = pbar, 
+               x = x_vals,
+               d = dbeta2(x_vals, pbar, theta))
+    )
+}
+
+beta_dist_res %>%
+    mutate(params = paste0("pbar: ", pbar, ", theta: ", theta)) %>%
+    ggplot(aes(x = x, y = d)) +
+    geom_line(aes(group = params, color = params)) +
+    scale_color_brewer(palette = "Dark2") +
+    labs(x = "probability", y = "density", color = NULL,
+         title = "Beta-binomial distributions")
+```
+
+- we will build a linear model to $\bar{\textbf{p}}$ so that changes in predictor variables change the central tendency of the distribution
+    * $A$ is the number of admissions (`admit` column)
+    * $n$ is the number of applications (`applications` column)
+    * any predictor variables could be included in the linear model for $\bar{p}$
+
+$$
+A_i \sim \text{BetaBinomial}(n_i, \bar{p}_i, \theta) \\
+\text{logit}(\bar{p}_i) = \alpha \\
+\alpha \sim \text{Normal}(0, 10) \\
+\theta \sim \text{HalfCauchy}(0, 1)
+$$
+
+```{r}
+data("UCBadmit")
+d <- as_tibble(UCBadmit) %>%
+    janitor::clean_names()
+
+m11_5 <- map2stan(
+    alist(
+        admit ~ dbetabinom(applications, pbar, theta),
+        logit(pbar) <- a,
+        a ~ dnorm(0, 3),
+        theta ~ dexp(1)
+    ),
+    data = d,
+    constraints = list(theta = "lower=0"),
+    start = list(theta = 3),
+    iter = 4e3, 
+    warmup = 1e3, 
+    chains = 2, 
+    cores = 2,
+    control = list(max_treedepth = 1)
+)
+
+plot(m11_5)
+pairs(m11_5)
+precis(m11_5)
+```
+
+

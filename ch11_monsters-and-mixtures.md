@@ -545,3 +545,182 @@ exp(m11_4@coef[["al"]])
         day off
 
 ## 11.3 Over-dispersed outcomes
+
+  - *over-dispersion*: the variance of a variable exceededs the expected
+    amount for a model
+      - e.g.: for a binomial, the expected value is \(np\) and its
+        variance \(np(1-p)\)
+      - for a count model, this suggests that a necessary variable has
+        been omitted
+  - ideally, would just include the missing variable to remove
+    over-dispersion, but not always the case/possible
+  - two strategies for mitigating the effects of over-dispersion
+      - use a *continuous mixture* model: a linear model is attached to
+        a distribution of observations
+          - common models: *beta-binomial* and *gamma-Poisson*
+            (negative-binomial)
+          - these are demonstrated in the following sections
+      - employ a multilevel model (GLMM) and estimate the residuals of
+        each observation and the distribution of those residuals
+          - easier to fit than beta-binmial and gamma-Poisson GLMs
+          - more flexible
+          - handle over-dispersion and other kinds of heterogineity
+            simulatneously
+          - *GLMMs are covered in the next chapter*
+
+### 11.3.1 Beta-binomial
+
+  - beta-binomial models assumes that each binomial count observation
+    has its own probability of a success
+      - estimates the distribution of probabilities of success across
+        cases
+          - instead of a single probability of success
+      - predictor variables change the shape of this distribution
+        instead of directly determining the probability of each success
+  - example: UCB admissions data
+      - if we ignore the department, the data is very over-dispersed
+          - because the departments vary a lot in baseline admission
+            rates
+      - therefore, ignoring the inter-department variation results in an
+        incorrect inference about applicant gender
+      - can fit a beta-binomial model, ignoring department
+  - a beta-binomial model will assume that each row of the data has a
+    unique, unobserved probability of admission
+      - these probabilities of admission have a common distribution
+        described by the *beta distribution*
+          - use the beta distribution because it can be used to
+            calculate the likelihood function that averages over the
+            unknown probabilities for each observation
+      - beta-distribution has 2 parameters:
+        1.  \(\bar{\textbf{p}}\): average probability
+        2.  \(\theta\): shape parameter
+      - shape parameter describes the spread of the distribution
+
+<!-- end list -->
+
+``` r
+pbar <- 0.5
+thetas <- c(1, 2, 5, 10, 20)
+x_vals <- seq(0, 1, length.out = 50)
+beta_dist_res <- tibble()
+for (theta in thetas) {
+    beta_dist_res <- bind_rows(
+        beta_dist_res,
+        tibble(theta = theta, 
+               pbar = pbar, 
+               x = x_vals,
+               d = dbeta2(x_vals, pbar, theta))
+    )
+}
+
+beta_dist_res %>%
+    mutate(params = paste0("pbar: ", pbar, ", theta: ", theta)) %>%
+    ggplot(aes(x = x, y = d)) +
+    geom_line(aes(group = params, color = params)) +
+    scale_color_brewer(palette = "Dark2") +
+    labs(x = "probability", y = "density", color = NULL,
+         title = "Beta-binomial distributions")
+```
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+  - we will build a linear model to \(\bar{\textbf{p}}\) so that changes
+    in predictor variables change the central tendency of the
+    distribution
+      - \(A\) is the number of admissions (`admit` column)
+      - \(n\) is the number of applications (`applications` column)
+      - any predictor variables could be included in the linear model
+        for \(\bar{p}\)
+
+\[
+A_i \sim \text{BetaBinomial}(n_i, \bar{p}_i, \theta) \\
+\text{logit}(\bar{p}_i) = \alpha \\
+\alpha \sim \text{Normal}(0, 10) \\
+\theta \sim \text{HalfCauchy}(0, 1)
+\]
+
+``` r
+data("UCBadmit")
+d <- as_tibble(UCBadmit) %>%
+    janitor::clean_names()
+
+m11_5 <- map2stan(
+    alist(
+        admit ~ dbetabinom(applications, pbar, theta),
+        logit(pbar) <- a,
+        a ~ dnorm(0, 3),
+        theta ~ dexp(1)
+    ),
+    data = d,
+    constraints = list(theta = "lower=0"),
+    start = list(theta = 3),
+    iter = 4e3, 
+    warmup = 1e3, 
+    chains = 2, 
+    cores = 2,
+    control = list(max_treedepth = 1)
+)
+```
+
+    ## Trying to compile a simple C file
+
+    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
+    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## namespace Eigen {
+    ## ^
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## namespace Eigen {
+    ##                ^
+    ##                ;
+    ## In file included from <built-in>:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
+    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## #include <complex>
+    ##          ^~~~~~~~~
+    ## 3 errors generated.
+    ## make: *** [foo.o] Error 1
+
+    ## Warning: There were 6000 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 1. See
+    ## http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+
+    ## Warning: Examine the pairs() plot to diagnose sampling problems
+
+    ## Warning: The largest R-hat is 2.3, indicating chains have not mixed.
+    ## Running the chains for more iterations may help. See
+    ## http://mc-stan.org/misc/warnings.html#r-hat
+
+    ## Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+    ## Running the chains for more iterations may help. See
+    ## http://mc-stan.org/misc/warnings.html#bulk-ess
+
+    ## Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+    ## Running the chains for more iterations may help. See
+    ## http://mc-stan.org/misc/warnings.html#tail-ess
+
+    ## Computing WAIC
+
+``` r
+plot(m11_5)
+```
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+``` r
+pairs(m11_5)
+```
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-15-2.png)<!-- -->
+
+``` r
+precis(m11_5)
+```
+
+    ##            mean        sd       5.5%    94.5%    n_eff     Rhat4
+    ## theta 0.7137719 0.4646755  0.2897086 1.632694 6.281132  1.555707
+    ## a     0.6446384 3.1438638 -2.9451512 4.435723 1.011716 11.583886
