@@ -34,6 +34,10 @@ conflict_prefer("area", "patchwork")
 theme_set(theme_minimal())
 source_scripts()
 set.seed(0)
+
+# For 'rethinking'.
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
 ```
 
 - build more types of models by piecing together types we have already learned about
@@ -518,7 +522,7 @@ m11_5 <- map2stan(
     alist(
         admit ~ dbetabinom(applications, pbar, theta),
         logit(pbar) <- a,
-        a ~ dnorm(0, 3),
+        a ~ dnorm(0, 2),
         theta ~ dexp(1)
     ),
     data = d,
@@ -527,8 +531,7 @@ m11_5 <- map2stan(
     iter = 4e3, 
     warmup = 1e3, 
     chains = 2, 
-    cores = 2,
-    control = list(max_treedepth = 1)
+    cores = 1
 )
 
 plot(m11_5)
@@ -536,4 +539,101 @@ pairs(m11_5)
 precis(m11_5)
 ```
 
+- interpretation:
+    * `a` is on the log-odds scale and defines $\bar{\textbf{p}}$ of the beta distribution of probabilities for each row of the data
+    * therefore, the average probability of admission across departments is about 0.4, but the percentile is quite wide
+
+```{r}
+post <- extract.samples(m11_5)
+quantile(logistic(post$a), c(0.025, 0.5, 0.975))
+```
+
+- to see what the model says of the data, need to account for correlation between $\bar{\textbf{p}}$ and $\theta$
+    * these parameters define a distribution of distributions
+    * 100 combinations of $\bar{\textbf{p}}$ and $\theta$ are shown in the following plot
+
+```{r}
+dist_of_dist <- map(1:300, function(i) {
+    p <- logistic(post$a[i])
+    theta <- post$theta[i]
+    x <- seq(0, 1, length.out = 100)
+    probs <- dbeta2(x, p, theta)
+    return(tibble(i, p, theta, x, prob = probs))
+}) %>%
+    bind_rows()
+
+dist_of_dist %>%
+    ggplot(aes(x, prob)) +
+    geom_line(aes(group = factor(i)), size = 0.1, alpha = 0.2) +
+    scale_y_continuous(limits = c(0, 3), 
+                       expand = expansion(mult = c(0, 0.02))) +
+    labs(x = "probability admit", 
+         y = "density",
+         title = "Posterior distribution of beta distributions")
+```
+
+- use posterior check to see how the beta distribution of probabilities of admissions influences predicted counts of applications admitted
+    * the y-axis shows the predicted number of admits per row of the data frame on the x-axis
+    * the purple dots are the actual values
+    * open circles are the estimates from the model with 89% intervals
+    * the `+` are the 89% interval of predicted counts of admission
+        - shows there is a lot of dispersion
+        - this is from the different departments, but the model doesn't know about them
+        - the beta distribution accounts for this heterogeneity
+
+```{r}
+postcheck(m11_5)
+```
+
+### 11.3.2 Negative-binomial or gamma-Poisson
+
+- *negative-binomial* (or *gamma-Poisson*): assumes that each Poisson count observation has its own rate
+    * assumes the shape of the gamma distribution to describe the Poisson rates
+    * predictor variables adjust the shape of this distribution, not the expected value of each observation
+    * use the gamma distribution because it makes the math easier
+- fitting a gamma-Poisson uses the `dgampois()` function
+    * distribution is defined by a mean $\mu$ and scale $\theta$
+    * as $\theta$ increases, the gamma distribution becomes for dispersed around the mean
+- below are some examples of gamma distributions
+    * as $\theta$ approaches 0, the gamma approaches a Gaussian
+
+```{r}
+mu <- 3
+thetas <- c(1, 2, 5, 10, 20)
+x_vals <- seq(0, 10, length.out = 50)
+gamma_dist_res <- tibble()
+for (theta in thetas) {
+    gamma_dist_res <- bind_rows(
+        gamma_dist_res,
+        tibble(theta, 
+               mu,
+               x = x_vals,
+               d = dgamma2(x_vals, mu, theta))
+    )
+}
+
+gamma_dist_res %>%
+    mutate(params = paste0("mu: ", mu, ", theta: ", theta)) %>%
+    ggplot(aes(x = x, y = d)) +
+    geom_line(aes(group = params, color = params)) +
+    scale_color_brewer(palette = "Dark2") +
+    theme(
+        legend.position = c(0.7, 0.7)
+    ) +
+    labs(x = "probability", y = "density", color = NULL,
+         title = "Gamma distributions")
+```
+
+- for fitting:
+    * a linear model can be attached to the definition of $\mu$ using the log link function
+    * there are examples in `?dgampois` and practice problems at the end of the chapter
+
+### 11.3.3 Over-dispersion, entropy, and information criteria
+
+- should use DIC instead of WAIC
+    * see text for an explination of why
+
+## 11.5 Practice
+
+### Easy
 

@@ -648,7 +648,7 @@ m11_5 <- map2stan(
     alist(
         admit ~ dbetabinom(applications, pbar, theta),
         logit(pbar) <- a,
-        a ~ dnorm(0, 3),
+        a ~ dnorm(0, 2),
         theta ~ dexp(1)
     ),
     data = d,
@@ -657,51 +657,83 @@ m11_5 <- map2stan(
     iter = 4e3, 
     warmup = 1e3, 
     chains = 2, 
-    cores = 2,
-    control = list(max_treedepth = 1)
+    cores = 1
 )
 ```
 
     ## Trying to compile a simple C file
 
     ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
+    ## clang -mmacosx-version-min=10.13 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -I/usr/local/include   -fPIC  -Wall -g -O2  -c foo.c -o foo.o
     ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
+    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
+    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:88:
+    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
     ## namespace Eigen {
     ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
+    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
     ## namespace Eigen {
     ##                ^
     ##                ;
     ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
+    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
+    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
+    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
     ## #include <complex>
     ##          ^~~~~~~~~
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
-
-    ## Warning: There were 6000 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 1. See
-    ## http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-
-    ## Warning: Examine the pairs() plot to diagnose sampling problems
-
-    ## Warning: The largest R-hat is 2.3, indicating chains have not mixed.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#r-hat
-
-    ## Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#bulk-ess
-
-    ## Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#tail-ess
+    ## 
+    ## SAMPLING FOR MODEL 'c669d85dc0a14c2d86390e076d692f11' NOW (CHAIN 1).
+    ## Chain 1: 
+    ## Chain 1: Gradient evaluation took 0.000135 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.35 seconds.
+    ## Chain 1: Adjust your expectations accordingly!
+    ## Chain 1: 
+    ## Chain 1: 
+    ## Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
+    ## Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    ## Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    ## Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    ## Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    ## Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    ## Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    ## Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    ## Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    ## Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    ## Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
+    ## Chain 1: 
+    ## Chain 1:  Elapsed Time: 0.097638 seconds (Warm-up)
+    ## Chain 1:                0.227966 seconds (Sampling)
+    ## Chain 1:                0.325604 seconds (Total)
+    ## Chain 1: 
+    ## 
+    ## SAMPLING FOR MODEL 'c669d85dc0a14c2d86390e076d692f11' NOW (CHAIN 2).
+    ## Chain 2: 
+    ## Chain 2: Gradient evaluation took 3.9e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.39 seconds.
+    ## Chain 2: Adjust your expectations accordingly!
+    ## Chain 2: 
+    ## Chain 2: 
+    ## Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
+    ## Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    ## Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    ## Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    ## Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    ## Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    ## Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    ## Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    ## Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    ## Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    ## Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
+    ## Chain 2: 
+    ## Chain 2:  Elapsed Time: 0.088638 seconds (Warm-up)
+    ## Chain 2:                0.212247 seconds (Sampling)
+    ## Chain 2:                0.300885 seconds (Total)
+    ## Chain 2:
 
     ## Computing WAIC
 
@@ -721,6 +753,138 @@ pairs(m11_5)
 precis(m11_5)
 ```
 
-    ##            mean        sd       5.5%    94.5%    n_eff     Rhat4
-    ## theta 0.7137719 0.4646755  0.2897086 1.632694 6.281132  1.555707
-    ## a     0.6446384 3.1438638 -2.9451512 4.435723 1.011716 11.583886
+    ##             mean       sd       5.5%     94.5%    n_eff     Rhat4
+    ## theta  2.7399242 0.946932  1.4355572 4.4392494 3913.286 0.9997085
+    ## a     -0.3775653 0.307988 -0.8717805 0.1203542 3450.286 1.0000152
+
+  - interpretation:
+      - `a` is on the log-odds scale and defines \(\bar{\textbf{p}}\) of
+        the beta distribution of probabilities for each row of the data
+      - therefore, the average probability of admission across
+        departments is about 0.4, but the percentile is quite wide
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m11_5)
+quantile(logistic(post$a), c(0.025, 0.5, 0.975))
+```
+
+    ##      2.5%       50%     97.5% 
+    ## 0.2749293 0.4066962 0.5588299
+
+  - to see what the model says of the data, need to account for
+    correlation between \(\bar{\textbf{p}}\) and \(\theta\)
+      - these parameters define a distribution of distributions
+      - 100 combinations of \(\bar{\textbf{p}}\) and \(\theta\) are
+        shown in the following plot
+
+<!-- end list -->
+
+``` r
+dist_of_dist <- map(1:300, function(i) {
+    p <- logistic(post$a[i])
+    theta <- post$theta[i]
+    x <- seq(0, 1, length.out = 100)
+    probs <- dbeta2(x, p, theta)
+    return(tibble(i, p, theta, x, prob = probs))
+}) %>%
+    bind_rows()
+
+dist_of_dist %>%
+    ggplot(aes(x, prob)) +
+    geom_line(aes(group = factor(i)), size = 0.1, alpha = 0.2) +
+    scale_y_continuous(limits = c(0, 3), 
+                       expand = expansion(mult = c(0, 0.02))) +
+    labs(x = "probability admit", 
+         y = "density",
+         title = "Posterior distribution of beta distributions")
+```
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+
+  - use posterior check to see how the beta distribution of
+    probabilities of admissions influences predicted counts of
+    applications admitted
+      - the y-axis shows the predicted number of admits per row of the
+        data frame on the x-axis
+      - the purple dots are the actual values
+      - open circles are the estimates from the model with 89% intervals
+      - the `+` are the 89% interval of predicted counts of admission
+          - shows there is a lot of dispersion
+          - this is from the different departments, but the model
+            doesn’t know about them
+          - the beta distribution accounts for this heterogeneity
+
+<!-- end list -->
+
+``` r
+postcheck(m11_5)
+```
+
+    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
+### 11.3.2 Negative-binomial or gamma-Poisson
+
+  - *negative-binomial* (or *gamma-Poisson*): assumes that each Poisson
+    count observation has its own rate
+      - assumes the shape of the gamma distribution to describe the
+        Poisson rates
+      - predictor variables adjust the shape of this distribution, not
+        the expected value of each observation
+      - use the gamma distribution because it makes the math easier
+  - fitting a gamma-Poisson uses the `dgampois()` function
+      - distribution is defined by a mean \(\mu\) and scale \(\theta\)
+      - as \(\theta\) increases, the gamma distribution becomes for
+        dispersed around the mean
+  - below are some examples of gamma distributions
+      - as \(\theta\) approaches 0, the gamma approaches a Gaussian
+
+<!-- end list -->
+
+``` r
+mu <- 3
+thetas <- c(1, 2, 5, 10, 20)
+x_vals <- seq(0, 10, length.out = 50)
+gamma_dist_res <- tibble()
+for (theta in thetas) {
+    gamma_dist_res <- bind_rows(
+        gamma_dist_res,
+        tibble(theta, 
+               mu,
+               x = x_vals,
+               d = dgamma2(x_vals, mu, theta))
+    )
+}
+
+gamma_dist_res %>%
+    mutate(params = paste0("mu: ", mu, ", theta: ", theta)) %>%
+    ggplot(aes(x = x, y = d)) +
+    geom_line(aes(group = params, color = params)) +
+    scale_color_brewer(palette = "Dark2") +
+    theme(
+        legend.position = c(0.7, 0.7)
+    ) +
+    labs(x = "probability", y = "density", color = NULL,
+         title = "Gamma distributions")
+```
+
+![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+  - for fitting:
+      - a linear model can be attached to the definition of \(\mu\)
+        using the log link function
+      - there are examples in `?dgampois` and practice problems at the
+        end of the chapter
+
+### 11.3.3 Over-dispersion, entropy, and information criteria
+
+  - should use DIC instead of WAIC
+      - see text for an explination of why
+
+## 11.5 Practice
+
+### Easy
