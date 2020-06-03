@@ -117,10 +117,10 @@ m12_1 <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '9d0c3b8600959f7dbaef88d0eb0c1565' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL '65b96bce028da0261a722a4e338fff8b' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2.9e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.29 seconds.
+    ## Chain 1: Gradient evaluation took 2.4e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.24 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -137,28 +137,31 @@ m12_1 <- map2stan(
     ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.289755 seconds (Warm-up)
-    ## Chain 1:                0.222685 seconds (Sampling)
-    ## Chain 1:                0.51244 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.26646 seconds (Warm-up)
+    ## Chain 1:                0.190561 seconds (Sampling)
+    ## Chain 1:                0.457021 seconds (Total)
     ## Chain 1:
 
     ## Computing WAIC
 
 ``` r
-plot(m12_1)
+print(m12_1)
 ```
 
-    ## Waiting to draw page 2 of 4
-
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
-
-    ## Waiting to draw page 3 of 4
-
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
-
-    ## Waiting to draw page 4 of 4
-
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->
+    ## map2stan model
+    ## 1000 samples from 1 chain
+    ## 
+    ## Sampling durations (seconds):
+    ##         warmup sample total
+    ## chain:1   0.27   0.19  0.46
+    ## 
+    ## Formula:
+    ## surv ~ dbinom(density, p)
+    ## logit(p) <- a_tank[tank]
+    ## a_tank[tank] ~ dnorm(0, 5)
+    ## 
+    ## WAIC (SE): 1023 (42.9)
+    ## pWAIC: 49.38
 
 ``` r
 precis(m12_1, depth = 2)
@@ -213,8 +216,6 @@ precis(m12_1, depth = 2)
     ## a_tank[46] -0.675958197 0.3648753 -1.24105136 -0.12461938 1756.3501 0.9990210
     ## a_tank[47]  2.111823796 0.5407572  1.28961743  3.03239512 1708.4571 0.9995017
     ## a_tank[48] -0.044250386 0.3534230 -0.60960518  0.50181927 1871.3159 0.9989996
-
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-2-4.png)<!-- -->
 
   - can get expected mortality for each tank by taking the logistic of
     the coefficients
@@ -290,10 +291,10 @@ m12_2 <- map2stan(
     ## 3 errors generated.
     ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '473dd6cd0fe52d15933e582ccbfb3f52' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 3.3e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.33 seconds.
+    ## Chain 1: Gradient evaluation took 3e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.3 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -310,15 +311,15 @@ m12_2 <- map2stan(
     ## Chain 1: Iteration: 3600 / 4000 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.676503 seconds (Warm-up)
-    ## Chain 1:                0.514229 seconds (Sampling)
-    ## Chain 1:                1.19073 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.512581 seconds (Warm-up)
+    ## Chain 1:                0.441517 seconds (Sampling)
+    ## Chain 1:                0.954098 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '473dd6cd0fe52d15933e582ccbfb3f52' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 4e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.4 seconds.
+    ## Chain 2: Gradient evaluation took 1.3e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -335,15 +336,15 @@ m12_2 <- map2stan(
     ## Chain 2: Iteration: 3600 / 4000 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.58854 seconds (Warm-up)
-    ## Chain 2:                0.465065 seconds (Sampling)
-    ## Chain 2:                1.0536 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.471913 seconds (Warm-up)
+    ## Chain 2:                0.431425 seconds (Sampling)
+    ## Chain 2:                0.903338 seconds (Total)
     ## Chain 2: 
     ## 
-    ## SAMPLING FOR MODEL '473dd6cd0fe52d15933e582ccbfb3f52' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 3).
     ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 2.6e-05 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.26 seconds.
+    ## Chain 3: Gradient evaluation took 1.3e-05 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
     ## Chain 3: Adjust your expectations accordingly!
     ## Chain 3: 
     ## Chain 3: 
@@ -360,15 +361,15 @@ m12_2 <- map2stan(
     ## Chain 3: Iteration: 3600 / 4000 [ 90%]  (Sampling)
     ## Chain 3: Iteration: 4000 / 4000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.643791 seconds (Warm-up)
-    ## Chain 3:                0.500119 seconds (Sampling)
-    ## Chain 3:                1.14391 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.581454 seconds (Warm-up)
+    ## Chain 3:                0.44019 seconds (Sampling)
+    ## Chain 3:                1.02164 seconds (Total)
     ## Chain 3: 
     ## 
-    ## SAMPLING FOR MODEL '473dd6cd0fe52d15933e582ccbfb3f52' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 4).
     ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 1.6e-05 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.16 seconds.
+    ## Chain 4: Gradient evaluation took 1.2e-05 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.12 seconds.
     ## Chain 4: Adjust your expectations accordingly!
     ## Chain 4: 
     ## Chain 4: 
@@ -385,28 +386,12 @@ m12_2 <- map2stan(
     ## Chain 4: Iteration: 3600 / 4000 [ 90%]  (Sampling)
     ## Chain 4: Iteration: 4000 / 4000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.538784 seconds (Warm-up)
-    ## Chain 4:                0.511995 seconds (Sampling)
-    ## Chain 4:                1.05078 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.485125 seconds (Warm-up)
+    ## Chain 4:                0.42912 seconds (Sampling)
+    ## Chain 4:                0.914245 seconds (Total)
     ## Chain 4:
 
     ## Computing WAIC
-
-``` r
-plot(m12_2)
-```
-
-    ## Waiting to draw page 2 of 4
-
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
-
-    ## Waiting to draw page 3 of 4
-
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
-
-    ## Waiting to draw page 4 of 4
-
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->
 
 ``` r
 print(m12_2)
@@ -417,10 +402,10 @@ print(m12_2)
     ## 
     ## Sampling durations (seconds):
     ##         warmup sample total
-    ## chain:1   0.68   0.51  1.19
-    ## chain:2   0.59   0.47  1.05
-    ## chain:3   0.64   0.50  1.14
-    ## chain:4   0.54   0.51  1.05
+    ## chain:1   0.51   0.44  0.95
+    ## chain:2   0.47   0.43  0.90
+    ## chain:3   0.58   0.44  1.02
+    ## chain:4   0.49   0.43  0.91
     ## 
     ## Formula:
     ## surv ~ dbinom(density, p)
@@ -488,9 +473,12 @@ precis(m12_2, depth = 2)
     ## a           1.302198892 0.2464970  0.90099385  1.704277906  9434.669 1.0000386
     ## sigma       1.619105005 0.2161693  1.30694385  1.993457429  5910.242 1.0000055
 
-![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->
-- interpretation: \* \(\alpha\): one overall sample intercept \*
-\(\sigma\): variance among tanks \* 48 per-tank intercepts
+  - interpretation:
+      - \(\alpha\): one overall sample intercept
+      - \(\sigma\): variance among tanks
+      - 48 per-tank intercepts
+
+<!-- end list -->
 
 ``` r
 compare(m12_1, m12_2)
@@ -505,7 +493,7 @@ compare(m12_1, m12_2)
       - 12 fewer than the single-level model because the prior assigned
         to each intercept shrinks them all towards the mean \(\alpha\)
           - *\(\alpha\) is acting like a regularizing prior, but it has
-            been learnt from the data*
+            been learned from the data*
   - plot and compare the posterior medians from both models
 
 <!-- end list -->
@@ -537,3 +525,56 @@ d %>%
 ```
 
 ![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+  - comments on above plot:
+      - note that all of the purple points \(\alpha_\text{tank}\) are
+        skewed towards to the dashed line \(\alpha\)
+          - this is often called *shrinkage* and comes from
+            regularization
+      - note that the smaller tanks have shifted more than in the larger
+        tanks
+          - there are fewer starting tadpoles, so the shrinkage has a
+            stronger effect
+      - the shift of the purple points is large the further the
+        empirical value (grey points) are from the dashed line
+        \(\alpha\)
+  - sample from the posterior distributions:
+      - first plot 100 Gaussian distributions from samples of the
+        posteriors for \(\alpha\) and \(\sigma\)
+      - then sample 8000 new log-odds of survival for individual tanks
+
+<!-- end list -->
+
+``` r
+x <- seq(-3, 5, length.out = 300)
+log_odds_gaussian_samples <- map_dfr(1:100, function(i) {
+    tibble(i, x, prob = dnorm(x, post$a[i], post$sigma[i]))
+})
+
+p1 <- log_odds_gaussian_samples %>%
+    ggplot(aes(x, prob, group = factor(i))) +
+    geom_line(alpha = 0.5, size = 0.1) +
+    labs(x = "log-odds survival",
+         y = "density",
+         title = "Sampled probability density curves")
+
+p2 <- tibble(sim_tanks = logistic(rnorm(8000, post$a, post$sigma))) %>%
+    ggplot(aes(sim_tanks)) +
+    geom_density(size = 1, fill = grey, alpha = 0.5) +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    labs(x = "probability survive",
+         y = "density",
+         title = "Simulated survival proportions")
+
+p1 | p2
+```
+
+![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+  - there is uncertainty about both the location \(\alpha\) and scale
+    \(\sigma\) of the population distribution of log-odds of survival
+      - this uncertainty is propagated into the simulated probabilities
+        of survival
+
+## 12.2 Varying effects and the underfitting/overfitting trade-off

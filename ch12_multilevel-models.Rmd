@@ -98,7 +98,7 @@ m12_1 <- map2stan(
     data = d
 )
 
-plot(m12_1)
+print(m12_1)
 precis(m12_1, depth = 2)
 ```
 
@@ -144,7 +144,6 @@ m12_2 <- map2stan(
     cores = 1
 )
 
-plot(m12_2)
 print(m12_2)
 precis(m12_2, depth = 2)
 ```
@@ -159,7 +158,7 @@ compare(m12_1, m12_2)
 
 - from the comparison, see that the multilevel model only has ~38 effective parameters
     * 12 fewer than the single-level model because the prior assigned to each intercept shrinks them all towards the mean $\alpha$
-        - *$\alpha$ is acting like a regularizing prior, but it has been learnt from the data*
+        - *$\alpha$ is acting like a regularizing prior, but it has been learned from the data*
 - plot and compare the posterior medians from both models
 
 ```{r}
@@ -188,4 +187,42 @@ d %>%
          title = "Propotion of survival among tadpoles from different tanks.")
 ```
 
-c
+- comments on above plot:
+    * note that all of the purple points $\alpha_\text{tank}$ are skewed towards to the dashed line $\alpha$
+        - this is often called *shrinkage* and comes from regularization
+    * note that the smaller tanks have shifted more than in the larger tanks
+        - there are fewer starting tadpoles, so the shrinkage has a stronger effect
+    * the shift of the purple points is large the further the empirical value (grey points) are from the dashed line $\alpha$
+- sample from the posterior distributions:
+    * first plot 100 Gaussian distributions from samples of the posteriors for $\alpha$ and $\sigma$
+    * then sample 8000 new log-odds of survival for individual tanks
+
+```{r}
+x <- seq(-3, 5, length.out = 300)
+log_odds_gaussian_samples <- map_dfr(1:100, function(i) {
+    tibble(i, x, prob = dnorm(x, post$a[i], post$sigma[i]))
+})
+
+p1 <- log_odds_gaussian_samples %>%
+    ggplot(aes(x, prob, group = factor(i))) +
+    geom_line(alpha = 0.5, size = 0.1) +
+    labs(x = "log-odds survival",
+         y = "density",
+         title = "Sampled probability density curves")
+
+p2 <- tibble(sim_tanks = logistic(rnorm(8000, post$a, post$sigma))) %>%
+    ggplot(aes(sim_tanks)) +
+    geom_density(size = 1, fill = grey, alpha = 0.5) +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    labs(x = "probability survive",
+         y = "density",
+         title = "Simulated survival proportions")
+
+p1 | p2
+```
+
+- there is uncertainty about both the location $\alpha$ and scale $\sigma$ of the population distribution of log-odds of survival
+    * this uncertainty is propagated into the simulated probabilities of survival
+
+## 12.2 Varying effects and the underfitting/overfitting trade-off
