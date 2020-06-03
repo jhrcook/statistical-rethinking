@@ -1,0 +1,191 @@
+---
+title: "Chapter 12. Multilevel Models"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      cache = TRUE)
+
+library(glue)
+library(broom)
+library(patchwork)
+library(MASS)
+library(rethinking)
+library(tidyverse)
+library(conflicted)
+
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("rename", "dplyr")
+
+# To be able to use `map2stan()`:
+conflict_prefer("collapse", "dplyr")
+conflict_prefer("extract", "tidyr")
+conflict_prefer("rstudent", "rethinking")
+conflict_prefer("lag", "dplyr")
+conflict_prefer("map", "purrr")
+conflict_prefer("Position", "ggplot2")
+
+# To be able to use 'MASS':
+conflict_prefer("area", "patchwork")
+
+theme_set(theme_minimal())
+source_scripts()
+set.seed(0)
+
+# For 'rethinking'.
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+
+purple <- "#8067bf"
+blue <- "#5896d1"
+light_grey <- "grey80"
+grey <- "grey50"
+dark_grey <- "grey25"
+```
+
+- multi-level models remember features of each cluster in the data as they learn about all of the clusters
+    * depending on the variation across clusters, the model pools information across clusters
+    * *the pooling improves estimates about each cluster*
+- benefits of the multilevel approach:
+    1. improved estimates for repeat sampling
+    2. improved estimates for imbalance in sampling
+    3. estimates of variation
+    4. avoid averaging and retain variation
+- multilevel regression should be the default approach
+- this chapter starts with the foundations and the following two are more advanced types of multilevel models
+
+## 12.1 Example: Multilivel tadpoles
+
+- example: Reed frog tadpole mortality
+    * `surv`: number or survivors
+    * `count`: initial number
+
+```{r}
+data("reedfrogs")
+d <- as_tibble(reedfrogs)
+skimr::skim(d)
+```
+
+- there is a lot of variation in the data
+    * some from experimental treatment, other sources do exist
+    * each row is a fish tank that is the experimental environment
+    * each tank is a cluster variable and there are repeated measures from each
+    * each tank may have a different baseline level of survival, but don't want to treat them as completely unrelated
+        - a dummy variable for each tank would be the wrong solution
+- *varying intercepts model*: a multilevel model that estimates an intercept for each tank and the variation among tanks
+    * for each cluster in the data, use a unique intercept parameter, adaptively learning the prior common to all of the intercepts
+    * what is learned about each cluster informs all the other clusters
+- model for predicting tadpole mortality in each tank (nothing new)
+
+$$
+s_i \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{tank}[i]} \\
+\alpha_{\text{tank}} \sim \text{Normal}(0, 5) \\
+$$
+
+```{r}
+d$tank <- 1:nrow(d)
+
+m12_1 <- map2stan(
+    alist(
+        surv ~ dbinom(density, p),
+        logit(p) <- a_tank[tank],
+        a_tank[tank] ~ dnorm(0, 5)
+    ),
+    data = d
+)
+
+plot(m12_1)
+precis(m12_1, depth = 2)
+```
+
+- can get expected mortality for each tank by taking the logistic of the coefficients
+
+```{r}
+logistic(coef(m12_1)) %>%
+    enframe() %>%
+    mutate(name = str_remove_all(name, "a_tank\\[|\\]"),
+           name = as.numeric(name)) %>%
+    ggplot(aes(x = name, y = value)) +
+    geom_col() +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    labs(x = "tank",
+         y = "estimated probability survival",
+         title = "Single-level categorical model estimates of tadpole survival")
+```
+
+- fit a multilevel model by adding a prior for the `a_tank` parameters as a function of its own parameters
+    * now the priors have prior distributions, creating two *levels* of priors
+
+$$
+s_i \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{tank}[i]} \\
+\alpha_{\text{tank}} \sim \text{Normal}(\alpha, \sigma) \\
+\alpha \sim \text{Normal}(0, 1) \\
+\sigma \sim \text{HalfCauchy}(0, 1)
+$$
+
+```{r}
+m12_2 <- map2stan(
+    alist(
+        surv ~ dbinom(density, p),
+        logit(p) <- a_tank[tank],
+        a_tank[tank] ~ dnorm(a, sigma),
+        a ~ dnorm(0, 1),
+        sigma ~ dcauchy(0, 1)
+    ),
+    data = d,
+    iter = 4000,
+    chains = 4,
+    cores = 1
+)
+
+plot(m12_2)
+print(m12_2)
+precis(m12_2, depth = 2)
+```
+- interpretation:
+    * $\alpha$: one overall sample intercept
+    * $\sigma$: variance among tanks
+    * 48 per-tank intercepts
+
+```{r}
+compare(m12_1, m12_2)
+```
+
+- from the comparison, see that the multilevel model only has ~38 effective parameters
+    * 12 fewer than the single-level model because the prior assigned to each intercept shrinks them all towards the mean $\alpha$
+        - *$\alpha$ is acting like a regularizing prior, but it has been learnt from the data*
+- plot and compare the posterior medians from both models
+
+```{r}
+post <- extract.samples(m12_2)
+
+d %>%
+    mutate(propsurv_estimate = logistic(apply(post$a_tank, 2, median)),
+           pop_size = case_when(
+               density == 10 ~ "small tank",
+               density == 25 ~ "medium tank",
+               density == 35 ~ "large tank"
+           ),
+           pop_size = fct_reorder(pop_size, density)) %>%
+    ggplot(aes(tank)) +
+    facet_wrap(~ pop_size, nrow = 1, scales = "free_x") +
+    geom_hline(yintercept = logistic(median(post$a)), 
+               lty = 2, color = dark_grey) +
+    geom_linerange(aes(x = tank, ymin = propsurv, ymax = propsurv_estimate), 
+                   color = light_grey, size = 1) +
+    geom_point(aes(y = propsurv), 
+               color = grey, size = 1) +
+    geom_point(aes(y = propsurv_estimate), 
+               color = purple, size = 1) +
+    labs(x = "tank",
+         y = "proportion surivival",
+         title = "Propotion of survival among tadpoles from different tanks.")
+```
+
+c

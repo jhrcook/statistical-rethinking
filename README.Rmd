@@ -53,6 +53,8 @@ devtools::install_github("rmcelreath/rethinking")
 
 [Chapter 11. Monsters and Mixtures](ch11_monsters-and-mixtures.md)
 
+[Chapter 12. Multilevel Models](ch12_multilevel-models.md)
+
 ---
 
 ## Other R packages for Bayes

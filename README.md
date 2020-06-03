@@ -56,6 +56,8 @@ Classification](ch10_counting-and-classification.md)
 
 [Chapter 11. Monsters and Mixtures](ch11_monsters-and-mixtures.md)
 
+[Chapter 12. Multilevel Models](ch12_multilevel-models.md)
+
 -----
 
 ## Other R packages for Bayes
@@ -63,8 +65,7 @@ Classification](ch10_counting-and-classification.md)
 Below are some of the common packages for using Baysian statistics in R.
 The purpose of this collection is to serve as a reference for future
 work. As I work through their vignettes (and possible other associated
-tutorals/articles), the markdown files will be linked
-below.
+tutorals/articles), the markdown files will be linked below.
 
 **[‘rstanarm’](https://mc-stan.org/rstanarm/index.html)**
 
