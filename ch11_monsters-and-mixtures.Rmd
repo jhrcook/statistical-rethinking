@@ -632,8 +632,3 @@ gamma_dist_res %>%
 
 - should use DIC instead of WAIC
     * see text for an explination of why
-
-## 11.5 Practice
-
-### Easy
-
