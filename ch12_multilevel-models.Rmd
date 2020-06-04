@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       cache = TRUE)
 
 library(glue)
+library(mustashe)
 library(broom)
 library(patchwork)
 library(MASS)
@@ -89,14 +90,17 @@ $$
 ```{r}
 d$tank <- 1:nrow(d)
 
-m12_1 <- map2stan(
-    alist(
-        surv ~ dbinom(density, p),
-        logit(p) <- a_tank[tank],
-        a_tank[tank] ~ dnorm(0, 5)
-    ),
-    data = d
-)
+stash("m12_1", {
+    m12_1 <- map2stan(
+        alist(
+            surv ~ dbinom(density, p),
+            logit(p) <- a_tank[tank],
+            a_tank[tank] ~ dnorm(0, 5)
+        ),
+        data = d
+    )
+})
+
 
 print(m12_1)
 precis(m12_1, depth = 2)
@@ -130,19 +134,22 @@ s_i \sim \text{Binomial}(n_i, p_i) \\
 $$
 
 ```{r}
-m12_2 <- map2stan(
-    alist(
-        surv ~ dbinom(density, p),
-        logit(p) <- a_tank[tank],
-        a_tank[tank] ~ dnorm(a, sigma),
-        a ~ dnorm(0, 1),
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = d,
-    iter = 4000,
-    chains = 4,
-    cores = 1
-)
+stash("m12_2", {
+    m12_2 <- map2stan(
+        alist(
+            surv ~ dbinom(density, p),
+            logit(p) <- a_tank[tank],
+            a_tank[tank] ~ dnorm(a, sigma),
+            a ~ dnorm(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = d,
+        iter = 4000,
+        chains = 4,
+        cores = 1
+    )
+})
+
 
 print(m12_2)
 precis(m12_2, depth = 2)
@@ -226,3 +233,146 @@ p1 | p2
     * this uncertainty is propagated into the simulated probabilities of survival
 
 ## 12.2 Varying effects and the underfitting/overfitting trade-off
+
+- *"Varying intercepts are just regularized estimates, but adaptivelyy regulraized by estimating how diverse the cluster are while estimating the features of each cluster."*
+    * varying effect estimates are more accurate estimates of the individual cluster intercepts
+- partial pooling helps prevent overfitting and underfitting
+    * pooling all of the tanks into a single intercept would make an underfit model
+    * having completely separate intercepts for each tank would overfit
+- demonstration: simulate tadpole data so we know the true per-pond survival probabilities
+    * this is also a demonstration of the important skill of simulation and model validation
+
+### 12.2.1 The model
+
+- we will use the same multilevel binomial model as before (using "ponds" instead of "tanks")
+
+$$
+s_i \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{pond[i]}} \\
+\alpha_\text{pond} \sim \text{Normal}(\alpha, \sigma) \\
+\alpha \sim \text{Normal}(0, 1) \\
+\sigma \sim \text{HalfCauchy}(0, 1)
+$$
+- need to assign values for:
+    * $\alpha$: the average log-odds of survival for all of the ponds
+    * $\sigma$: the standard deviation of the distribution of log-odds of survival among ponds
+    * $\alpha_\text{pond}$: the individual pond intercepts
+    * $n_i$: the number of tadpoles per pond
+
+### 12.2.2 Assign values to the parameters
+
+- steps in code:
+    1. initialize $\alpha$, $\sigma$, number of ponds, number of tadpoles per ponds
+    2. use these parameters to generate $\alpha_\text{pond}$
+    3. put data into a data frame
+
+```{r}
+set.seed(0)
+
+# 1. Initialize top level parameters.
+a <- 1.4
+sigma <- 1.5
+nponds <- 60
+ni <- as.integer(rep(c(5, 10, 25, 35), each = 15))
+
+# 2. Sample second level parameters for each pond.
+a_pond <- rnorm(nponds, mean = a, sd = sigma)
+
+# 3. Organize into a data frame.
+dsim <- tibble(pond = seq(1, nponds), 
+               ni = ni,
+               true_a = a_pond)
+dsim
+```
+### 12.2.3 Simulate survivors
+
+- simulate the binomial survival process
+    * each pond $i$ has $n_i$ potential survivors with probability of survival $p_i$
+    * from the model definition (using the logit link function), $p_i$ is:
+
+$$
+p_i = \frac{\exp(\alpha_i)}{1 + \exp(\alpha_i)}
+$$
+
+```{r}
+dsim$si <- rbinom(nponds, 
+                  prob = logistic(dsim$true_a), 
+                  size = dsim$ni)
+```
+
+### 12.2.4 Compute the no-pooling estiamtes
+
+- the estimates from not pooling information across ponds is the same as calculating the proportion of survivors in each pond
+    * would get same values if used a dummy variable for each pond and weak priors
+- calculate these value and keep on the probability scale
+
+```{r}
+dsim$p_nopool <- dsim$si / dsim$ni
+```
+
+### 12.2.5 Compute the partial-pooling estimates
+
+- now fit the multilevel model
+
+```{r}
+stash("m12_3", {
+    m12_3 <- map2stan(
+        alist(
+            si ~ dbinom(ni, p),
+            logit(p) <- a_pond[pond],
+            a_pond[pond] ~ dnorm(a, sigma),
+            a ~ dnorm(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = dsim,
+        iter = 1e4,
+        warmup = 1000
+    )
+})
+
+precis(m12_3, depth = 2)
+```
+
+- compute the predicted survival proportions
+
+```{r}
+estimated_a_pond <- as.numeric(coef(m12_3)[1:nponds])
+dsim$p_partpool <- logistic(estimated_a_pond)
+```
+
+- compute known survival proportions from the real $\alpha_\text{pond}$ values
+
+```{r}
+dsim$p_true <- logistic(dsim$true_a)
+```
+
+- plot the results and compute error between the estimated and true varying effects
+
+```{r}
+dsim %>%
+    transmute(nopool_error = abs(p_nopool - p_true),
+              partpool_error = abs(p_partpool - p_true),
+              pond, ni) %>%
+    pivot_longer(-c(pond, ni),
+                 names_to = "model_type", values_to = "absolute_error") %>%
+    group_by(ni, model_type) %>%
+    mutate(avg_error = mean(absolute_error)) %>%
+    ungroup() %>%
+    ggplot(aes(x = pond, y = absolute_error)) +
+    facet_wrap(~ ni, scales = "free_x", nrow = 1) +
+    geom_line(aes(y = avg_error, color = model_type, group = model_type), size = 1.5, alpha = 0.7) +
+    geom_line(aes(group = factor(pond)), color = light_grey, size = 0.8) +
+    geom_point(aes(color = model_type)) +
+    scale_color_brewer(palette = "Dark2") +
+    theme(legend.position = c(0.9, 0.7)) +
+    labs(x = "pond number",
+         y = "absolute error",
+         color = "model type",
+         title = "Comparing the error between estimates from amnesiac and multilevel models")
+```
+
+- interpretation:
+    * both models perform better with larger ponds becasue more data
+    * the partial pooling model performs better, on average, than the no pooling model
+
+## 12.3 More than one type of cluster

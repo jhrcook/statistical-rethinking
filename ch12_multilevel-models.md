@@ -83,66 +83,19 @@ s_i \sim \text{Binomial}(n_i, p_i) \\
 ``` r
 d$tank <- 1:nrow(d)
 
-m12_1 <- map2stan(
-    alist(
-        surv ~ dbinom(density, p),
-        logit(p) <- a_tank[tank],
-        a_tank[tank] ~ dnorm(0, 5)
-    ),
-    data = d
-)
+stash("m12_1", {
+    m12_1 <- map2stan(
+        alist(
+            surv ~ dbinom(density, p),
+            logit(p) <- a_tank[tank],
+            a_tank[tank] ~ dnorm(0, 5)
+        ),
+        data = d
+    )
+})
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -mmacosx-version-min=10.13 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -I/usr/local/include   -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL '65b96bce028da0261a722a4e338fff8b' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2.4e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.24 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
-    ## Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
-    ## Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
-    ## Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
-    ## Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
-    ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
-    ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.26646 seconds (Warm-up)
-    ## Chain 1:                0.190561 seconds (Sampling)
-    ## Chain 1:                0.457021 seconds (Total)
-    ## Chain 1:
-
-    ## Computing WAIC
+    ## Loading stashed object.
 
 ``` r
 print(m12_1)
@@ -153,7 +106,7 @@ print(m12_1)
     ## 
     ## Sampling durations (seconds):
     ##         warmup sample total
-    ## chain:1   0.27   0.19  0.46
+    ## chain:1    0.4   0.35  0.75
     ## 
     ## Formula:
     ## surv ~ dbinom(density, p)
@@ -252,146 +205,24 @@ s_i \sim \text{Binomial}(n_i, p_i) \\
 \]
 
 ``` r
-m12_2 <- map2stan(
-    alist(
-        surv ~ dbinom(density, p),
-        logit(p) <- a_tank[tank],
-        a_tank[tank] ~ dnorm(a, sigma),
-        a ~ dnorm(0, 1),
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = d,
-    iter = 4000,
-    chains = 4,
-    cores = 1
-)
+stash("m12_2", {
+    m12_2 <- map2stan(
+        alist(
+            surv ~ dbinom(density, p),
+            logit(p) <- a_tank[tank],
+            a_tank[tank] ~ dnorm(a, sigma),
+            a ~ dnorm(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = d,
+        iter = 4000,
+        chains = 4,
+        cores = 1
+    )
+})
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -mmacosx-version-min=10.13 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -I/usr/local/include   -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 3e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.3 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration: 1200 / 4000 [ 30%]  (Warmup)
-    ## Chain 1: Iteration: 1600 / 4000 [ 40%]  (Warmup)
-    ## Chain 1: Iteration: 2000 / 4000 [ 50%]  (Warmup)
-    ## Chain 1: Iteration: 2001 / 4000 [ 50%]  (Sampling)
-    ## Chain 1: Iteration: 2400 / 4000 [ 60%]  (Sampling)
-    ## Chain 1: Iteration: 2800 / 4000 [ 70%]  (Sampling)
-    ## Chain 1: Iteration: 3200 / 4000 [ 80%]  (Sampling)
-    ## Chain 1: Iteration: 3600 / 4000 [ 90%]  (Sampling)
-    ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.512581 seconds (Warm-up)
-    ## Chain 1:                0.441517 seconds (Sampling)
-    ## Chain 1:                0.954098 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 1.3e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration: 1200 / 4000 [ 30%]  (Warmup)
-    ## Chain 2: Iteration: 1600 / 4000 [ 40%]  (Warmup)
-    ## Chain 2: Iteration: 2000 / 4000 [ 50%]  (Warmup)
-    ## Chain 2: Iteration: 2001 / 4000 [ 50%]  (Sampling)
-    ## Chain 2: Iteration: 2400 / 4000 [ 60%]  (Sampling)
-    ## Chain 2: Iteration: 2800 / 4000 [ 70%]  (Sampling)
-    ## Chain 2: Iteration: 3200 / 4000 [ 80%]  (Sampling)
-    ## Chain 2: Iteration: 3600 / 4000 [ 90%]  (Sampling)
-    ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.471913 seconds (Warm-up)
-    ## Chain 2:                0.431425 seconds (Sampling)
-    ## Chain 2:                0.903338 seconds (Total)
-    ## Chain 2: 
-    ## 
-    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 3).
-    ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 1.3e-05 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
-    ## Chain 3: Adjust your expectations accordingly!
-    ## Chain 3: 
-    ## Chain 3: 
-    ## Chain 3: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 3: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 3: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 3: Iteration: 1200 / 4000 [ 30%]  (Warmup)
-    ## Chain 3: Iteration: 1600 / 4000 [ 40%]  (Warmup)
-    ## Chain 3: Iteration: 2000 / 4000 [ 50%]  (Warmup)
-    ## Chain 3: Iteration: 2001 / 4000 [ 50%]  (Sampling)
-    ## Chain 3: Iteration: 2400 / 4000 [ 60%]  (Sampling)
-    ## Chain 3: Iteration: 2800 / 4000 [ 70%]  (Sampling)
-    ## Chain 3: Iteration: 3200 / 4000 [ 80%]  (Sampling)
-    ## Chain 3: Iteration: 3600 / 4000 [ 90%]  (Sampling)
-    ## Chain 3: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.581454 seconds (Warm-up)
-    ## Chain 3:                0.44019 seconds (Sampling)
-    ## Chain 3:                1.02164 seconds (Total)
-    ## Chain 3: 
-    ## 
-    ## SAMPLING FOR MODEL '510b9955695841bc41dc552b452eeeb6' NOW (CHAIN 4).
-    ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 1.2e-05 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.12 seconds.
-    ## Chain 4: Adjust your expectations accordingly!
-    ## Chain 4: 
-    ## Chain 4: 
-    ## Chain 4: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 4: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 4: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 4: Iteration: 1200 / 4000 [ 30%]  (Warmup)
-    ## Chain 4: Iteration: 1600 / 4000 [ 40%]  (Warmup)
-    ## Chain 4: Iteration: 2000 / 4000 [ 50%]  (Warmup)
-    ## Chain 4: Iteration: 2001 / 4000 [ 50%]  (Sampling)
-    ## Chain 4: Iteration: 2400 / 4000 [ 60%]  (Sampling)
-    ## Chain 4: Iteration: 2800 / 4000 [ 70%]  (Sampling)
-    ## Chain 4: Iteration: 3200 / 4000 [ 80%]  (Sampling)
-    ## Chain 4: Iteration: 3600 / 4000 [ 90%]  (Sampling)
-    ## Chain 4: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.485125 seconds (Warm-up)
-    ## Chain 4:                0.42912 seconds (Sampling)
-    ## Chain 4:                0.914245 seconds (Total)
-    ## Chain 4:
-
-    ## Computing WAIC
+    ## Loading stashed object.
 
 ``` r
 print(m12_2)
@@ -402,10 +233,10 @@ print(m12_2)
     ## 
     ## Sampling durations (seconds):
     ##         warmup sample total
-    ## chain:1   0.51   0.44  0.95
-    ## chain:2   0.47   0.43  0.90
-    ## chain:3   0.58   0.44  1.02
-    ## chain:4   0.49   0.43  0.91
+    ## chain:1   0.49   0.57  1.06
+    ## chain:2   0.96   0.80  1.77
+    ## chain:3   0.81   0.78  1.59
+    ## chain:4   0.86   0.79  1.65
     ## 
     ## Formula:
     ## surv ~ dbinom(density, p)
@@ -414,64 +245,64 @@ print(m12_2)
     ## a ~ dnorm(0, 1)
     ## sigma ~ dcauchy(0, 1)
     ## 
-    ## WAIC (SE): 1010 (38)
-    ## pWAIC: 37.75
+    ## WAIC (SE): 1010 (37.9)
+    ## pWAIC: 37.83
 
 ``` r
 precis(m12_2, depth = 2)
 ```
 
     ##                    mean        sd        5.5%        94.5%     n_eff     Rhat4
-    ## a_tank[1]   2.134144972 0.8709029  0.85482406  3.609491509 10676.151 0.9999920
-    ## a_tank[2]   3.051605826 1.0921789  1.49594552  4.892587501 10098.248 0.9997675
-    ## a_tank[3]   0.998618796 0.6650059 -0.01779203  2.123667847 14266.942 0.9996303
-    ## a_tank[4]   3.055184422 1.0997043  1.46692953  4.926160112  9802.978 0.9998700
-    ## a_tank[5]   2.126306576 0.8653686  0.86023079  3.606177745 12040.084 0.9997286
-    ## a_tank[6]   2.140337613 0.8943564  0.82915956  3.666082745 13423.384 0.9998230
-    ## a_tank[7]   3.064852886 1.0896043  1.49313561  4.972594345  9874.949 0.9999786
-    ## a_tank[8]   2.130196402 0.8843109  0.84460056  3.655415490 12994.701 0.9998468
-    ## a_tank[9]  -0.172985029 0.6004654 -1.14255424  0.777641121 15253.666 0.9997913
-    ## a_tank[10]  2.123029310 0.8687031  0.83926350  3.618733123 11732.963 1.0000264
-    ## a_tank[11]  0.991095454 0.6751966 -0.03926026  2.116091672 13042.572 1.0000211
-    ## a_tank[12]  0.579929441 0.6205448 -0.39042979  1.586823746 17453.967 0.9996706
-    ## a_tank[13]  1.001297087 0.6588476 -0.02513914  2.091680336 14370.487 0.9999141
-    ## a_tank[14]  0.199225612 0.6107794 -0.76477080  1.159581978 15577.698 0.9998016
-    ## a_tank[15]  2.120101402 0.8715305  0.83522256  3.606664450 12184.087 0.9997332
-    ## a_tank[16]  2.124326395 0.8810013  0.80722021  3.615492999 13319.477 0.9997337
-    ## a_tank[17]  2.895285598 0.7880475  1.72989598  4.219510301 11611.080 0.9997976
-    ## a_tank[18]  2.385431726 0.6490309  1.42613150  3.467726868 12383.599 0.9999097
-    ## a_tank[19]  2.014916226 0.5852079  1.14096877  3.006271510 13428.749 0.9999448
-    ## a_tank[20]  3.654989838 1.0240820  2.22991755  5.429506622  8274.648 0.9996691
-    ## a_tank[21]  2.393644010 0.6687327  1.39945331  3.516915793 11586.390 0.9996041
-    ## a_tank[22]  2.385875963 0.6623125  1.41031243  3.522346777 13601.760 0.9996969
-    ## a_tank[23]  2.391636395 0.6555515  1.42115670  3.526937362 11850.562 0.9998844
-    ## a_tank[24]  1.699099289 0.5287154  0.89003200  2.570757271 14507.543 0.9996921
-    ## a_tank[25] -1.007093825 0.4452098 -1.74645868 -0.317556247 15034.356 0.9998541
-    ## a_tank[26]  0.157982107 0.4045220 -0.48269391  0.800414000 16161.965 0.9996386
-    ## a_tank[27] -1.431941194 0.4974208 -2.25071182 -0.671054023 13220.790 0.9996276
-    ## a_tank[28] -0.473395760 0.4090657 -1.12514996  0.158742905 15694.947 0.9997091
-    ## a_tank[29]  0.153529633 0.3941367 -0.47311586  0.781398704 14933.563 0.9996457
-    ## a_tank[30]  1.445284426 0.4914853  0.70056814  2.250009508 13840.567 0.9997252
-    ## a_tank[31] -0.633224102 0.4057116 -1.28013932  0.004391369 16191.250 0.9998610
-    ## a_tank[32] -0.306574703 0.3958911 -0.93617036  0.323907073 15208.221 0.9996941
-    ## a_tank[33]  3.185354079 0.7707225  2.06477428  4.504273874 10441.639 0.9997937
-    ## a_tank[34]  2.703880671 0.6490955  1.75210628  3.831403872 12277.820 0.9997508
-    ## a_tank[35]  2.703858272 0.6290704  1.79485622  3.763585334 12568.750 0.9996111
-    ## a_tank[36]  2.060055133 0.5013107  1.30916936  2.899258592 13886.065 0.9998468
-    ## a_tank[37]  2.054008041 0.5096378  1.29213115  2.907205483 13505.254 0.9998320
-    ## a_tank[38]  3.887260667 0.9818798  2.47725427  5.594743853 10521.706 0.9996911
-    ## a_tank[39]  2.706112024 0.6456162  1.76652790  3.789962146 10914.982 1.0001804
-    ## a_tank[40]  2.348063971 0.5665367  1.51708711  3.299607196 13301.702 0.9998011
-    ## a_tank[41] -1.818477969 0.4785050 -2.62679759 -1.094182202 11294.682 0.9996502
-    ## a_tank[42] -0.576845207 0.3502419 -1.15406511 -0.032218084 14746.225 0.9996240
-    ## a_tank[43] -0.453737023 0.3509767 -1.02063563  0.096113855 15128.067 0.9997213
-    ## a_tank[44] -0.339424137 0.3388941 -0.88365359  0.196334257 16436.514 0.9997282
-    ## a_tank[45]  0.574143034 0.3462430  0.02765532  1.131739424 15843.331 0.9996722
-    ## a_tank[46] -0.571437040 0.3467804 -1.12514116 -0.032865914 15059.061 0.9997484
-    ## a_tank[47]  2.053100777 0.5077106  1.29604493  2.911431793 13640.005 0.9996132
-    ## a_tank[48]  0.006919919 0.3354635 -0.52625410  0.535351955 18533.113 0.9999687
-    ## a           1.302198892 0.2464970  0.90099385  1.704277906  9434.669 1.0000386
-    ## sigma       1.619105005 0.2161693  1.30694385  1.993457429  5910.242 1.0000055
+    ## a_tank[1]   2.115768174 0.8639729  0.85470075  3.596005775 12139.077 0.9998409
+    ## a_tank[2]   3.066907984 1.1168484  1.47355820  4.986485791 10998.046 0.9995613
+    ## a_tank[3]   0.991335138 0.6786515 -0.05967850  2.120906159 15763.416 0.9997261
+    ## a_tank[4]   3.046137389 1.1196130  1.42470945  4.979264800 11298.692 0.9997267
+    ## a_tank[5]   2.129606625 0.8687028  0.84447299  3.616993718 14282.135 0.9997553
+    ## a_tank[6]   2.135680375 0.8839724  0.84089789  3.614010008 13062.731 0.9997334
+    ## a_tank[7]   3.043271663 1.1007268  1.47339067  4.934995003 11197.911 0.9995695
+    ## a_tank[8]   2.117457843 0.8736278  0.84567072  3.604371402 13690.493 0.9996902
+    ## a_tank[9]  -0.180108134 0.6016949 -1.15426295  0.765119449 17013.374 0.9996434
+    ## a_tank[10]  2.122275719 0.8745242  0.83836130  3.636907625 11731.999 0.9998723
+    ## a_tank[11]  1.000585854 0.6720581 -0.04092572  2.094926242 16403.508 0.9999348
+    ## a_tank[12]  0.573724250 0.6156076 -0.39848147  1.571411484 17386.068 1.0000767
+    ## a_tank[13]  0.992563466 0.6643335 -0.03262575  2.095943964 14427.521 0.9996798
+    ## a_tank[14]  0.193783446 0.6183100 -0.78266182  1.191649288 17018.952 0.9997141
+    ## a_tank[15]  2.120525824 0.8764071  0.82664938  3.592400517 13884.025 0.9996914
+    ## a_tank[16]  2.127841055 0.8625659  0.85117774  3.619835470 13911.587 0.9997513
+    ## a_tank[17]  2.896847528 0.7831797  1.74819326  4.237335789 11850.324 0.9998337
+    ## a_tank[18]  2.390629541 0.6509471  1.42400675  3.506170836 13681.636 0.9998351
+    ## a_tank[19]  2.006112143 0.5795242  1.13889572  2.979786432 15782.578 0.9996374
+    ## a_tank[20]  3.653310075 0.9999103  2.24665214  5.412832661 11287.279 0.9997551
+    ## a_tank[21]  2.383790626 0.6556638  1.42909509  3.513890023 13280.443 0.9996742
+    ## a_tank[22]  2.391971632 0.6627658  1.39883531  3.533110947 13378.661 0.9995721
+    ## a_tank[23]  2.392331137 0.6623536  1.43368176  3.524390033 14298.219 0.9997237
+    ## a_tank[24]  1.699396163 0.5254558  0.89642936  2.579858549 15264.920 0.9995907
+    ## a_tank[25] -1.007203956 0.4486102 -1.75271662 -0.321432961 15519.004 0.9997532
+    ## a_tank[26]  0.159456797 0.3955179 -0.46506869  0.782656300 17783.342 0.9997067
+    ## a_tank[27] -1.431616606 0.4912293 -2.25223521 -0.691105223 13627.400 0.9999019
+    ## a_tank[28] -0.472157617 0.4144485 -1.14126407  0.187305693 17307.297 0.9996007
+    ## a_tank[29]  0.164347263 0.3963754 -0.46304038  0.793359208 17251.852 0.9999650
+    ## a_tank[30]  1.448937599 0.5038348  0.68194673  2.295125715 17907.048 0.9996570
+    ## a_tank[31] -0.641268103 0.4083504 -1.30609121 -0.006266322 17572.461 0.9997459
+    ## a_tank[32] -0.307761308 0.4047996 -0.95114299  0.332485994 18647.428 0.9998070
+    ## a_tank[33]  3.184922805 0.7625114  2.10052068  4.494432652 11283.057 1.0000604
+    ## a_tank[34]  2.701044231 0.6399230  1.76658338  3.781393774 13093.378 0.9996890
+    ## a_tank[35]  2.693513232 0.6465007  1.74463299  3.790975275 12730.711 0.9995884
+    ## a_tank[36]  2.051788335 0.5192873  1.28653314  2.925621804 14623.017 0.9995881
+    ## a_tank[37]  2.049103790 0.4963516  1.29835063  2.880251811 14033.169 0.9997272
+    ## a_tank[38]  3.881145813 0.9751367  2.51125090  5.563089628  9665.101 0.9998466
+    ## a_tank[39]  2.701902802 0.6404603  1.77755437  3.781695384 13461.470 0.9996664
+    ## a_tank[40]  2.338972564 0.5613348  1.50716818  3.286148188 15285.259 0.9996502
+    ## a_tank[41] -1.817301668 0.4880912 -2.62807114 -1.083474371 14977.708 0.9998947
+    ## a_tank[42] -0.581468758 0.3564526 -1.15172056 -0.022165821 16505.631 0.9995638
+    ## a_tank[43] -0.456393621 0.3411757 -1.01462812  0.086072663 16661.664 0.9996823
+    ## a_tank[44] -0.334010088 0.3361919 -0.86568018  0.191411192 19600.617 0.9997769
+    ## a_tank[45]  0.578657709 0.3519636  0.01700517  1.139647907 17180.265 0.9996344
+    ## a_tank[46] -0.577554432 0.3483716 -1.14793157 -0.037867485 17035.221 0.9998045
+    ## a_tank[47]  2.053564454 0.5108428  1.29719742  2.912454462 15160.697 0.9997639
+    ## a_tank[48]  0.005243857 0.3279144 -0.52383511  0.532109776 18410.827 0.9996709
+    ## a           1.298899623 0.2536385  0.89991855  1.711428171 10872.373 0.9998018
+    ## sigma       1.619546712 0.2137975  1.30925006  1.985884411  7060.617 0.9998290
 
   - interpretation:
       - \(\alpha\): one overall sample intercept
@@ -578,3 +409,259 @@ p1 | p2
         of survival
 
 ## 12.2 Varying effects and the underfitting/overfitting trade-off
+
+  - *“Varying intercepts are just regularized estimates, but adaptivelyy
+    regulraized by estimating how diverse the cluster are while
+    estimating the features of each cluster.”*
+      - varying effect estimates are more accurate estimates of the
+        individual cluster intercepts
+  - partial pooling helps prevent overfitting and underfitting
+      - pooling all of the tanks into a single intercept would make an
+        underfit model
+      - having completely separate intercepts for each tank would
+        overfit
+  - demonstration: simulate tadpole data so we know the true per-pond
+    survival probabilities
+      - this is also a demonstration of the important skill of
+        simulation and model validation
+
+### 12.2.1 The model
+
+  - we will use the same multilevel binomial model as before (using
+    “ponds” instead of “tanks”)
+
+\[
+s_i \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{pond[i]}} \\
+\alpha_\text{pond} \sim \text{Normal}(\alpha, \sigma) \\
+\alpha \sim \text{Normal}(0, 1) \\
+\sigma \sim \text{HalfCauchy}(0, 1)
+\] - need to assign values for: \* \(\alpha\): the average log-odds of
+survival for all of the ponds \* \(\sigma\): the standard deviation of
+the distribution of log-odds of survival among ponds \*
+\(\alpha_\text{pond}\): the individual pond intercepts \* \(n_i\): the
+number of tadpoles per pond
+
+### 12.2.2 Assign values to the parameters
+
+  - steps in code:
+    1.  initialize \(\alpha\), \(\sigma\), number of ponds, number of
+        tadpoles per ponds
+    2.  use these parameters to generate \(\alpha_\text{pond}\)
+    3.  put data into a data frame
+
+<!-- end list -->
+
+``` r
+set.seed(0)
+
+# 1. Initialize top level parameters.
+a <- 1.4
+sigma <- 1.5
+nponds <- 60
+ni <- as.integer(rep(c(5, 10, 25, 35), each = 15))
+
+# 2. Sample second level parameters for each pond.
+a_pond <- rnorm(nponds, mean = a, sd = sigma)
+
+# 3. Organize into a data frame.
+dsim <- tibble(pond = seq(1, nponds), 
+               ni = ni,
+               true_a = a_pond)
+dsim
+```
+
+    ## # A tibble: 60 x 3
+    ##     pond    ni   true_a
+    ##    <int> <int>    <dbl>
+    ##  1     1     5  3.29   
+    ##  2     2     5  0.911  
+    ##  3     3     5  3.39   
+    ##  4     4     5  3.31   
+    ##  5     5     5  2.02   
+    ##  6     6     5 -0.910  
+    ##  7     7     5  0.00715
+    ##  8     8     5  0.958  
+    ##  9     9     5  1.39   
+    ## 10    10     5  5.01   
+    ## # … with 50 more rows
+
+### 12.2.3 Simulate survivors
+
+  - simulate the binomial survival process
+      - each pond \(i\) has \(n_i\) potential survivors with probability
+        of survival \(p_i\)
+      - from the model definition (using the logit link function),
+        \(p_i\) is:
+
+\[
+p_i = \frac{\exp(\alpha_i)}{1 + \exp(\alpha_i)}
+\]
+
+``` r
+dsim$si <- rbinom(nponds, 
+                  prob = logistic(dsim$true_a), 
+                  size = dsim$ni)
+```
+
+### 12.2.4 Compute the no-pooling estiamtes
+
+  - the estimates from not pooling information across ponds is the same
+    as calculating the proportion of survivors in each pond
+      - would get same values if used a dummy variable for each pond and
+        weak priors
+  - calculate these value and keep on the probability scale
+
+<!-- end list -->
+
+``` r
+dsim$p_nopool <- dsim$si / dsim$ni
+```
+
+### 12.2.5 Compute the partial-pooling estimates
+
+  - now fit the multilevel model
+
+<!-- end list -->
+
+``` r
+stash("m12_3", {
+    m12_3 <- map2stan(
+        alist(
+            si ~ dbinom(ni, p),
+            logit(p) <- a_pond[pond],
+            a_pond[pond] ~ dnorm(a, sigma),
+            a ~ dnorm(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = dsim,
+        iter = 1e4,
+        warmup = 1000
+    )
+})
+```
+
+    ## Loading stashed object.
+
+``` r
+precis(m12_3, depth = 2)
+```
+
+    ##                   mean        sd        5.5%      94.5%     n_eff     Rhat4
+    ## a_pond[1]   2.50531512 1.1125019  0.88427134  4.4213093  9633.975 0.9999010
+    ## a_pond[2]  -0.49773766 0.8163556 -1.84560790  0.7864969 13954.284 0.9999419
+    ## a_pond[3]   2.49007526 1.0993925  0.86444806  4.3488823 11543.637 1.0000289
+    ## a_pond[4]   2.50897976 1.1186088  0.88105984  4.4225452  8439.085 0.9999777
+    ## a_pond[5]   2.50673536 1.1084190  0.89907964  4.4121802  8900.319 0.9999229
+    ## a_pond[6]   0.13401530 0.7981828 -1.12910879  1.3944146 15656.275 1.0004159
+    ## a_pond[7]   0.77285648 0.8203942 -0.50355633  2.1126640 13286.103 0.9998930
+    ## a_pond[8]   1.52823025 0.9254883  0.14514018  3.0931019 11202.035 0.9998956
+    ## a_pond[9]   2.50978659 1.1005938  0.89654820  4.3920475  8239.384 1.0000038
+    ## a_pond[10]  2.48198897 1.1084175  0.85729854  4.3915817 12718.861 0.9999360
+    ## a_pond[11]  2.47931371 1.0892989  0.88639510  4.2945049  9759.468 1.0000382
+    ## a_pond[12]  0.77571117 0.8560909 -0.52767218  2.1640762 13023.329 0.9998889
+    ## a_pond[13] -0.48806590 0.8266811 -1.85136178  0.8007399 13347.095 1.0002797
+    ## a_pond[14]  2.49530839 1.0840919  0.89786283  4.3287307 10575.209 0.9998917
+    ## a_pond[15]  0.76414938 0.8234787 -0.53614128  2.1129975 13176.483 0.9999043
+    ## a_pond[16]  0.24859804 0.6022535 -0.71455388  1.2187904 17888.678 0.9999321
+    ## a_pond[17]  1.49945668 0.7229411  0.40374332  2.6863694 14108.754 0.9999351
+    ## a_pond[18]  0.26099963 0.5928267 -0.67097225  1.2071138 14913.452 0.9999199
+    ## a_pond[19]  2.07050483 0.8317051  0.84332948  3.4863609 13229.802 0.9999111
+    ## a_pond[20]  1.02082259 0.6483830  0.03177857  2.0794965 14750.396 0.9998890
+    ## a_pond[21]  1.02448170 0.6583668  0.02480481  2.1244079 18847.874 0.9999000
+    ## a_pond[22]  1.49187852 0.7139042  0.39594129  2.6696281 14368.095 0.9999656
+    ## a_pond[23]  1.49170765 0.7118923  0.42534598  2.6705329 17924.386 0.9999608
+    ## a_pond[24]  2.87645425 0.9965730  1.41749264  4.5733002  9275.472 0.9999218
+    ## a_pond[25]  2.07038375 0.8219578  0.85644996  3.4437675 12617.480 0.9999997
+    ## a_pond[26]  1.50737207 0.7220671  0.40715123  2.7177770 15472.486 0.9998911
+    ## a_pond[27]  2.88195893 0.9964138  1.41101101  4.5915684  8947.237 0.9999864
+    ## a_pond[28]  1.03292669 0.6522368  0.03980657  2.0758997 12342.905 0.9999722
+    ## a_pond[29]  0.26094159 0.6097160 -0.70508134  1.2311050 21954.742 0.9999009
+    ## a_pond[30]  2.87471237 1.0107351  1.40547321  4.6177065 10004.981 0.9999138
+    ## a_pond[31]  0.66569102 0.3998085  0.04366349  1.3160844 17718.100 1.0000864
+    ## a_pond[32]  0.50145751 0.4088511 -0.13994431  1.1557216 15864.200 0.9998939
+    ## a_pond[33]  0.84478546 0.4189119  0.18522436  1.5314247 13984.331 1.0000137
+    ## a_pond[34]  0.66814330 0.4050338  0.03121377  1.3320197 16300.275 0.9999896
+    ## a_pond[35]  2.35623082 0.6581644  1.37680114  3.4653426 12101.543 1.0000189
+    ## a_pond[36]  2.81353906 0.7559730  1.70955251  4.1224530  9131.116 1.0000961
+    ## a_pond[37]  3.46588065 0.9322500  2.13255858  5.0515435  8777.583 0.9998918
+    ## a_pond[38]  0.84762622 0.4277577  0.17633711  1.5364047 16117.425 0.9999208
+    ## a_pond[39]  3.47036713 0.9387090  2.14273639  5.0848059  7740.366 0.9999361
+    ## a_pond[40]  1.45178661 0.5025280  0.68671736  2.2907181 12781.669 0.9999438
+    ## a_pond[41]  3.45206741 0.9191155  2.14555807  5.0041953  9348.430 0.9999532
+    ## a_pond[42]  2.80869639 0.7422261  1.72846023  4.0698706  9483.336 1.0000368
+    ## a_pond[43]  0.34545222 0.3988800 -0.28975223  0.9884205 16729.526 1.0000014
+    ## a_pond[44]  0.34409614 0.4011278 -0.28958898  0.9833338 17020.472 0.9998976
+    ## a_pond[45]  0.03875849 0.3887267 -0.59006185  0.6583842 19016.635 0.9998947
+    ## a_pond[46]  0.25160666 0.3309580 -0.27583174  0.7829079 11582.883 0.9998889
+    ## a_pond[47] -0.91002223 0.3709499 -1.51564160 -0.3377652 16222.816 1.0005667
+    ## a_pond[48]  3.69243397 0.8946204  2.44093608  5.2344277  8521.752 0.9999107
+    ## a_pond[49]  2.65972060 0.6289198  1.72553634  3.7127489 12286.087 0.9998908
+    ## a_pond[50]  0.97782138 0.3730429  0.39384023  1.5891007 17334.052 0.9998889
+    ## a_pond[51]  2.05235540 0.5044247  1.30352926  2.9000692 12772.263 0.9999020
+    ## a_pond[52]  0.84456202 0.3672735  0.26449499  1.4439636 16589.668 0.9999115
+    ## a_pond[53]  3.09267302 0.7166538  2.04337167  4.3168751 12182.155 0.9999091
+    ## a_pond[54] -0.07811245 0.3340376 -0.61726642  0.4447925 18338.660 0.9998892
+    ## a_pond[55]  1.43350630 0.4207856  0.79630721  2.1264712 16213.688 0.9999022
+    ## a_pond[56]  2.03722181 0.4885622  1.30016916  2.8452958 14762.856 0.9999875
+    ## a_pond[57]  1.81553938 0.4660937  1.11039630  2.5928816 16876.980 0.9998890
+    ## a_pond[58]  1.12204154 0.3871509  0.51924857  1.7628557 18110.553 0.9999082
+    ## a_pond[59] -1.35769202 0.4112889 -2.04050829 -0.7219958 15159.534 0.9999075
+    ## a_pond[60] -0.31211669 0.3377277 -0.85431848  0.2215930 16785.477 0.9998948
+    ## a           1.40177987 0.2131034  1.07233511  1.7497537  6260.222 0.9999944
+    ## sigma       1.41809530 0.2083618  1.11711860  1.7762258  3348.761 1.0004423
+
+  - compute the predicted survival proportions
+
+<!-- end list -->
+
+``` r
+estimated_a_pond <- as.numeric(coef(m12_3)[1:nponds])
+dsim$p_partpool <- logistic(estimated_a_pond)
+```
+
+  - compute known survival proportions from the real
+    \(\alpha_\text{pond}\) values
+
+<!-- end list -->
+
+``` r
+dsim$p_true <- logistic(dsim$true_a)
+```
+
+  - plot the results and compute error between the estimated and true
+    varying effects
+
+<!-- end list -->
+
+``` r
+dsim %>%
+    transmute(nopool_error = abs(p_nopool - p_true),
+              partpool_error = abs(p_partpool - p_true),
+              pond, ni) %>%
+    pivot_longer(-c(pond, ni),
+                 names_to = "model_type", values_to = "absolute_error") %>%
+    group_by(ni, model_type) %>%
+    mutate(avg_error = mean(absolute_error)) %>%
+    ungroup() %>%
+    ggplot(aes(x = pond, y = absolute_error)) +
+    facet_wrap(~ ni, scales = "free_x", nrow = 1) +
+    geom_line(aes(y = avg_error, color = model_type, group = model_type), size = 1.5, alpha = 0.7) +
+    geom_line(aes(group = factor(pond)), color = light_grey, size = 0.8) +
+    geom_point(aes(color = model_type)) +
+    scale_color_brewer(palette = "Dark2") +
+    theme(legend.position = c(0.9, 0.7)) +
+    labs(x = "pond number",
+         y = "absolute error",
+         color = "model type",
+         title = "Comparing the error between estimates from amnesiac and multilevel models")
+```
+
+![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+  - interpretation:
+      - both models perform better with larger ponds becasue more data
+      - the partial pooling model performs better, on average, than the
+        no pooling model
+
+## 12.3 More than one type of cluster
