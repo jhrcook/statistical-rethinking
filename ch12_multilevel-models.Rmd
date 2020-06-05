@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE,
 
 library(glue)
 library(mustashe)
+library(magrittr)
 library(broom)
 library(patchwork)
 library(MASS)
@@ -376,3 +377,155 @@ dsim %>%
     * the partial pooling model performs better, on average, than the no pooling model
 
 ## 12.3 More than one type of cluster
+
+- often are multiple clusters of data in the same model
+- example: chimpanzee data
+    * one block for each chimp
+    * one block for each day of testing
+    
+### 12.3.1 Multilevel chimpanzees
+
+- similar model as before
+    * add varying intercepts for actor
+    * put both the $\alpha$ and $\alpha_\text{actor}$ in the linear model
+        - it is to allow for adding other varying effects
+        - instead of having $\alpha$ as the mean for $\alpha_\text{actor}$, the mean for $\alpha_\text{actor} = 0$ and the mean $\alpha$ is in the linear model instead 
+
+$$
+L_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \alpha + \alpha_{\text{actor}[i]} + (\beta_P + \beta_{PC} C_i) P_i \\
+\alpha_\text{actor} \sim \text{Normal}(0, \sigma_\text{actor}) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 10) \\
+\beta_{PC} \sim \text{Normal}(0, 10) \\
+\alpha_\text{actor} \sim \text{HalfCauchy}(0, 1) \\
+$$
+
+```{r}
+data("chimpanzees")
+d <- as_tibble(chimpanzees) %>%
+    select(-recipient)
+
+stash("m12_4", {
+    m12_4 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- a + a_actor[actor] + (bp + bpc*condition)*prosoc_left,
+            a_actor[actor] ~ dnorm(0, sigma_actor),
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 10),
+            bpc ~ dnorm(0, 10),
+            sigma_actor ~ dcauchy(0, 1)
+        ),
+        data = d,
+        warmup = 1e3,
+        iter = 5e3,
+        chains = 4
+    )
+})
+
+print(m12_4)
+precis(m12_4, depth = 2)
+```
+
+- note that the mean population of actors $\alpha$ and the individual deviations from that mean $\alpha_\text{actor}$ must be summed to calculate the entrie intercept: $\alpha + \alpha_\text{actor}$
+
+```{r}
+post <- extract.samples(m12_4)
+total_a_actor <- map(1:7, ~ post$a + post$a_actor[, .x])
+round(map_dbl(total_a_actor, mean), 2)
+```
+
+### 12.3.2 Two types of cluster
+
+- add a second cluster on `block`
+    * replicate the structure for `actor`
+    * keep only a single global mean parameter $\alpha$ and have the varying intercepts with a mean of 0
+
+$$
+L_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \alpha + \alpha_{\text{actor}[i]} + \alpha_{\text{block}[i]} + (\beta_P + \beta_{PC} C_i) P_i \\
+\alpha_\text{actor} \sim \text{Normal}(0, \sigma_\text{actor}) \\
+\alpha_\text{block} \sim \text{Normal}(0, \sigma_\text{block}) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 10) \\
+\beta_{PC} \sim \text{Normal}(0, 10) \\
+\alpha_\text{actor} \sim \text{HalfCauchy}(0, 1) \\
+\alpha_\text{block} \sim \text{HalfCauchy}(0, 1) \\
+$$
+
+```{r}
+
+d$block_id <- d$block  # 'block' is a reserved name in Stan.
+
+stash("m12_5", {
+    m12_5 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- a + a_actor[actor] + a_block[block_id] + (bp + bpc*condition)*prosoc_left,
+            a_actor[actor] ~ dnorm(0, sigma_actor),
+            a_block[block_id] ~ dnorm(0, sigma_block),
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 10),
+            bpc ~ dnorm(0, 10),
+            sigma_actor ~ dcauchy(0, 1),
+            sigma_block ~ dcauchy(0, 1)
+        ),
+        data = d,
+        warmup = 1e3,
+        iter = 6e3,
+        chains = 4
+    )
+})
+
+print(m12_5)
+precis(m12_5, depth = 2)
+```
+
+- there was a warning message, though it can be safely ignored:
+
+> There were 11 divergent iterations during sampling.
+> Check the chains (trace plots, n_eff, Rhat) carefully to ensure they are valid.
+
+- interpretation:
+    * normal to have variance of `n_eff` across parameters of these more complex models
+    * $\sigma_\text{block}$ is much smaller than $\sigma_\text{actor}$ so there is more variation between actors
+        - therefore, adding `block` hasnt added much overfitting risk
+
+```{r}
+post <- extract.samples(m12_5)
+enframe(post) %>%
+    filter(name %in% c("sigma_actor", "sigma_block")) %>%
+    unnest(value) %>%
+    ggplot(aes(value)) +
+    geom_density(aes(color = name, fill = name), size = 1.4, alpha = 0.4) +
+    scale_x_continuous(limits = c(0, 4),
+                       expand = c(0, 0)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    scale_color_brewer(palette = "Dark2") +
+    scale_fill_brewer(palette = "Dark2") +
+    theme(legend.title = element_blank(),
+          legend.position = c(0.8, 0.5)) +
+    labs(x = "posterior sample",
+         y = "probability density",
+         title = "Posterior distribitions for cluster variances")    
+```
+
+```{r}
+compare(m12_4, m12_5)
+```
+
+- there are 7 more parameters in `m12_5` than `m12_4`, but the `pWAIC` (effective number of parameters) shows there are only about 2 more effective parameters
+    * because the variance from `block` is so low
+- the models have very close WAIC values because they make very similar predictions
+    * `block` had very little influence on the model
+    * keeping and reporting on both models is important to demonstrate this fact
+
+### 12.3.3 Even more clusters
+
+- MCMC can handle thousands of varying effects
+- need not be shy to include a varying effect if there is theoretical reason it would introduce variance
+    * overfitting risk is low as $\sigma$ for the parameters will shrink
+    * indicates the importance of the cluster
+
+## 12.4 Multilevel posterior predictions

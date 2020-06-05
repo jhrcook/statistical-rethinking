@@ -665,3 +665,279 @@ dsim %>%
         no pooling model
 
 ## 12.3 More than one type of cluster
+
+  - often are multiple clusters of data in the same model
+  - example: chimpanzee data
+      - one block for each chimp
+      - one block for each day of testing
+
+### 12.3.1 Multilevel chimpanzees
+
+  - similar model as before
+      - add varying intercepts for actor
+      - put both the \(\alpha\) and \(\alpha_\text{actor}\) in the
+        linear model
+          - it is to allow for adding other varying effects
+          - instead of having \(\alpha\) as the mean for
+            \(\alpha_\text{actor}\), the mean for
+            \(\alpha_\text{actor} = 0\) and the mean \(\alpha\) is in
+            the linear model instead
+
+\[
+L_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \alpha + \alpha_{\text{actor}[i]} + (\beta_P + \beta_{PC} C_i) P_i \\
+\alpha_\text{actor} \sim \text{Normal}(0, \sigma_\text{actor}) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 10) \\
+\beta_{PC} \sim \text{Normal}(0, 10) \\
+\alpha_\text{actor} \sim \text{HalfCauchy}(0, 1) \\
+\]
+
+``` r
+data("chimpanzees")
+d <- as_tibble(chimpanzees) %>%
+    select(-recipient)
+
+stash("m12_4", {
+    m12_4 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- a + a_actor[actor] + (bp + bpc*condition)*prosoc_left,
+            a_actor[actor] ~ dnorm(0, sigma_actor),
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 10),
+            bpc ~ dnorm(0, 10),
+            sigma_actor ~ dcauchy(0, 1)
+        ),
+        data = d,
+        warmup = 1e3,
+        iter = 5e3,
+        chains = 4
+    )
+})
+```
+
+    ## Loading stashed object.
+
+``` r
+print(m12_4)
+```
+
+    ## map2stan model
+    ## 16000 samples from 4 chains
+    ## 
+    ## Sampling durations (seconds):
+    ##         warmup sample total
+    ## chain:1   7.29  21.96 29.25
+    ## chain:2   7.15  23.66 30.81
+    ## chain:3   5.73  24.91 30.64
+    ## chain:4   6.07  20.77 26.85
+    ## 
+    ## Formula:
+    ## pulled_left ~ dbinom(1, p)
+    ## logit(p) <- a + a_actor[actor] + (bp + bpc * condition) * prosoc_left
+    ## a_actor[actor] ~ dnorm(0, sigma_actor)
+    ## a ~ dnorm(0, 10)
+    ## bp ~ dnorm(0, 10)
+    ## bpc ~ dnorm(0, 10)
+    ## sigma_actor ~ dcauchy(0, 1)
+    ## 
+    ## WAIC (SE): 531 (19.5)
+    ## pWAIC: 8.11
+
+``` r
+precis(m12_4, depth = 2)
+```
+
+    ##                   mean        sd       5.5%       94.5%    n_eff     Rhat4
+    ## a_actor[1]  -1.1735896 1.0012019 -2.7300473  0.23364730 2101.429 1.0012547
+    ## a_actor[2]   4.2071147 1.7506271  2.1320036  7.05788804 3273.263 1.0003060
+    ## a_actor[3]  -1.4800454 1.0031659 -3.0516861 -0.05041580 2089.652 1.0013224
+    ## a_actor[4]  -1.4757774 1.0020223 -3.0374286 -0.05192123 2099.656 1.0013993
+    ## a_actor[5]  -1.1713944 1.0020717 -2.7413405  0.25875482 2094.726 1.0013656
+    ## a_actor[6]  -0.2278687 0.9993039 -1.7950471  1.20604520 2102.027 1.0013138
+    ## a_actor[7]   1.3076865 1.0255852 -0.2800768  2.81614317 2246.178 1.0011328
+    ## a            0.4576892 0.9800871 -0.9178915  1.99125639 2025.506 1.0013659
+    ## bp           0.8231619 0.2621824  0.4136777  1.25290336 6494.962 0.9999752
+    ## bpc         -0.1311277 0.2989366 -0.6053379  0.34261909 6701.342 1.0000421
+    ## sigma_actor  2.2768974 0.9825956  1.2487228  3.92728797 3201.064 1.0008673
+
+  - note that the mean population of actors \(\alpha\) and the
+    individual deviations from that mean \(\alpha_\text{actor}\) must be
+    summed to calculate the entrie intercept:
+    \(\alpha + \alpha_\text{actor}\)
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m12_4)
+total_a_actor <- map(1:7, ~ post$a + post$a_actor[, .x])
+round(map_dbl(total_a_actor, mean), 2)
+```
+
+    ## [1] -0.72  4.66 -1.02 -1.02 -0.71  0.23  1.77
+
+### 12.3.2 Two types of cluster
+
+  - add a second cluster on `block`
+      - replicate the structure for `actor`
+      - keep only a single global mean parameter \(\alpha\) and have the
+        varying intercepts with a mean of 0
+
+\[
+L_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \alpha + \alpha_{\text{actor}[i]} + \alpha_{\text{block}[i]} + (\beta_P + \beta_{PC} C_i) P_i \\
+\alpha_\text{actor} \sim \text{Normal}(0, \sigma_\text{actor}) \\
+\alpha_\text{block} \sim \text{Normal}(0, \sigma_\text{block}) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 10) \\
+\beta_{PC} \sim \text{Normal}(0, 10) \\
+\alpha_\text{actor} \sim \text{HalfCauchy}(0, 1) \\
+\alpha_\text{block} \sim \text{HalfCauchy}(0, 1) \\
+\]
+
+``` r
+d$block_id <- d$block  # 'block' is a reserved name in Stan.
+
+stash("m12_5", {
+    m12_5 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- a + a_actor[actor] + a_block[block_id] + (bp + bpc*condition)*prosoc_left,
+            a_actor[actor] ~ dnorm(0, sigma_actor),
+            a_block[block_id] ~ dnorm(0, sigma_block),
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 10),
+            bpc ~ dnorm(0, 10),
+            sigma_actor ~ dcauchy(0, 1),
+            sigma_block ~ dcauchy(0, 1)
+        ),
+        data = d,
+        warmup = 1e3,
+        iter = 6e3,
+        chains = 4
+    )
+})
+```
+
+    ## Loading stashed object.
+
+``` r
+print(m12_5)
+```
+
+    ## map2stan model
+    ## 20000 samples from 4 chains
+    ## 
+    ## Sampling durations (seconds):
+    ##         warmup sample total
+    ## chain:1  10.72  35.09 45.81
+    ## chain:2   7.90  29.20 37.10
+    ## chain:3   7.56  21.69 29.25
+    ## chain:4   5.48  26.69 32.18
+    ## 
+    ## Formula:
+    ## pulled_left ~ dbinom(1, p)
+    ## logit(p) <- a + a_actor[actor] + a_block[block_id] + (bp + bpc * 
+    ##     condition) * prosoc_left
+    ## a_actor[actor] ~ dnorm(0, sigma_actor)
+    ## a_block[block_id] ~ dnorm(0, sigma_block)
+    ## a ~ dnorm(0, 10)
+    ## bp ~ dnorm(0, 10)
+    ## bpc ~ dnorm(0, 10)
+    ## sigma_actor ~ dcauchy(0, 1)
+    ## sigma_block ~ dcauchy(0, 1)
+    ## 
+    ## WAIC (SE): 532 (19.7)
+    ## pWAIC: 10.3
+
+``` r
+precis(m12_5, depth = 2)
+```
+
+    ##                     mean        sd        5.5%       94.5%     n_eff     Rhat4
+    ## a_actor[1]  -1.175064397 0.9841238 -2.76062416  0.26572500  3127.582 1.0017434
+    ## a_actor[2]   4.180714321 1.6729009  2.12512149  6.98239536  4813.958 1.0003135
+    ## a_actor[3]  -1.480590647 0.9832722 -3.07912060 -0.04821499  3130.192 1.0019540
+    ## a_actor[4]  -1.478783548 0.9836902 -3.07946148 -0.05543320  3190.286 1.0018033
+    ## a_actor[5]  -1.174174061 0.9817486 -2.75692313  0.26783679  3081.939 1.0019227
+    ## a_actor[6]  -0.226458711 0.9796456 -1.82422618  1.22181433  3165.682 1.0016978
+    ## a_actor[7]   1.316572431 1.0070672 -0.29096124  2.82251597  3279.139 1.0016276
+    ## a_block[1]  -0.183995506 0.2313540 -0.61972467  0.07417105  4061.437 1.0011753
+    ## a_block[2]   0.037069316 0.1877480 -0.23917218  0.34372436 10717.249 1.0002318
+    ## a_block[3]   0.052974160 0.1866553 -0.20975684  0.37125753  9201.858 1.0001379
+    ## a_block[4]   0.004609523 0.1835454 -0.28687658  0.29340365 11224.762 1.0003635
+    ## a_block[5]  -0.034560355 0.1870889 -0.35141436  0.23976596 10534.296 1.0004691
+    ## a_block[6]   0.113814284 0.1999371 -0.13623235  0.48060435  6501.544 1.0003009
+    ## a            0.456947755 0.9683053 -0.95531923  2.02343452  3019.549 1.0021039
+    ## bp           0.831444842 0.2628057  0.41082471  1.25433671 11156.767 0.9998428
+    ## bpc         -0.141912446 0.2989153 -0.62326439  0.33594039 11467.687 1.0000441
+    ## sigma_actor  2.271127085 0.9363260  1.24099809  3.89727622  4636.037 1.0005785
+    ## sigma_block  0.226227514 0.1780658  0.02822998  0.54677620  2466.201 1.0015731
+
+  - there was a warning message, though it can be safely ignored:
+
+> There were 11 divergent iterations during sampling. Check the chains
+> (trace plots, n\_eff, Rhat) carefully to ensure they are valid.
+
+  - interpretation:
+      - normal to have variance of `n_eff` across parameters of these
+        more complex models
+      - \(\sigma_\text{block}\) is much smaller than
+        \(\sigma_\text{actor}\) so there is more variation between
+        actors
+          - therefore, adding `block` hasnt added much overfitting risk
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m12_5)
+enframe(post) %>%
+    filter(name %in% c("sigma_actor", "sigma_block")) %>%
+    unnest(value) %>%
+    ggplot(aes(value)) +
+    geom_density(aes(color = name, fill = name), size = 1.4, alpha = 0.4) +
+    scale_x_continuous(limits = c(0, 4),
+                       expand = c(0, 0)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    scale_color_brewer(palette = "Dark2") +
+    scale_fill_brewer(palette = "Dark2") +
+    theme(legend.title = element_blank(),
+          legend.position = c(0.8, 0.5)) +
+    labs(x = "posterior sample",
+         y = "probability density",
+         title = "Posterior distribitions for cluster variances")    
+```
+
+    ## Warning: Removed 986 rows containing non-finite values (stat_density).
+
+![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
+``` r
+compare(m12_4, m12_5)
+```
+
+    ##           WAIC       SE   dWAIC      dSE     pWAIC    weight
+    ## m12_4 531.3511 19.50534 0.00000       NA  8.112905 0.6339337
+    ## m12_5 532.4494 19.66977 1.09826 1.774829 10.297114 0.3660663
+
+  - there are 7 more parameters in `m12_5` than `m12_4`, but the `pWAIC`
+    (effective number of parameters) shows there are only about 2 more
+    effective parameters
+      - because the variance from `block` is so low
+  - the models have very close WAIC values because they make very
+    similar predictions
+      - `block` had very little influence on the model
+      - keeping and reporting on both models is important to demonstrate
+        this fact
+
+### 12.3.3 Even more clusters
+
+  - MCMC can handle thousands of varying effects
+  - need not be shy to include a varying effect if there is theoretical
+    reason it would introduce variance
+      - overfitting risk is low as \(\sigma\) for the parameters will
+        shrink
+      - indicates the importance of the cluster
+
+## 12.4 Multilevel posterior predictions
