@@ -529,3 +529,127 @@ compare(m12_4, m12_5)
     * indicates the importance of the cluster
 
 ## 12.4 Multilevel posterior predictions
+
+- *model checking*: a robust way to check the fit of a model is to compare the sample to the posterior predictions
+    * *information criteria are also useful indicators of model flexibility and risk of overfitting
+- for a multilevel model:       
+    * should not expect to "retrodict" the sample because shrinkage will distort some predictions
+    * will want predictions for existing clusters of data and new clusters of data
+
+### 12.4.1 Posterior prediction for same clusters
+
+- example uing `chimpanzees` dataset and model `12_4`
+    * each `actor` is a cluster of the data
+
+```{r}
+# A data frame of all possible conditions
+d_conditions <- tibble(
+    prosoc_left = c(0, 1, 0, 1),
+    condition = c(0, 0, 1, 1)
+)
+
+# A data frame of all possible conditions for each actor (chimp)
+d_pred <- tibble(actor = 1:7) %>%
+    mutate(data = rep(list(d_conditions), 7)) %>%
+    unnest(data)
+
+# make predictions
+link_m12_4 <- link(m12_4, data = d_pred)
+
+d_pred %>%
+    mutate(post_pred_mean = apply(link_m12_4, 2, mean)) %>%
+    bind_cols(apply(link_m12_4, 2, PI) %>% pi_to_df()) %>%
+    mutate(x = paste(prosoc_left, condition, sep = ", ")) %>%
+    ggplot(aes(x = x, y = post_pred_mean, color = factor(actor))) +
+    geom_linerange(aes(ymin = x5_percent, ymax = x94_percent), alpha = 0.2) +
+    geom_point(alpha = 0.8) +
+    geom_line(aes(group = factor(actor)), alpha = 0.5) +
+    scale_color_brewer(palette = "Dark2") +
+    labs(x = "prosoc_left, condition",
+         y = "probability of pulling left lever",
+         title = "Multi-level model posterior predictions",
+         color = "actor")
+```
+
+### 12.4.2 Posterior prediction for new clusters
+
+- often we do not care about the individual clusters in the data
+    * we don't necessarily want predictions for the 7 chimps in the data, but for all of the species
+- first attempt: construct a posterior prediciton for the *average* actor using $\alpha$
+    * however, does not show the variation among actors
+
+```{r}
+d_pred$actor <- 1  # A non-zero placeholder
+a_actor_zeros = matrix(0, nrow = 1e3, ncol = 7)
+
+link_m12_4 <- link(m12_4, n = 1e3, data = d_pred, 
+                   replace = list(a_actor = a_actor_zeros))
+
+d_pred %>%
+    mutate(x = paste(prosoc_left, condition, sep = ", "),
+           pred_p_mean = apply(link_m12_4, 2, mean)) %>%
+    bind_cols(apply(link_m12_4, 2, PI, prob = 0.8) %>% pi_to_df()) %>%
+    ggplot(aes(x = x, y = pred_p_mean)) +
+    geom_linerange(aes(ymin = x10_percent, ymax = x90_percent), color = grey) +
+    geom_line(aes(group = factor(actor)), color = grey) +
+    geom_point(color = dark_grey) +
+    scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+    labs(x = "prosoc_left, condition",
+         y = "probability of pulling left lever",
+         title = "Multi-level model posterior predictions for average actor")
+```
+
+- second attempt: show variation amongst actors by including the `sigma_actor` in the calculation
+
+```{r}
+post <- extract.samples(m12_4)
+a_actor_sims <- rnorm(7e3, 0, post$sigma_actor)
+a_actor_sims <- matrix(a_actor_sims, nrow = 1e3, ncol = 7)
+
+link_m12_4 <- link(m12_4, n = 1e3, data = d_pred, 
+                   replace = list(a_actor = a_actor_sims))
+
+d_pred %>%
+    mutate(x = paste(prosoc_left, condition, sep = ", "),
+           pred_p_mean = apply(link_m12_4, 2, mean)) %>%
+    bind_cols(apply(link_m12_4, 2, PI, prob = 0.8) %>% pi_to_df()) %>%
+    ggplot(aes(x = x, y = pred_p_mean)) +
+    geom_linerange(aes(ymin = x10_percent, ymax = x90_percent), color = grey) +
+    geom_line(aes(group = factor(actor)), color = grey) +
+    geom_point(color = dark_grey) +
+    scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+    labs(x = "prosoc_left, condition",
+         y = "probability of pulling left lever",
+         title = "Multi-level model posterior predictions marginal of actor")
+```
+
+- choosing which plot to use/present depends on the context and what you are trying to learn
+    * the average actor plot shows the effect of treatment
+    * the marginal of actor plot shows how variable actors can be
+- another option is to try and show both by showing the results for a bunch of new simulated actors
+
+```{r}
+post <- extract.samples(m12_4, n = 1e2)
+sim_actor <- function(i) {
+    sim_a_actor <- rnorm(1, 0, post$sigma_actor[i])
+    P <- c(0, 1, 0, 1)
+    C <- c(0, 0, 1, 1)
+    p <- logistic(
+        post$a[i] + sim_a_actor + (post$bp[i] + post$bpc[i] * C) * P
+    )
+    return(
+        tibble(i = i, prosoc_left = P, condition = C, pred = p)
+    )
+}
+
+map_df(1:100, sim_actor) %>%
+    mutate(x = paste(prosoc_left, condition, sep = ", ")) %>%
+    ggplot(aes(x = x, y = pred)) +
+    geom_line(aes(group = factor(i)), alpha = 0.3) +
+    scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+    labs(x = "prosoc_left, condition",
+         y = "probability of pulling left lever",
+         title = "Multi-level model posterior predictions of simulated actors")
+```
+
+### 12.4.3 Focus and multilevel prediction
