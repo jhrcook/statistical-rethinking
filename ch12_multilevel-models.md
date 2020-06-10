@@ -315,9 +315,9 @@ precis(m12_2, depth = 2)
 compare(m12_1, m12_2)
 ```
 
-    ##           WAIC       SE    dWAIC      dSE    pWAIC      weight
-    ## m12_2 1009.668 37.97854  0.00000       NA 37.75478 0.998916493
-    ## m12_1 1023.321 42.90494 13.65294 6.602832 49.38454 0.001083507
+    ##           WAIC       SE  dWAIC      dSE    pWAIC      weight
+    ## m12_2 1009.876 37.94391  0.000       NA 37.83139 0.998797924
+    ## m12_1 1023.321 42.90494 13.445 6.642773 49.38454 0.001202076
 
   - from the comparison, see that the multilevel model only has \~38
     effective parameters
@@ -1102,3 +1102,143 @@ map_df(1:100, sim_actor) %>%
 ![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 ### 12.4.3 Focus and multilevel prediction
+
+  - can use varying effects to model *over-dispersion*
+      - example: with Oceanic societies data with an intercept for each
+        society
+          - \(T\) is the `total_tools`, \(P\) is population, \(i\)
+            indexes each society
+          - \(\sigma_\text{society}\) is the estimate of over-dispersion
+            among societies
+
+\[
+T_i \sim \text{Poisson}(\mu_i) \\
+\log(\mu_i) = \alpha + \alpha_{\text{society}_{[i]}} + \beta_P \log P_i \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 1) \\
+\alpha_\text{society} \sim \text{Normal}(0, \sigma_\text{society}) \\
+\sigma_\text{society} \sim \text{HalfCauchy}(0, 1)
+\]
+
+``` r
+data("Kline")
+d <- as_tibble(Kline) %>%
+    janitor::clean_names() %>%
+    mutate(logpop = log(population),
+           society = row_number())
+
+stash("m12_6", {
+    m12_6 <- map2stan(
+        alist(
+            total_tools ~ dpois(mu),
+            log(mu) <- a + a_society[society] + bp * logpop,
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 1),
+            a_society[society] ~ dnorm(0, sigma_society),
+            sigma_society ~ dcauchy(0, 1)
+        ),
+        data = d,
+        iter = 4e3,
+        chains = 3
+    )
+})
+```
+
+    ## Loading stashed object.
+
+``` r
+precis(m12_6, depth = 2)
+```
+
+    ##                      mean         sd        5.5%       94.5%    n_eff    Rhat4
+    ## a              1.08087255 0.72924196 -0.10532809  2.18699862 1885.393 1.001674
+    ## bp             0.26289831 0.07876416  0.14412084  0.39184726 1910.748 1.001932
+    ## a_society[1]  -0.19505324 0.24046486 -0.59548503  0.15615568 2903.022 1.000199
+    ## a_society[2]   0.04898760 0.21650512 -0.28245864  0.39230167 2790.881 1.000004
+    ## a_society[3]  -0.03841012 0.19526471 -0.35652854  0.26649157 3589.386 1.000526
+    ## a_society[4]   0.33023510 0.18975208  0.05272352  0.64920133 2464.826 1.000444
+    ## a_society[5]   0.04739732 0.17362694 -0.22459034  0.32530026 3321.421 1.000341
+    ## a_society[6]  -0.31475130 0.20089950 -0.65113728 -0.01907456 3195.275 1.000715
+    ## a_society[7]   0.14637256 0.17070312 -0.11907974  0.42550859 3139.055 1.000605
+    ## a_society[8]  -0.16791652 0.17754775 -0.46365739  0.10419958 3416.196 1.001071
+    ## a_society[9]   0.27621050 0.17103703  0.01596246  0.55890844 2629.650 1.002193
+    ## a_society[10] -0.09838891 0.27906914 -0.55327144  0.32098196 2118.158 1.002263
+    ## sigma_society  0.30690543 0.12302611  0.14853048  0.52860652 1546.725 1.003821
+
+  - plot posterior predictions that visualize the over-dispersion
+      - the `postcheck()` function uses the `a_society` values directly,
+        not the hyperparameters `a` and `sigma_society` that describe
+        the dispersion
+      - instead need to simulate counterfactual societies using these
+        hyperparameters \(\alpha\) and \(\sigma_\text{society}\)
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m12_6)
+
+d_pred <- tibble(
+    logpop = seq(6, 14, length.out = 100),
+    society = rep(1, 100)
+)
+
+# Sample possible alpha society values.
+a_society_sims <- rnorm(2e4, mean = 0, post$sigma_society)
+a_society_sims <- matrix(a_society_sims, nrow = 2e3, ncol = 10)
+
+# Make predictions using the simulated a_society values.
+link_m12_6 <- link(m12_6, n = 2e3, data = d_pred,
+                   replace = list(a_society = a_society_sims))
+```
+
+    ## [ 200 / 2000 ][ 400 / 2000 ][ 600 / 2000 ][ 800 / 2000 ][ 1000 / 2000 ][ 1200 / 2000 ][ 1400 / 2000 ][ 1600 / 2000 ][ 1800 / 2000 ][ 2000 / 2000 ]
+
+``` r
+d_pred_res <- d_pred %>%
+    mutate(mu_median = apply(link_m12_6, 2, median)) %>%
+    bind_cols(
+        apply(link_m12_6, 2, PI, prob = 0.67) %>% pi_to_df(),
+        apply(link_m12_6, 2, PI, prob = 0.89) %>% pi_to_df(),
+        apply(link_m12_6, 2, PI, prob = 0.97) %>% pi_to_df()
+    )
+
+d_pred_res %>%
+    mutate(x84_percent = scales::squish(x84_percent, range = c(0, 72)),
+           x94_percent = scales::squish(x94_percent, range = c(0, 72)),
+           x98_percent = scales::squish(x98_percent, range = c(0, 72))) %>%
+    ggplot(aes(x = logpop)) +
+    geom_ribbon(aes(ymin = x2_percent, ymax = x98_percent),
+                alpha = 0.15) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.15) +
+    geom_ribbon(aes(ymin = x16_percent, ymax = x84_percent),
+                alpha = 0.15) +
+    geom_point(aes(y = total_tools),
+               data = d) +
+    geom_line(aes(y = mu_median)) +
+    scale_x_continuous(limits = c(7, 13), expand = c(0, 0)) +
+    scale_y_continuous(limits = c(5, 72), expand = c(0, 0)) +
+    labs(x = "log population",
+         y = "total tools",
+         title = "Posterior predictions for the over-dispersed Poisson island model",
+         subtitle = "Shaded regions indicate 67%, 89%, and 97% intervals of the expected mean.")
+```
+
+    ## Warning: Removed 36 row(s) containing missing values (geom_path).
+
+![](ch12_multilevel-models_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+
+## 12.6 Practice
+
+### Easy
+
+**12E2. Make the following model into a multilevel model.**
+
+\[
+y_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \alpha + \alpha_{\text{group}[i]} + \beta x_i \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta \sim \text{Normal}(0, 1) \\
+\alpha_\text{group} \sim \text{Normal}(0, \sigma_\text{group}) \\ 
+\sigma_\text{group} \sim \text{HalfCauchy(0, 1)}
+\]

@@ -5,7 +5,8 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 
-                      cache = TRUE)
+                      cache = TRUE,
+                      dpi = 300)
 
 library(glue)
 library(mustashe)
@@ -653,3 +654,108 @@ map_df(1:100, sim_actor) %>%
 ```
 
 ### 12.4.3 Focus and multilevel prediction
+
+- can use varying effects to model *over-dispersion*
+    * example: with Oceanic societies data with an intercept for each society
+        - $T$ is the `total_tools`, $P$ is population, $i$ indexes each society
+        - $\sigma_\text{society}$ is the estimate of over-dispersion among societies
+
+$$
+T_i \sim \text{Poisson}(\mu_i) \\
+\log(\mu_i) = \alpha + \alpha_{\text{society}_{[i]}} + \beta_P \log P_i \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 1) \\
+\alpha_\text{society} \sim \text{Normal}(0, \sigma_\text{society}) \\
+\sigma_\text{society} \sim \text{HalfCauchy}(0, 1)
+$$
+
+```{r}
+data("Kline")
+d <- as_tibble(Kline) %>%
+    janitor::clean_names() %>%
+    mutate(logpop = log(population),
+           society = row_number())
+
+stash("m12_6", {
+    m12_6 <- map2stan(
+        alist(
+            total_tools ~ dpois(mu),
+            log(mu) <- a + a_society[society] + bp * logpop,
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 1),
+            a_society[society] ~ dnorm(0, sigma_society),
+            sigma_society ~ dcauchy(0, 1)
+        ),
+        data = d,
+        iter = 4e3,
+        chains = 3
+    )
+})
+
+precis(m12_6, depth = 2)
+```
+
+- plot posterior predictions that visualize the over-dispersion
+    * the `postcheck()` function uses the `a_society` values directly, not the hyperparameters `a` and `sigma_society` that describe the dispersion
+    * instead need to simulate counterfactual societies using these hyperparameters $\alpha$ and $\sigma_\text{society}$
+
+```{r}
+post <- extract.samples(m12_6)
+
+d_pred <- tibble(
+    logpop = seq(6, 14, length.out = 100),
+    society = rep(1, 100)
+)
+
+# Sample possible alpha society values.
+a_society_sims <- rnorm(2e4, mean = 0, post$sigma_society)
+a_society_sims <- matrix(a_society_sims, nrow = 2e3, ncol = 10)
+
+# Make predictions using the simulated a_society values.
+link_m12_6 <- link(m12_6, n = 2e3, data = d_pred,
+                   replace = list(a_society = a_society_sims))
+
+d_pred_res <- d_pred %>%
+    mutate(mu_median = apply(link_m12_6, 2, median)) %>%
+    bind_cols(
+        apply(link_m12_6, 2, PI, prob = 0.67) %>% pi_to_df(),
+        apply(link_m12_6, 2, PI, prob = 0.89) %>% pi_to_df(),
+        apply(link_m12_6, 2, PI, prob = 0.97) %>% pi_to_df()
+    )
+
+d_pred_res %>%
+    mutate(x84_percent = scales::squish(x84_percent, range = c(0, 72)),
+           x94_percent = scales::squish(x94_percent, range = c(0, 72)),
+           x98_percent = scales::squish(x98_percent, range = c(0, 72))) %>%
+    ggplot(aes(x = logpop)) +
+    geom_ribbon(aes(ymin = x2_percent, ymax = x98_percent),
+                alpha = 0.15) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent),
+                alpha = 0.15) +
+    geom_ribbon(aes(ymin = x16_percent, ymax = x84_percent),
+                alpha = 0.15) +
+    geom_point(aes(y = total_tools),
+               data = d) +
+    geom_line(aes(y = mu_median)) +
+    scale_x_continuous(limits = c(7, 13), expand = c(0, 0)) +
+    scale_y_continuous(limits = c(5, 72), expand = c(0, 0)) +
+    labs(x = "log population",
+         y = "total tools",
+         title = "Posterior predictions for the over-dispersed Poisson island model",
+         subtitle = "Shaded regions indicate 67%, 89%, and 97% intervals of the expected mean.")
+```
+
+## 12.6 Practice
+
+### Easy
+
+**12E2. Make the following model into a multilevel model.**
+
+$$
+y_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \alpha + \alpha_{\text{group}[i]} + \beta x_i \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta \sim \text{Normal}(0, 1) \\
+\alpha_\text{group} \sim \text{Normal}(0, \sigma_\text{group}) \\ 
+\sigma_\text{group} \sim \text{HalfCauchy(0, 1)}
+$$
