@@ -1,0 +1,55 @@
+---
+title: "Chapter 13. Adventures in Covariance"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      cache = TRUE,
+                      dpi = 300)
+
+library(glue)
+library(mustashe)
+library(magrittr)
+library(broom)
+library(patchwork)
+library(MASS)
+library(rethinking)
+library(tidyverse)
+library(conflicted)
+
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("rename", "dplyr")
+
+# To be able to use `map2stan()`:
+conflict_prefer("collapse", "dplyr")
+conflict_prefer("extract", "tidyr")
+conflict_prefer("rstudent", "rethinking")
+conflict_prefer("lag", "dplyr")
+conflict_prefer("map", "purrr")
+conflict_prefer("Position", "ggplot2")
+
+# To be able to use 'MASS':
+conflict_prefer("area", "patchwork")
+
+theme_set(theme_minimal())
+source_scripts()
+set.seed(0)
+
+# For 'rethinking'.
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+
+purple <- "#8067bf"
+blue <- "#5896d1"
+light_grey <- "grey80"
+grey <- "grey50"
+dark_grey <- "grey25"
+```
+
+- this chapter will show how to specify *varying slopes* in combination with varying intercepts
+    * enables pooling to improve estimates of how different units respond to or are influenced by predictor variables
+    * also improves the estimates of intercepts by "borrowing information across parameter types"
+    * "varying slope models are massive interaction machines"

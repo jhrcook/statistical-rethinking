@@ -58,6 +58,8 @@ Classification](ch10_counting-and-classification.md)
 
 [Chapter 12. Multilevel Models](ch12_multilevel-models.md)
 
+[Chapter 13. Adventures in Covariance](ch13_adventures-in-covariance.md)
+
 -----
 
 ## Other R packages for Bayes
