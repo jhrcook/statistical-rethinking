@@ -173,7 +173,7 @@ logistic
     ##     p <- ifelse(x == Inf, 1, p)
     ##     p
     ## }
-    ## <bytecode: 0x7fc419767a08>
+    ## <bytecode: 0x7f96b083ecb0>
     ## <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -388,34 +388,11 @@ m10_4 <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '8ff7109ced6674bc38e683b90b785c00' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'db03c8d21dae80f3ddb9618a7d25318a' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000182 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.82 seconds.
+    ## Chain 1: Gradient evaluation took 0.000242 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.42 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -432,15 +409,15 @@ m10_4 <- map2stan(
     ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.14408 seconds (Warm-up)
-    ## Chain 1:                2.45878 seconds (Sampling)
-    ## Chain 1:                3.60286 seconds (Total)
+    ## Chain 1:  Elapsed Time: 1.25196 seconds (Warm-up)
+    ## Chain 1:                4.74256 seconds (Sampling)
+    ## Chain 1:                5.99452 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '8ff7109ced6674bc38e683b90b785c00' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'db03c8d21dae80f3ddb9618a7d25318a' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 7.5e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.75 seconds.
+    ## Chain 2: Gradient evaluation took 0.00031 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 3.1 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -457,9 +434,9 @@ m10_4 <- map2stan(
     ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.984371 seconds (Warm-up)
-    ## Chain 2:                4.4026 seconds (Sampling)
-    ## Chain 2:                5.38697 seconds (Total)
+    ## Chain 2:  Elapsed Time: 1.3271 seconds (Warm-up)
+    ## Chain 2:                3.89156 seconds (Sampling)
+    ## Chain 2:                5.21866 seconds (Total)
     ## Chain 2:
 
     ## Computing WAIC
@@ -469,15 +446,15 @@ precis(m10_4, depth = 2)
 ```
 
     ##            mean        sd       5.5%      94.5%    n_eff     Rhat4
-    ## a[1] -0.7403970 0.2697560 -1.1781237 -0.3114903 4004.673 0.9996487
-    ## a[2] 11.0686316 5.3658495  4.6188930 21.0303959 1456.332 1.0010439
-    ## a[3] -1.0543496 0.2827338 -1.5206078 -0.6116062 3836.378 0.9997755
-    ## a[4] -1.0543866 0.2849159 -1.5125557 -0.6046764 4068.610 1.0000999
-    ## a[5] -0.7381053 0.2765060 -1.1847997 -0.2971693 4148.511 0.9996860
-    ## a[6]  0.2162808 0.2695097 -0.2102277  0.6459626 3976.974 0.9998150
-    ## a[7]  1.8079037 0.3933077  1.2017656  2.4602113 4610.516 0.9996526
-    ## bp    0.8361716 0.2671018  0.4087367  1.2634672 2937.053 0.9999706
-    ## bpc  -0.1244372 0.3064914 -0.6096928  0.3681643 3952.925 0.9998774
+    ## a[1] -0.7366683 0.2712491 -1.1710162 -0.3075729 3649.712 0.9996477
+    ## a[2] 10.8842654 5.3959957  4.4191227 20.9936577 1263.201 1.0021457
+    ## a[3] -1.0519842 0.2796649 -1.4932984 -0.6025021 3778.823 1.0000896
+    ## a[4] -1.0486000 0.2852542 -1.5153380 -0.6104066 3715.073 0.9997516
+    ## a[5] -0.7400692 0.2758792 -1.1794915 -0.2941442 3548.078 1.0004204
+    ## a[6]  0.2251357 0.2670588 -0.2007725  0.6625168 3733.206 0.9999222
+    ## a[7]  1.8192916 0.3816515  1.2359523  2.4514860 4009.508 1.0001734
+    ## bp    0.8330853 0.2650125  0.4210950  1.2630915 2200.519 1.0000930
+    ## bpc  -0.1350464 0.2970094 -0.6115411  0.3353930 3317.273 0.9999492
 
 ``` r
 plot(m10_4)
@@ -617,10 +594,10 @@ m10_5 <- quap(
 precis(m10_5)
 ```
 
-    ##            mean        sd       5.5%     94.5%
-    ## a    0.04771729 0.1260040 -0.1536615 0.2490961
-    ## bp   0.60967130 0.2261462  0.2482460 0.9710966
-    ## bpc -0.10396774 0.2635904 -0.5252361 0.3173006
+    ##           mean        sd       5.5%     94.5%
+    ## a    0.0477173 0.1260040 -0.1536615 0.2490961
+    ## bp   0.6096713 0.2261462  0.2482460 0.9710966
+    ## bpc -0.1039677 0.2635904 -0.5252361 0.3173006
 
 ### 10.1.3 Aggregated binomial: Graduate school admissions
 
@@ -701,23 +678,23 @@ precis(m10_6)
 ```
 
     ##          mean         sd       5.5%      94.5%
-    ## a  -0.8304493 0.05077041 -0.9115902 -0.7493084
-    ## bm  0.6103061 0.06389095  0.5081960  0.7124162
+    ## a  -0.8304482 0.05077040 -0.9115892 -0.7493073
+    ## bm  0.6103056 0.06389094  0.5081955  0.7124156
 
 ``` r
 precis(m10_7)
 ```
 
     ##         mean         sd       5.5%      94.5%
-    ## a -0.4567352 0.03050691 -0.5054911 -0.4079792
+    ## a -0.4567351 0.03050691 -0.5054911 -0.4079792
 
 ``` r
 compare(m10_6, m10_7)
 ```
 
     ##            WAIC       SE    dWAIC      dSE     pWAIC       weight
-    ## m10_6  993.1292 316.4766  0.00000       NA 114.82319 1.000000e+00
-    ## m10_7 1045.7502 313.4376 52.62097 168.7304  82.87369 3.745434e-12
+    ## m10_6  997.0243 314.8625  0.00000       NA 112.90698 1.000000e+00
+    ## m10_7 1050.7649 315.6198 53.74066 165.8455  83.98725 2.139758e-12
 
 ``` r
 plot(compare(m10_6, m10_7))
@@ -745,12 +722,11 @@ quantile(diff_admit, c(0.025, 0.50, 0.975))
 ```
 
     ##      2.5%       50%     97.5% 
-    ## 0.1132111 0.1416335 0.1698377
+    ## 0.1134907 0.1416585 0.1690224
 
   - plot posterior predictions for the model
       - can use the function `postcheck()`, though I also made a plot of
-        the same
-data
+        the same data
 
 <!-- end list -->
 
@@ -830,35 +806,35 @@ precis(m10_8, depth = 2)
 ```
 
     ##            mean         sd       5.5%      94.5%
-    ## a[1]  0.5934318 0.06837899  0.4841490  0.7027146
-    ## a[2]  0.5428257 0.08575109  0.4057789  0.6798725
-    ## a[3] -0.6156597 0.06916048 -0.7261916 -0.5051279
-    ## a[4] -0.6648324 0.07502755 -0.7847409 -0.5449239
-    ## a[5] -1.0894021 0.09534034 -1.2417744 -0.9370298
-    ## a[6] -2.6750254 0.15237508 -2.9185503 -2.4315006
+    ## a[1]  0.5934323 0.06837899  0.4841494  0.7027151
+    ## a[2]  0.5428251 0.08575108  0.4057783  0.6798719
+    ## a[3] -0.6156597 0.06916048 -0.7261915 -0.5051279
+    ## a[4] -0.6648327 0.07502756 -0.7847412 -0.5449242
+    ## a[5] -1.0894017 0.09534033 -1.2417739 -0.9370294
+    ## a[6] -2.6750255 0.15237509 -2.9185503 -2.4315007
 
 ``` r
 precis(m10_9, depth = 2)
 ```
 
     ##             mean         sd       5.5%       94.5%
-    ## a[1]  0.68193883 0.09910200  0.5235547  0.84032296
-    ## a[2]  0.63852955 0.11556510  0.4538342  0.82322490
-    ## a[3] -0.58062958 0.07465092 -0.6999362 -0.46132299
-    ## a[4] -0.61262191 0.08596001 -0.7500026 -0.47524121
-    ## a[5] -1.05727046 0.09872297 -1.2150488 -0.89949209
-    ## a[6] -2.62392097 0.15766768 -2.8759044 -2.37193757
-    ## bm   -0.09992549 0.08083548 -0.2291162  0.02926521
+    ## a[1]  0.68192790 0.09910209  0.5235436  0.84031218
+    ## a[2]  0.63848061 0.11556492  0.4537856  0.82317567
+    ## a[3] -0.58063410 0.07465095 -0.6999407 -0.46132747
+    ## a[4] -0.61263537 0.08596013 -0.7500163 -0.47525449
+    ## a[5] -1.05730724 0.09872370 -1.2150868 -0.89952770
+    ## a[6] -2.62397851 0.15767079 -2.8759669 -2.37199013
+    ## bm   -0.09990425 0.08083560 -0.2290951  0.02928665
 
 ``` r
 compare(m10_6, m10_7, m10_8, m10_9)
 ```
 
-    ##            WAIC        SE      dWAIC        dSE      pWAIC        weight
-    ## m10_8  106.0196  17.48822   0.000000         NA   6.958918  8.203223e-01
-    ## m10_9  109.0567  15.46693   3.037065   4.346089   9.556102  1.796777e-01
-    ## m10_6  997.5737 315.88694 891.554064 326.811184 116.820221 2.067661e-194
-    ## m10_7 1032.1294 308.43062 926.109820 319.745124  78.505708 6.483244e-202
+    ##            WAIC        SE     dWAIC       dSE      pWAIC        weight
+    ## m10_8  104.8648  17.24390   0.00000        NA   6.364957  8.818243e-01
+    ## m10_9  108.8845  15.76447   4.01964   3.43047   9.554601  1.181757e-01
+    ## m10_6  991.1103 315.13238 886.24541 326.08968 107.333881 3.159632e-193
+    ## m10_7 1049.2754 315.02937 944.41052 326.65090  81.900773 7.400203e-206
 
 ``` r
 plot(compare(m10_6, m10_7, m10_8, m10_9))
@@ -880,7 +856,7 @@ plot(compare(m10_6, m10_7, m10_8, m10_9))
 exp(m10_9@coef[["bm"]])
 ```
 
-    ## [1] 0.9049048
+    ## [1] 0.9049241
 
 ``` r
 postcheck(m10_9)
@@ -1279,8 +1255,7 @@ d_pred %>%
 ### 10.2.2 MCM islands
 
   - verify that the MAP estimates made above accurately describe the
-    shape of the posterior by fitting with
-    MCMC
+    shape of the posterior by fitting with MCMC
 
 <!-- end list -->
 
@@ -1288,34 +1263,11 @@ d_pred %>%
 m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2.5e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.25 seconds.
+    ## Chain 1: Gradient evaluation took 1.6e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.16 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -1332,15 +1284,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.313352 seconds (Warm-up)
-    ## Chain 1:                0.602162 seconds (Sampling)
-    ## Chain 1:                0.915514 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.306747 seconds (Warm-up)
+    ## Chain 1:                0.542121 seconds (Sampling)
+    ## Chain 1:                0.848868 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 8e-06 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
+    ## Chain 2: Gradient evaluation took 6e-06 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -1357,15 +1309,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.437639 seconds (Warm-up)
-    ## Chain 2:                0.632751 seconds (Sampling)
-    ## Chain 2:                1.07039 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.31511 seconds (Warm-up)
+    ## Chain 2:                0.509358 seconds (Sampling)
+    ## Chain 2:                0.824468 seconds (Total)
     ## Chain 2: 
     ## 
-    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 3).
     ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 8e-06 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
+    ## Chain 3: Gradient evaluation took 2e-05 seconds
+    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
     ## Chain 3: Adjust your expectations accordingly!
     ## Chain 3: 
     ## Chain 3: 
@@ -1382,15 +1334,15 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.378785 seconds (Warm-up)
-    ## Chain 3:                0.618099 seconds (Sampling)
-    ## Chain 3:                0.996884 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.319645 seconds (Warm-up)
+    ## Chain 3:                0.558215 seconds (Sampling)
+    ## Chain 3:                0.87786 seconds (Total)
     ## Chain 3: 
     ## 
-    ## SAMPLING FOR MODEL '8b8d6d0ba4d4a4b7a70d44992818a53f' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 4).
     ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 6e-06 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
+    ## Chain 4: Gradient evaluation took 7e-06 seconds
+    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
     ## Chain 4: Adjust your expectations accordingly!
     ## Chain 4: 
     ## Chain 4: 
@@ -1407,9 +1359,9 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
     ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.392125 seconds (Warm-up)
-    ## Chain 4:                0.542395 seconds (Sampling)
-    ## Chain 4:                0.93452 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.309799 seconds (Warm-up)
+    ## Chain 4:                0.531185 seconds (Sampling)
+    ## Chain 4:                0.840984 seconds (Total)
     ## Chain 4:
 
     ## Computing WAIC
@@ -1418,11 +1370,11 @@ m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
 precis(m10_10_stan)
 ```
 
-    ##            mean         sd       5.5%     94.5%    n_eff     Rhat4
-    ## a    0.93389061 0.36832229  0.3421917 1.5250656 2815.741 0.9997277
-    ## bp   0.26449956 0.03543803  0.2066513 0.3214904 2824.928 0.9998159
-    ## bc  -0.10597410 0.84915292 -1.4868720 1.2513143 2327.525 1.0003112
-    ## bpc  0.04450725 0.09290992 -0.1039679 0.1940830 2360.142 1.0004414
+    ##            mean         sd       5.5%     94.5%    n_eff    Rhat4
+    ## a    0.93343837 0.35388776  0.3587592 1.4814245 3285.362 1.001707
+    ## bp   0.26448526 0.03403057  0.2112632 0.3198451 3302.021 1.001876
+    ## bc  -0.08465070 0.82696216 -1.4025301 1.2376410 3150.089 1.000979
+    ## bpc  0.04216315 0.09063509 -0.1031858 0.1880385 3117.835 1.000841
 
 ``` r
 plot(m10_10_stan)
@@ -1478,34 +1430,11 @@ m10_10_stan_c <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
     ## 
-    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 1).
     ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
+    ## Chain 1: Gradient evaluation took 1.8e-05 seconds
+    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
     ## Chain 1: Adjust your expectations accordingly!
     ## Chain 1: 
     ## Chain 1: 
@@ -1522,15 +1451,15 @@ m10_10_stan_c <- map2stan(
     ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.057338 seconds (Warm-up)
-    ## Chain 1:                0.10109 seconds (Sampling)
-    ## Chain 1:                0.158428 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.062736 seconds (Warm-up)
+    ## Chain 1:                0.097876 seconds (Sampling)
+    ## Chain 1:                0.160612 seconds (Total)
     ## Chain 1: 
     ## 
-    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 2).
     ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 8e-06 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.
+    ## Chain 2: Gradient evaluation took 2.8e-05 seconds
+    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.28 seconds.
     ## Chain 2: Adjust your expectations accordingly!
     ## Chain 2: 
     ## Chain 2: 
@@ -1547,12 +1476,12 @@ m10_10_stan_c <- map2stan(
     ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.053119 seconds (Warm-up)
-    ## Chain 2:                0.099911 seconds (Sampling)
-    ## Chain 2:                0.15303 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.063624 seconds (Warm-up)
+    ## Chain 2:                0.100832 seconds (Sampling)
+    ## Chain 2:                0.164456 seconds (Total)
     ## Chain 2: 
     ## 
-    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 3).
     ## Chain 3: 
     ## Chain 3: Gradient evaluation took 6e-06 seconds
     ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
@@ -1572,12 +1501,12 @@ m10_10_stan_c <- map2stan(
     ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.061875 seconds (Warm-up)
-    ## Chain 3:                0.104505 seconds (Sampling)
-    ## Chain 3:                0.16638 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.048842 seconds (Warm-up)
+    ## Chain 3:                0.105713 seconds (Sampling)
+    ## Chain 3:                0.154555 seconds (Total)
     ## Chain 3: 
     ## 
-    ## SAMPLING FOR MODEL 'c589397f7e2b7787207fe5d8257c8d10' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 4).
     ## Chain 4: 
     ## Chain 4: Gradient evaluation took 6e-06 seconds
     ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
@@ -1597,9 +1526,9 @@ m10_10_stan_c <- map2stan(
     ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
     ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.053745 seconds (Warm-up)
-    ## Chain 4:                0.083814 seconds (Sampling)
-    ## Chain 4:                0.137559 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.050584 seconds (Warm-up)
+    ## Chain 4:                0.109661 seconds (Sampling)
+    ## Chain 4:                0.160245 seconds (Total)
     ## Chain 4:
 
     ## Computing WAIC
@@ -1609,10 +1538,10 @@ precis(m10_10_stan_c)
 ```
 
     ##           mean         sd        5.5%     94.5%    n_eff     Rhat4
-    ## a   3.31211115 0.08803574  3.16829054 3.4499535 3668.477 1.0001824
-    ## bp  0.26243043 0.03539480  0.20582172 0.3192452 4501.052 1.0000469
-    ## bc  0.28351337 0.11558201  0.09742375 0.4667983 3656.985 0.9998995
-    ## bcp 0.06956193 0.16888891 -0.19728697 0.3409903 5417.343 1.0006650
+    ## a   3.30958348 0.08969397  3.16619500 3.4485627 3704.475 1.0000835
+    ## bp  0.26279100 0.03494568  0.20658046 0.3176263 4748.530 1.0001081
+    ## bc  0.28633303 0.11742884  0.09794991 0.4754851 3863.480 1.0002169
+    ## bcp 0.06699003 0.16995322 -0.20517522 0.3342323 5237.044 0.9999841
 
 ``` r
 plot(m10_10_stan_c)
@@ -1957,7 +1886,12 @@ m10_17 <- quap(
     ),
     data = career_data
 )
+```
 
+    ## Warning in if (class(prob) == "matrix") {: the condition has length > 1 and only
+    ## the first element will be used
+
+``` r
 precis(m10_17)
 ```
 
@@ -2040,30 +1974,6 @@ m_pois <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-
     ## Computing WAIC
 
 ``` r
@@ -2096,7 +2006,7 @@ k <- as.numeric(coef(m_pois))
 exp(k[1]) / (exp(k[1]) + exp(k[2]))
 ```
 
-    ## [1] 0.3876319
+    ## [1] 0.3874979
 
   - the inferences are the same
 
@@ -2325,30 +2235,6 @@ m10h_2 <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-
     ## Computing WAIC
 
 ``` r
@@ -2368,8 +2254,8 @@ precis(m10h_2)
     ## 7 vector or matrix parameters hidden. Use depth=2 to show them.
 
     ##           mean        sd       5.5%     94.5%    n_eff     Rhat4
-    ## bp   0.8308147 0.2624006  0.4169724 1.2488090 2425.713 1.0009298
-    ## bpc -0.1327711 0.2981443 -0.6170647 0.3407565 3302.758 0.9997208
+    ## bp   0.8403843 0.2572503  0.4320854 1.2593873 2474.788 1.0013597
+    ## bpc -0.1390248 0.3022528 -0.6228900 0.3453836 3655.271 0.9995638
 
 ``` r
 m10h_1_link <- extract.samples(m10h_1, clean = FALSE) %>%
@@ -2414,30 +2300,6 @@ m10h_3 <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-
     ## Computing WAIC
 
 ``` r
@@ -2447,30 +2309,6 @@ m10h_4 <- map2stan(
     chains = 3, iter = 2e3, warmup = 500, cores = 3
 )
 ```
-
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
 
     ## Computing WAIC
 
@@ -2482,30 +2320,6 @@ m10h_5 <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-
     ## Computing WAIC
 
 ``` r
@@ -2513,10 +2327,10 @@ compare(m10h_2, m10h_3, m10h_4, m10h_5)
 ```
 
     ##            WAIC        SE    dWAIC      dSE     pWAIC       weight
-    ## m10h_2 530.0120 19.912931   0.0000       NA 8.4052490 1.000000e+00
-    ## m10h_4 680.4815  9.315566 150.4695 19.20680 1.9923383 2.118214e-33
-    ## m10h_5 682.4296  9.360527 152.4176 19.14514 3.0437174 7.997284e-34
-    ## m10h_3 687.9198  7.022425 157.9079 19.88204 0.9885724 5.137414e-35
+    ## m10h_2 529.8900 19.969422   0.0000       NA 8.3479741 1.000000e+00
+    ## m10h_4 680.5999  9.344300 150.7099 19.24396 2.0520918 1.878275e-33
+    ## m10h_5 682.3688  9.480240 152.4788 19.19259 3.0144773 7.756330e-34
+    ## m10h_3 687.9294  7.176113 158.0393 19.96052 0.9943216 4.810575e-35
 
 **10H3. The data contained in `library(MASS);data(eagles)` are records
 of salmon pirating attempts by Bald Eagles in Washington State. See
@@ -2566,51 +2380,27 @@ m10h3_1_stan <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-
     ## Computing WAIC
 
 ``` r
 precis(m10h3_1)
 ```
 
-    ##               mean        sd       5.5%     94.5%
-    ## alpha     0.591543 0.6622741 -0.4668989  1.649985
-    ## b_psize   4.241824 0.8960189  2.8098125  5.673835
-    ## b_vsize  -4.592608 0.9613953 -6.1291039 -3.056113
-    ## b_padult  1.081411 0.5339213  0.2281017  1.934720
+    ##                mean        sd       5.5%     94.5%
+    ## alpha     0.5914738 0.6622702 -0.4669619  1.649909
+    ## b_psize   4.2418279 0.8960177  2.8098185  5.673837
+    ## b_vsize  -4.5925693 0.9613897 -6.1290558 -3.056083
+    ## b_padult  1.0814609 0.5339219  0.2281506  1.934771
 
 ``` r
 precis(m10h3_1_stan)
 ```
 
     ##                mean        sd       5.5%     94.5%    n_eff     Rhat4
-    ## alpha     0.6526202 0.6939466 -0.4164580  1.816973 1371.140 1.0006131
-    ## b_psize   4.6674406 1.0302069  3.2222577  6.405983 1021.768 0.9995875
-    ## b_vsize  -5.0674348 1.0940104 -6.9311348 -3.463096 1122.801 0.9997783
-    ## b_padult  1.1506664 0.5591677  0.2846772  2.045080 1411.255 1.0012064
+    ## alpha     0.6558778 0.6894632 -0.4258674  1.766055 1404.090 0.9998688
+    ## b_psize   4.6313846 0.9646882  3.2190820  6.275450 1388.673 0.9997662
+    ## b_vsize  -5.0396598 1.0048863 -6.6805765 -3.508317 1454.409 0.9993940
+    ## b_padult  1.1314736 0.5531476  0.2192818  1.970850 1529.977 1.0005094
 
 ``` r
 m10h3_1_samples <- extract.samples(m10h3_1, 
@@ -2649,8 +2439,7 @@ map2stan estimates. Then plot the posterior predictions. Compute and
 display both (1) the predicted probability of success and its 89%
 interval for each row (i) in the data, as well as (2) the predicted
 success count and its 89% interval. What different information does each
-type of posterior prediction
-    provide?**
+type of posterior prediction provide?**
 
 ``` r
 post <- link(m10h3_1_stan)

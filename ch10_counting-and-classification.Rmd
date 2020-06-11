@@ -4,7 +4,7 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, dpi = 300)
 
 library(glue)
 library(broom)
@@ -29,6 +29,8 @@ conflict_prefer("Position", "ggplot2")
 
 # To be able to use 'MASS':
 conflict_prefer("area", "patchwork")
+
+options(dplyr.summarise.inform = FALSE)
 
 theme_set(theme_minimal())
 source_scripts()
@@ -212,7 +214,6 @@ plot(compare(m10_1, m10_2, m10_3))
     * interpreting the plot
         - the chimps, on average, tended to pull the prosocial option on the left ("1,0" and "1,1")
         - the partner condition did not seem to matter because the heights of the lines did not tend to move when the condition was changed and hand of the lever was held constant
-    
 
 ```{r}
 d_pred <- tibble(
