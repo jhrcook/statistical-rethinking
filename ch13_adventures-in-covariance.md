@@ -123,9 +123,7 @@ N_cafes <- 20
 library(MASS)
 
 set.seed(5)
-vary_effects <- mvrnorm(n = N_cafes,
-                        mu = Mu,
-                        Sigma = Sigma)
+vary_effects <- mvrnorm(n = N_cafes, mu = Mu, Sigma = Sigma)
 head(vary_effects)
 ```
 
@@ -368,3 +366,120 @@ tribble(
 ```
 
 ![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+  - consider the shrinkage
+      - the inferred correlation between varying effects pooled
+        information across them
+      - and the inferred variation within each varying effect was pooled
+      - together the variances and correlation define a multivariate
+        Gaussian prior for the varying effects
+      - this prior regularizes the intercepts and slopes
+  - plot the posterior mean varying effects
+      - compare them to the raw, unpooled estimates
+      - also plot the inferred prior for the population of intercepts
+        and slopes
+
+> There is something wrong with the following 2 plots, but I cannot
+> figure out what went wrong.
+
+``` r
+# Raw, unpooled estimates for alpha and beta.
+a1 <- map_dbl(1:N_cafes, function(i) {
+    mean(d$wait[d$cafe == i & d$afternoon == 0])
+})
+
+b1 <- map_dbl(1:N_cafes, function(i) {
+    mean(d$wait[d$cafe == i & d$afternoon == 1])
+})
+b1 <- b1 - a1
+
+# Extract posterior means of partially pooled estimates.
+post <- extract.samples(m13_1)
+a2 <- apply(post$a_cafe, 2, mean)
+b2 <- apply(post$b_cafe, 2, mean)
+
+tribble(
+    ~ name, ~ a, ~ b,
+    "unpooled", a1, b1,
+    "pooled", a2, b2
+) %>%
+    unnest(c(a, b)) %>%
+    group_by(name) %>%
+    mutate(cafe = row_number()) %>%
+    ungroup() %>%
+    ggplot(aes(x = a, y = b)) +
+    geom_point(aes(color = name)) +
+    geom_line(aes(group = cafe))
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+  - can do the same for the estimated wait times for each cafe in the
+    morning and afternoon
+
+<!-- end list -->
+
+``` r
+tribble(
+    ~ name, ~ morning_wait, ~ afternoon_wait,
+    "unpooled", a1, a1 + b1,
+    "pooled", a2, a2 + b2
+) %>%
+    unnest(c(morning_wait, afternoon_wait)) %>%
+    group_by(name) %>%
+    mutate(cafe = row_number()) %>%
+    ungroup() %>%
+    ggplot(aes(x = morning_wait, y = afternoon_wait)) +
+    geom_point(aes(color = name)) +
+    geom_line(aes(group = cafe))
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+## 13.2 Example: Admission decisions and gender
+
+  - return to the admissions data and use varying slopes
+      - help appreciate how variation in slopes arises
+      - and how correlation between intercepts and slopes can provide
+        insight into the underlying process
+  - from previous models of the `UCBadmit` data:
+      - important to have varying means across department otherwise, get
+        wrong inference about gender
+      - did not account for variation in how departments treat male and
+        female applications
+
+<!-- end list -->
+
+``` r
+data("UCBadmit")
+d <- as_tibble(UCBadmit) %>%
+    janitor::clean_names() %>%
+    mutate(male = as.numeric(applicant_gender == "male"),
+           dept_id = coerce_index(dept))
+```
+
+### 13.2.1 Varying intercepts
+
+  - first model with only the varying intercepts
+
+\[
+A_i \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{dept}[i]} + \beta m_i \\
+\alpha_\text{dept} \sim \text{Normal}(\alpha, \sigma) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta \sim \text{Normal}(0, 1) \\
+\sigma \sim \text{HalfCauchy}(0, 2) \\
+\]
+
+``` r
+# m13_2 <- map2stan(
+#     alist(
+#         admit ~ dbinom(applications, p),
+#         logit(p) <- a_dept[dept_id] + bm*bmale,
+#         a_dept[dept_id] ~ dnorm(a, sigma_dept),
+#         a ~ dnorm(0, 10),
+#         bm ~ dnorm(0, 1),
+#         sigma_dept ~ dca
+#     )
+# )
+```
