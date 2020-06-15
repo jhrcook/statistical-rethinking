@@ -83,9 +83,9 @@ Sigma <- matrix(c(sigma_a^2, cov_ab, cov_ab, sigma_b^2), nrow = 2)
 Sigma
 ```
 
-    ##       [,1]  [,2]
-    ## [1,]  1.00 -0.35
-    ## [2,] -0.35  0.25
+    #>       [,1]  [,2]
+    #> [1,]  1.00 -0.35
+    #> [2,] -0.35  0.25
 
   - another way to build the variance-covariance matrix using matrix
     multiplication
@@ -100,9 +100,9 @@ Sigma <- diag(sigmas) %*% Rho %*% diag(sigmas)
 Sigma
 ```
 
-    ##       [,1]  [,2]
-    ## [1,]  1.00 -0.35
-    ## [2,] -0.35  0.25
+    #>       [,1]  [,2]
+    #> [1,]  1.00 -0.35
+    #> [2,] -0.35  0.25
 
   - now can simulate 20 cafes, each with their own intercept and slope
 
@@ -127,13 +127,13 @@ vary_effects <- mvrnorm(n = N_cafes, mu = Mu, Sigma = Sigma)
 head(vary_effects)
 ```
 
-    ##          [,1]       [,2]
-    ## [1,] 4.223962 -1.6093565
-    ## [2,] 2.010498 -0.7517704
-    ## [3,] 4.565811 -1.9482646
-    ## [4,] 3.343635 -1.1926539
-    ## [5,] 1.700971 -0.5855618
-    ## [6,] 4.134373 -1.1444539
+    #>          [,1]       [,2]
+    #> [1,] 4.223962 -1.6093565
+    #> [2,] 2.010498 -0.7517704
+    #> [3,] 4.565811 -1.9482646
+    #> [4,] 3.343635 -1.1926539
+    #> [5,] 1.700971 -0.5855618
+    #> [6,] 4.134373 -1.1444539
 
 ``` r
 # Split into separate vectors for ease of use later.
@@ -142,7 +142,7 @@ b_cafe <- vary_effects[, 2]
 cor(a_cafe, b_cafe)
 ```
 
-    ## [1] -0.5721537
+    #> [1] -0.5721537
 
   - plot of the varying effects
 
@@ -182,20 +182,20 @@ d <- tibble(cafe = cafe_id, afternoon, wait = wait_times)
 d
 ```
 
-    ## # A tibble: 200 x 3
-    ##     cafe afternoon  wait
-    ##    <int>     <int> <dbl>
-    ##  1     1         0  5.00
-    ##  2     1         1  2.21
-    ##  3     1         0  4.19
-    ##  4     1         1  3.56
-    ##  5     1         0  4.00
-    ##  6     1         1  2.90
-    ##  7     1         0  3.78
-    ##  8     1         1  2.38
-    ##  9     1         0  3.86
-    ## 10     1         1  2.58
-    ## # … with 190 more rows
+    #> # A tibble: 200 x 3
+    #>     cafe afternoon  wait
+    #>    <int>     <int> <dbl>
+    #>  1     1         0  5.00
+    #>  2     1         1  2.21
+    #>  3     1         0  4.19
+    #>  4     1         1  3.56
+    #>  5     1         0  4.00
+    #>  6     1         1  2.90
+    #>  7     1         0  3.78
+    #>  8     1         1  2.38
+    #>  9     1         0  3.86
+    #> 10     1         1  2.58
+    #> # … with 190 more rows
 
 ``` r
 d %>%
@@ -324,18 +324,18 @@ stash("m13_1", {
 })
 ```
 
-    ## Loading stashed object.
+    #> Loading stashed object.
 
 ``` r
 precis(m13_1, depth = 1)
 ```
 
-    ## 46 vector or matrix parameters hidden. Use depth=2 to show them.
+    #> 46 vector or matrix parameters hidden. Use depth=2 to show them.
 
-    ##             mean         sd      5.5%      94.5%    n_eff     Rhat4
-    ## a      3.7411232 0.22805989  3.386143  4.1040327 6673.815 0.9998308
-    ## b     -1.2443621 0.13662408 -1.458389 -1.0304374 5965.979 0.9999912
-    ## sigma  0.4648216 0.02624559  0.424598  0.5085003 6410.601 0.9999077
+    #>             mean         sd      5.5%      94.5%    n_eff     Rhat4
+    #> a      3.7411232 0.22805989  3.386143  4.1040327 6673.815 0.9998308
+    #> b     -1.2443621 0.13662408 -1.458389 -1.0304374 5965.979 0.9999912
+    #> sigma  0.4648216 0.02624559  0.424598  0.5085003 6410.601 0.9999077
 
   - inspection of the posteior distribution of varying effects
       - start with the posterior correlation between intercepts and
@@ -472,14 +472,197 @@ A_i \sim \text{Binomial}(n_i, p_i) \\
 \]
 
 ``` r
-# m13_2 <- map2stan(
-#     alist(
-#         admit ~ dbinom(applications, p),
-#         logit(p) <- a_dept[dept_id] + bm*bmale,
-#         a_dept[dept_id] ~ dnorm(a, sigma_dept),
-#         a ~ dnorm(0, 10),
-#         bm ~ dnorm(0, 1),
-#         sigma_dept ~ dca
-#     )
-# )
+stash("m13_2", {
+    m13_2 <- map2stan(
+        alist(
+            admit ~ dbinom(applications, p),
+            logit(p) <- a_dept[dept_id] + bm*male,
+            a_dept[dept_id] ~ dnorm(a, sigma_dept),
+            a ~ dnorm(0, 10),
+            bm ~ dnorm(0, 1),
+            sigma_dept ~ dcauchy(0, 2)
+        ),
+        data = d,
+        warmup = 500, iter = 4500, chains = 3
+    )
+})
 ```
+
+    #> Loading stashed object.
+
+``` r
+precis(m13_2, depth = 2)
+```
+
+    #>                   mean         sd       5.5%       94.5%     n_eff     Rhat4
+    #> a_dept[1]   0.67633553 0.09912824  0.5172706  0.83647836  7434.742 0.9998820
+    #> a_dept[2]   0.62865617 0.11487786  0.4462060  0.81244427  7451.327 0.9999420
+    #> a_dept[3]  -0.58407578 0.07381761 -0.7037524 -0.46666875  9691.393 1.0000113
+    #> a_dept[4]  -0.61607540 0.08473505 -0.7513828 -0.47998152  8592.307 0.9998870
+    #> a_dept[5]  -1.05883405 0.09832475 -1.2173306 -0.90286742 12118.564 0.9999736
+    #> a_dept[6]  -2.60914320 0.15654731 -2.8607355 -2.36390139 10442.752 1.0000161
+    #> a          -0.61042302 0.67864636 -1.6337291  0.40209932  5772.182 1.0004375
+    #> bm         -0.09471168 0.08101324 -0.2257535  0.03522607  5929.314 1.0000314
+    #> sigma_dept  1.49095940 0.58217912  0.8576455  2.52329901  5681.029 1.0003271
+
+  - interpretation
+      - effect of male is similar that found in Chapter 10 (“Counting
+        and Classification”)
+          - the intercept is effectively uninteresting, if perhaps
+            slightly negative
+      - because we included the global mean \(\alpha\) in the prior for
+        the varying intercepts, the `a_dept[i]` values are all
+        deviations from `a`
+
+### 13.2.2 Varying effects of being male
+
+  - now we can consider the variation in gender bias among departments
+      - use varying slopes
+  - the data is *imbalanced*
+      - the sample sizes vary a lot across departments
+      - pooling will have a stronger effect for cases with fewer
+        applicants
+
+$$ A\_i (n\_i, p\_i) \\ (p\_i) = *{\[i\]} + *{\[i\]} m\_i \\
+
+(
+
+, ) \\
+
+(0, 10) \\ (0, 1) \\
+
+\=
+
+\\
+
+(*, *) (0, 2) \\  (2) $$
+
+``` r
+stash("m13_3", {
+    m13_3 <- map2stan(
+        alist(
+            admit ~ dbinom(applications, p),
+            logit(p) <- a_dept[dept_id] + bm_dept[dept_id]*male,
+            c(a_dept, bm_dept)[dept_id] ~ dmvnorm2(c(a, bm), sigma_dept, Rho),
+            a ~ dnorm(0, 10),
+            bm ~ dnorm(0, 1),
+            sigma_dept ~ dcauchy(0, 2),
+            Rho ~ dlkjcorr(2)
+        ),
+        data = d,
+        warmup = 1e3, iter = 5e3, chains = 4
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+precis(m13_3, depth = 2)
+```
+
+    #> 4 matrix parameters hidden. Use depth=3 to show them.
+
+    #>                      mean         sd       5.5%      94.5%     n_eff     Rhat4
+    #> bm_dept[1]    -0.79410911 0.26621581 -1.2314113 -0.3769640  7777.776 1.0001133
+    #> bm_dept[2]    -0.21452957 0.32827223 -0.7442305  0.2976597  7706.047 1.0002087
+    #> bm_dept[3]     0.08210299 0.13916525 -0.1436567  0.3047949 14294.571 1.0001411
+    #> bm_dept[4]    -0.09107295 0.14166835 -0.3189406  0.1369298 12245.517 1.0003159
+    #> bm_dept[5]     0.12616695 0.18522579 -0.1659927  0.4251783 13979.943 0.9998708
+    #> bm_dept[6]    -0.12371601 0.26875987 -0.5601516  0.3021377 11343.429 1.0000722
+    #> a_dept[1]      1.30684485 0.25312427  0.9145892  1.7201724  7768.113 1.0000828
+    #> a_dept[2]      0.74419573 0.32704100  0.2349881  1.2721056  7974.643 1.0001940
+    #> a_dept[3]     -0.64703547 0.08559338 -0.7820730 -0.5101126 15352.790 1.0001005
+    #> a_dept[4]     -0.61945023 0.10575932 -0.7888304 -0.4512668 12336.691 1.0001413
+    #> a_dept[5]     -1.13473049 0.11377576 -1.3178663 -0.9556382 14357.673 0.9999653
+    #> a_dept[6]     -2.60003282 0.19884720 -2.9234768 -2.2882146 13404.431 1.0000262
+    #> a             -0.50152540 0.73756490 -1.6147961  0.6207689  8686.590 1.0001169
+    #> bm            -0.16333123 0.23571418 -0.5286623  0.1998200  8991.565 1.0000629
+    #> sigma_dept[1]  1.68379712 0.65077176  0.9809923  2.7911987  7190.902 1.0000942
+    #> sigma_dept[2]  0.50115741 0.25052608  0.2116896  0.9321738  7771.766 1.0003994
+
+  - focus on what the addition of varying slopes has revealed
+      - plot below shows marginal posterior distributions for the
+        varying effects
+      - the intercepts are quite varied, but the slopes are all quite
+        close to 0
+          - suggests that the departments had different rates of
+            admissions, but none discriminated between male and females
+          - one standout is the slope for deptartment 1 which suggests
+            some bias against females
+              - department 1 also has the largest intercept, so look
+                into the correlation between slopes and intercepts next
+
+<!-- end list -->
+
+``` r
+plot(precis(m13_3, pars = c("a_dept", "bm_dept"), depth = 2))
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+### 13.2.3 Shrinkage
+
+  - following plot shows the posterior distribution for the correlation
+    between slope and intercept
+      - negative correlation: the higher the admissions rate, the lower
+        the slope
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m13_3)
+tibble(posterior_rho = post$Rho[, 1, 2]) %>%
+    ggplot(aes(x = posterior_rho)) +
+    geom_density(size = 1.3, color = dark_grey, fill = grey, alpha = 0.2) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0))) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    labs(x = "correlation",
+         y = "density",
+         title = "Correlation of varying slopes and intercepts")
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+13.2.4 Model comparison
+
+  - also fit a model that ignores gender for purposes of comparison
+
+<!-- end list -->
+
+``` r
+stash("m13_4", {
+    m13_4 <- map2stan(
+        alist(
+            admit ~ dbinom(applications, p),
+            logit(p) <- a_dept[dept_id],
+            a_dept[dept_id] ~ dnorm(a, sigma_dept),
+            a ~ dnorm(0, 10),
+            sigma_dept ~ dcauchy(0, 2)
+        ),
+        data = d,
+        warmup = 500, iter = 4500, chains = 3
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+compare(m13_2, m13_3, m13_4)
+```
+
+    #>           WAIC       SE    dWAIC      dSE     pWAIC      weight
+    #> m13_3 5190.940 57.26937  0.00000       NA 11.094350 0.987737123
+    #> m13_4 5200.945 56.84874 10.00469 6.820917  5.939283 0.006639735
+    #> m13_2 5201.277 56.93248 10.33705 6.516639  6.864329 0.005623142
+
+  - interpretation:
+      - the model with no slope for differences in gender `m13_4`
+        performs the same out-of-sample performance as the model with a
+        single slope for a constant effect of gender `m13_2`
+      - the model with varying slopes suggests that even though the
+        slope is near zero, it is worth modeling as a separate
+        distribution
+
+## 13.3 Example: Cross-classified chimpanzees with varying slopes

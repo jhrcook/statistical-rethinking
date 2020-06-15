@@ -5,6 +5,7 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 
+                      comment = "#>",
                       cache = TRUE,
                       dpi = 300)
 
@@ -417,15 +418,131 @@ A_i \sim \text{Binomial}(n_i, p_i) \\
 $$
 
 ```{r}
-# m13_2 <- map2stan(
-#     alist(
-#         admit ~ dbinom(applications, p),
-#         logit(p) <- a_dept[dept_id] + bm*bmale,
-#         a_dept[dept_id] ~ dnorm(a, sigma_dept),
-#         a ~ dnorm(0, 10),
-#         bm ~ dnorm(0, 1),
-#         sigma_dept ~ dca
-#     )
-# )
+stash("m13_2", {
+    m13_2 <- map2stan(
+        alist(
+            admit ~ dbinom(applications, p),
+            logit(p) <- a_dept[dept_id] + bm*male,
+            a_dept[dept_id] ~ dnorm(a, sigma_dept),
+            a ~ dnorm(0, 10),
+            bm ~ dnorm(0, 1),
+            sigma_dept ~ dcauchy(0, 2)
+        ),
+        data = d,
+        warmup = 500, iter = 4500, chains = 3
+    )
+})
+
+precis(m13_2, depth = 2)
 ```
+
+- interpretation
+    * effect of male is similar that found in Chapter 10 ("Counting and Classification")
+        - the intercept is effectively uninteresting, if perhaps slightly negative
+    * because we included the global mean $\alpha$ in the prior for the varying intercepts, the `a_dept[i]` values are all deviations from `a`
+
+### 13.2.2 Varying effects of being male
+
+- now we can consider the variation in gender bias among departments
+    * use varying slopes
+- the data is *imbalanced*
+    * the sample sizes vary a lot across departments
+    * pooling will have a stronger effect for cases with fewer applicants
+
+$$
+A_i \sim \text{Binomial}(n_i, p_i) \\
+\text{logit}(p_i) = \alpha_{\text{dept}[i]} + \beta_{\text{dept}[i]} m_i \\
+
+\begin{bmatrix} \alpha_\text{dept} \\ \beta_\text{dept} \end{bmatrix} \sim 
+    \text{MVNorm}(\begin{bmatrix} \alpha \\ \beta \end{bmatrix}, \textbf{S}) \\
+
+\alpha \sim \text{Normal}(0, 10) \\
+\beta \sim \text{Normal}(0, 1) \\
+
+\textbf{S} = 
+    \begin{pmatrix} \sigma_\alpha & 0 \\ 0 & \sigma_\beta \end{pmatrix}
+    \textbf{R}
+    \begin{pmatrix} \sigma_\alpha & 0 \\ 0 & \sigma_\beta \end{pmatrix} \\
+
+(\sigma_\alpha, \sigma_\beta) \sim \text{HalfCauchy}(0, 2) \\
+\textbf{R} \sim \text{LKJcorr}(2)
+$$
+
+```{r}
+stash("m13_3", {
+    m13_3 <- map2stan(
+        alist(
+            admit ~ dbinom(applications, p),
+            logit(p) <- a_dept[dept_id] + bm_dept[dept_id]*male,
+            c(a_dept, bm_dept)[dept_id] ~ dmvnorm2(c(a, bm), sigma_dept, Rho),
+            a ~ dnorm(0, 10),
+            bm ~ dnorm(0, 1),
+            sigma_dept ~ dcauchy(0, 2),
+            Rho ~ dlkjcorr(2)
+        ),
+        data = d,
+        warmup = 1e3, iter = 5e3, chains = 4
+    )
+})
+
+precis(m13_3, depth = 2)
+```
+
+- focus on what the addition of varying slopes has revealed
+    * plot below shows marginal posterior distributions for the varying effects
+    * the intercepts are quite varied, but the slopes are all quite close to 0
+        - suggests that the departments had different rates of admissions, but none discriminated between male and females
+        - one standout is the slope for deptartment 1 which suggests some bias against females
+            * department 1 also has the largest intercept, so look into the correlation between slopes and intercepts next
+
+```{r}
+plot(precis(m13_3, pars = c("a_dept", "bm_dept"), depth = 2))
+```
+
+### 13.2.3 Shrinkage
+
+- following plot shows the posterior distribution for the correlation between slope and intercept
+    * negative correlation: the higher the admissions rate, the lower the slope
+
+```{r}
+post <- extract.samples(m13_3)
+tibble(posterior_rho = post$Rho[, 1, 2]) %>%
+    ggplot(aes(x = posterior_rho)) +
+    geom_density(size = 1.3, color = dark_grey, fill = grey, alpha = 0.2) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0))) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
+    labs(x = "correlation",
+         y = "density",
+         title = "Correlation of varying slopes and intercepts")
+```
+
+13.2.4 Model comparison
+
+- also fit a model that ignores gender for purposes of comparison
+
+```{r}
+stash("m13_4", {
+    m13_4 <- map2stan(
+        alist(
+            admit ~ dbinom(applications, p),
+            logit(p) <- a_dept[dept_id],
+            a_dept[dept_id] ~ dnorm(a, sigma_dept),
+            a ~ dnorm(0, 10),
+            sigma_dept ~ dcauchy(0, 2)
+        ),
+        data = d,
+        warmup = 500, iter = 4500, chains = 3
+    )
+})
+
+compare(m13_2, m13_3, m13_4)
+```
+
+- interpretation:
+    * the model with no slope for differences in gender `m13_4` performs the same out-of-sample performance as the model with a single slope for a constant effect of gender `m13_2`
+    * the model with varying slopes suggests that even though the slope is near zero, it is worth modeling as a separate distribution
+
+## 13.3 Example: Cross-classified chimpanzees with varying slopes
+
+
 
