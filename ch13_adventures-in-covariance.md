@@ -666,3 +666,252 @@ compare(m13_2, m13_3, m13_4)
         distribution
 
 ## 13.3 Example: Cross-classified chimpanzees with varying slopes
+
+  - use chimpanzee data to model multiple varying intercepts and/or
+    slopes
+      - varying intercepts for `actor` and `block`
+      - varying slopes for prosocial option and the interaction between
+        prosocial and the prescence of another chimpanzee
+  - *non-centered parameterization* (see later for explination and
+    example)
+      - there are always several ways to formulate a model that are
+        mathematically equivalent
+      - however, they can result in different sampling results, so the
+        parameterization is part of the model
+  - cross-classified varing slopes model
+      - use multiple linear models to compartmentalize sub-models for
+        the intercepts and each slope
+      - \(\mathcal{A}_i\), \(\mathcal{B}_{P,i}\), and
+        \(\mathcal{B}_{PC,i}\) are the sub-models
+
+\[
+L_i \sim \text{Binomial}(1, p_i) \\
+\text{logit}(p_i) = \mathcal{A}_i + (\mathcal{B}_{p,i} + \mathcal{B}_{PC,i} C_i) P_i \\
+\mathcal{A}_i = \alpha + \alpha_{\text{actor}[i]} + \alpha_{\text{block}[i]} \\
+\mathcal{B}_{P,i} = \beta_P + \beta_{P,\text{actor}[i]} + \beta_{P,\text{block}[i]} \\
+\mathcal{B}_{PC,i} = \beta_P + \beta_{PC,\text{actor}[i]} + \beta_{PC,\text{block}[i]} \\
+\]
+
+  - below is the formulation for the multivariate priors
+      - one multivariate Gaussian per cluster of the data (`actor` and
+        `block`)
+      - for this model, each is 3D, one for each variable in the model
+          - this can be adjusted to have different varying effects in
+            different cluster types
+      - these priors state that the actors and blocks come from
+        different statistical populations
+          - within each, three features for each actor or block are
+            related through a covariance matrix for the population
+            (\(\textbf{S}\))
+          - the mean for each prior is 0 because there is an average
+            value in the linear models already (\(\alpha\), \(\beta_P\),
+            and \(\beta_{PC,i}\))
+
+$$
+
+\\
+
+$$
+
+``` r
+data("chimpanzees")
+d <- as_tibble(chimpanzees) %>%
+    select(-recipient) %>%
+    rename(block_id = block)
+
+stash("m13_6", {
+    m13_6 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- A + (BP + BPC*condition) * prosoc_left,
+            A <- a + a_actor[actor] + a_block[block_id],
+            BP <- bp + bp_actor[actor] + bp_block[block_id],
+            BPC <- bpc + bpc_actor[actor] + bpc_block[block_id],
+            
+            c(a_actor, bp_actor, bpc_actor)[actor] ~ dmvnorm2(0, sigma_actor, Rho_actor),
+            c(a_block, bp_block, bpc_block)[block_id] ~ dmvnorm2(0, sigma_block, Rho_block),
+            
+            c(a, bp, bpc) ~ dnorm(0, 1),
+            sigma_actor ~ dcauchy(0, 2),
+            sigma_block ~ dcauchy(0, 2),
+            Rho_actor ~ dlkjcorr(4),
+            Rho_block ~ dlkjcorr(4)
+        ),
+        data = d,
+        iter = 5e3, warmup = 1e3, chains = 3
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+precis(m13_6, depth = 1)
+```
+
+    #> 63 vector or matrix parameters hidden. Use depth=2 to show them.
+
+    #>            mean        sd        5.5%     94.5%    n_eff    Rhat4
+    #> a    0.23573453 0.6666099 -0.90821904 1.2611100  934.458 1.001440
+    #> bp   0.70892674 0.4052890  0.05423901 1.3312395 3817.263 1.000350
+    #> bpc -0.03931986 0.4317621 -0.68617116 0.6610651 2216.997 1.001548
+
+  - there was an issue with the HMC sampling
+      - can often just do more sampling to get over it, but other times
+        the chains may not converge
+      - this is where *non-centered parameterization* can help
+
+> In map2stan(alist(pulled\_left \~ dbinom(1, p), logit(p) \<- A + (BP +
+> : There were 559 divergent iterations during sampling. Check the
+> chains (trace plots, n\_eff, Rhat) carefully to ensure they are valid.
+
+  - usee *non-centered parameterization* to help with potentially
+    diverging chains
+      - use an alternative parameterization of the model using
+        `dmvnormNC()`
+      - mathematically equivalent to the first
+
+<!-- end list -->
+
+``` r
+stash("m13_6nc", {
+    m13_6nc <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- A + (BP + BPC*condition) * prosoc_left,
+            A <- a + a_actor[actor] + a_block[block_id],
+            BP <- bp + bp_actor[actor] + bp_block[block_id],
+            BPC <- bpc + bpc_actor[actor] + bpc_block[block_id],
+            
+            c(a_actor, bp_actor, bpc_actor)[actor] ~ dmvnormNC(sigma_actor, Rho_actor),
+            c(a_block, bp_block, bpc_block)[block_id] ~ dmvnormNC(sigma_block, Rho_block),
+            
+            c(a, bp, bpc) ~ dnorm(0, 1),
+            sigma_actor ~ dcauchy(0, 2),
+            sigma_block ~ dcauchy(0, 2),
+            Rho_actor ~ dlkjcorr(4),
+            Rho_block ~ dlkjcorr(4)
+        ),
+        data = d,
+        iter = 5e3, warmup = 1e3, chains = 3
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+precis(m13_6nc, depth = 1)
+```
+
+    #> 120 vector or matrix parameters hidden. Use depth=2 to show them.
+
+    #>            mean        sd       5.5%     94.5%     n_eff     Rhat4
+    #> a    0.25351038 0.6573804 -0.7999981 1.2938998  4714.341 1.0005064
+    #> bp   0.71776740 0.4010091  0.0716376 1.3317852 10602.170 1.0003175
+    #> bpc -0.02295208 0.4303382 -0.6776100 0.6685359 11206.151 0.9999246
+
+  - the non-centered parameterization helped by sampling faster and more
+    effectively
+
+<!-- end list -->
+
+``` r
+get_neff <- function(mdl, depth) {
+    x <- precis(mdl, depth = depth)
+    neff_idx <- which(x@names == "n_eff")
+    x@.Data[neff_idx]
+}
+
+tibble(m13_6 = get_neff(m13_6, depth = 2),
+       m13_6nc = get_neff(m13_6nc, depth = 2)) %>%
+    pivot_longer(tidyselect::everything()) %>%
+    unnest(value) %>%
+    ggplot(aes(name, value)) +
+    geom_boxplot(outlier.shape = NA) +
+    ggbeeswarm::geom_quasirandom(color = grey, size = 2, alpha = 0.8) +
+    labs(x = "model",
+         y = "effective samples")
+```
+
+    #> 18 matrix parameters hidden. Use depth=3 to show them.
+
+    #> 75 matrix parameters hidden. Use depth=3 to show them.
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+
+  - can see the number of effective parameters is much smaller than the
+    real number
+
+<!-- end list -->
+
+``` r
+WAIC(m13_6nc)
+```
+
+    #>       WAIC     lppd  penalty  std_err
+    #> 1 534.7752 -249.032 18.35563 19.88306
+
+  - the standard deviation parameters of the random effects provides a
+    measure of how much regularization was applied
+      - the first index for each sigma is the varying intercept standard
+        deviation while the other two are the slopes
+      - the values are pretty small suggesting there was a good amount
+        of shrinkage
+
+<!-- end list -->
+
+``` r
+precis(m13_6nc, depth = 2, pars = c("sigma_actor", "sigma_block"))
+```
+
+    #>                     mean        sd       5.5%    94.5%    n_eff    Rhat4
+    #> sigma_actor[1] 2.3327748 0.9056939 1.31285970 3.952849 5816.898 1.000055
+    #> sigma_actor[2] 0.4537137 0.3627789 0.04461175 1.098381 7510.460 1.000236
+    #> sigma_actor[3] 0.5205115 0.4761865 0.03924063 1.385698 7414.251 1.000002
+    #> sigma_block[1] 0.2295740 0.2077322 0.01855211 0.598803 7343.314 1.000648
+    #> sigma_block[2] 0.5716266 0.4057379 0.07362251 1.274700 4560.184 1.000127
+    #> sigma_block[3] 0.5032187 0.4180730 0.04109647 1.243568 7119.573 1.000062
+
+  - compare the varying slopes model to the simpler varying intercepts
+    model from the previous chapter
+      - the results indicate that there isn’t too much difference
+        between the two models
+      - meaning there isn’t much difference in the slopes between
+        `actor` nor `block`
+
+<!-- end list -->
+
+``` r
+stash("m12_5", {
+    m12_5 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- a + a_actor[actor] + a_block[block_id] + (bp + bpc*condition)*prosoc_left,
+            a_actor[actor] ~ dnorm(0, sigma_actor),
+            a_block[block_id] ~ dnorm(0, sigma_block),
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 10),
+            bpc ~ dnorm(0, 10),
+            sigma_actor ~ dcauchy(0, 1),
+            sigma_block ~ dcauchy(0, 1)
+        ),
+        data = d,
+        warmup = 1e3,
+        iter = 6e3,
+        chains = 4
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+compare(m13_6nc, m12_5)
+```
+
+    #>             WAIC       SE  dWAIC      dSE    pWAIC    weight
+    #> m12_5   532.4494 19.66977 0.0000       NA 10.29711 0.7618593
+    #> m13_6nc 534.7752 19.88306 2.3258 4.070507 18.35563 0.2381407
+
+## 13.4 Continuous categories and the Gaussian process
