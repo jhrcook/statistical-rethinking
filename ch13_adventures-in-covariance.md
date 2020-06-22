@@ -55,7 +55,7 @@ rho <- -0.7     # correlation between intercepts and slopes
 ```
 
   - use these values to simulate a sample of cafes
-      - define the multivariate Gaussian with a vecotr of means and a
+      - define the multivariate Gaussian with a vector of means and a
         2x2 matrix of variances and covariances
 
 <!-- end list -->
@@ -218,7 +218,7 @@ d %>%
 
 ### 13.1.3 The varying slopes model
 
-  - model with varying intercepts and slopes (explination follows)
+  - model with varying intercepts and slopes (explanation follows)
 
 $$ W\_i (\_i, ) \\
 
@@ -274,10 +274,10 @@ $$ W\_i (\_i, ) \\
       - with additional varying slopes, there are more correlation
         parameters, but the \(\text{LKJcorr}\) prior will still work
       - the \(\text{LKJcorr}(2)\) prior defines a weakly informative
-        prior on \(\rho\) that is skeptical of extreeme correlations
-        near -1 and 1
+        prior on \(\rho\) that is skeptical of extreme correlations near
+        -1 and 1
       - it has a single parameter \(\eta\) that controls how “skeptical”
-        the prior is of large corrleations
+        the prior is of large correlations
           - if \(\eta=1\), the prior is flat from -1 to 1
           - a large value of \(\eta\) the mass of the distribution moves
             towards 0
@@ -337,7 +337,7 @@ precis(m13_1, depth = 1)
     #> b     -1.2443621 0.13662408 -1.458389 -1.0304374 5965.979 0.9999912
     #> sigma  0.4648216 0.02624559  0.424598  0.5085003 6410.601 0.9999077
 
-  - inspection of the posteior distribution of varying effects
+  - inspection of the posterior distribution of varying effects
       - start with the posterior correlation between intercepts and
         slopes
           - the posterior distribution of the correlation between
@@ -588,7 +588,7 @@ precis(m13_3, depth = 2)
         close to 0
           - suggests that the departments had different rates of
             admissions, but none discriminated between male and females
-          - one standout is the slope for deptartment 1 which suggests
+          - one standout is the slope for department 1 which suggests
             some bias against females
               - department 1 also has the largest intercept, so look
                 into the correlation between slopes and intercepts next
@@ -671,14 +671,14 @@ compare(m13_2, m13_3, m13_4)
     slopes
       - varying intercepts for `actor` and `block`
       - varying slopes for prosocial option and the interaction between
-        prosocial and the prescence of another chimpanzee
-  - *non-centered parameterization* (see later for explination and
+        prosocial and the presence of another chimpanzee
+  - *non-centered parameterization* (see later for explanation and
     example)
       - there are always several ways to formulate a model that are
         mathematically equivalent
       - however, they can result in different sampling results, so the
         parameterization is part of the model
-  - cross-classified varing slopes model
+  - cross-classified varying slopes model
       - use multiple linear models to compartmentalize sub-models for
         the intercepts and each slope
       - \(\mathcal{A}_i\), \(\mathcal{B}_{P,i}\), and
@@ -765,7 +765,7 @@ precis(m13_6, depth = 1)
 > : There were 559 divergent iterations during sampling. Check the
 > chains (trace plots, n\_eff, Rhat) carefully to ensure they are valid.
 
-  - usee *non-centered parameterization* to help with potentially
+  - use *non-centered parameterization* to help with potentially
     diverging chains
       - use an alternative parameterization of the model using
         `dmvnormNC()`
@@ -915,3 +915,223 @@ compare(m13_6nc, m12_5)
     #> m13_6nc 534.7752 19.88306 2.3258 4.070507 18.35563 0.2381407
 
 ## 13.4 Continuous categories and the Gaussian process
+
+  - so far, all varying intercepts and slopes were defined over
+    discrete, unordered categories
+      - now learn how to use continuous dimensions of variation
+          - e.g.: age, income, social standing
+  - *Gaussian process regression*: method for applying a varying effect
+    to continuous categories
+      - estimates a unique intercept/slope for any value in the variable
+        and applies shrinkage to these values
+      - simple outline of the process:
+          - calculate differences between all data points in the
+            category
+          - the model estimates a function for the covariance between
+            pairs of cases at each distance
+          - the coviariance function is the generalization of the
+            varying effects approach to continuous categories
+
+### 13.4.1 Example: Spatial autocorrelation in Oceanic tools
+
+  - in previous modeling of the Oceanic societies data, used a binary
+    contact predictor
+      - want to make a model that keeps this as a continuous variable
+      - many reasons why islands near each other would have similar
+        tools
+  - the process:
+      - define a distance matrix among the societies
+      - then estimate how similarity in tool counts depends on
+        geographic distance
+
+<!-- end list -->
+
+``` r
+data("islandsDistMatrix")
+Dmat <- islandsDistMatrix
+colnames(Dmat) <- c("Ml","Tiv","SC","Ya","Fi","Tr","Ch","Mn","To","Ha")
+round(Dmat, 1)
+```
+
+    #>             Ml Tiv  SC  Ya  Fi  Tr  Ch  Mn  To  Ha
+    #> Malekula   0.0 0.5 0.6 4.4 1.2 2.0 3.2 2.8 1.9 5.7
+    #> Tikopia    0.5 0.0 0.3 4.2 1.2 2.0 2.9 2.7 2.0 5.3
+    #> Santa Cruz 0.6 0.3 0.0 3.9 1.6 1.7 2.6 2.4 2.3 5.4
+    #> Yap        4.4 4.2 3.9 0.0 5.4 2.5 1.6 1.6 6.1 7.2
+    #> Lau Fiji   1.2 1.2 1.6 5.4 0.0 3.2 4.0 3.9 0.8 4.9
+    #> Trobriand  2.0 2.0 1.7 2.5 3.2 0.0 1.8 0.8 3.9 6.7
+    #> Chuuk      3.2 2.9 2.6 1.6 4.0 1.8 0.0 1.2 4.8 5.8
+    #> Manus      2.8 2.7 2.4 1.6 3.9 0.8 1.2 0.0 4.6 6.7
+    #> Tonga      1.9 2.0 2.3 6.1 0.8 3.9 4.8 4.6 0.0 5.0
+    #> Hawaii     5.7 5.3 5.4 7.2 4.9 6.7 5.8 6.7 5.0 0.0
+
+  - the likelihood and linear model for this model look the same as
+    before:
+      - Poisson likelihood with a varying intercept linear model with a
+        log link function
+      - the \(\gamma_{\text{society}}\) is the varying intercept
+      - regular coefficient for log population
+          - determine if accounting for spatial similarity will wash out
+            the association between log population and total number of
+            tools
+
+\[
+T_i \sim \text{Poisson}(\lambda_i) \\
+\log \lambda_i = \alpha + \gamma_{\text{society}[i]} + \beta_P \log P_i
+\]
+
+  - add in a multivariate prior for the intercepts for the Gaussian
+    process
+      - first is the 10-dimensional Gaussian prior for the intercepts
+      - \(\textbf{K}\) is the covariance matrix between any pairs of
+        societies \(i\) and \(j\)
+          - three new parameters: \(\eta\), \(\rho\), and \(\sigma\)
+          - the Gaussian shape comes from \(\exp(-\rho^2 D_{ij}^2)\)
+            where \(D_{ij}\) is the distance between societies \(i\) and
+            \(j\)
+              - says that the covariance between two societies declines
+                exponentially with the squared distance
+              - \(\rho\) determines the rate of decline (large =
+                declines rapidly with distance)
+              - the distance need not be squared, but usually is because
+                it is often a more realistic model and fits more easily
+          - \(\eta^2\) is the maximum covariance between two societies
+            \(i\) and \(j\)
+          - \(\delta_{ij}\sigma^2\) provides for extra covariance beyond
+            \(\eta^2\) when \(i=j\)
+              - the function \(\delta_{ij}\) is 1 when \(i=j\), else 0
+              - this only matters if there is more than one data point
+                per group (which there isn’t in the Oceanic example)
+              - therefore, \(sigma\) describes how the observations for
+                a single category covary
+
+\[
+\gamma \sim \text{MVNormal}([0, ..., 0], \textbf{K}) \\
+\textbf{K}_{ij} = \eta^2 \exp(-\rho^2 D_{ij}^2) + \delta_{ij}\sigma^2
+\]
+
+  - the full model
+      - create priors for \(\eta^2\) and \(\rho^2\) because is easier to
+        fit
+      - set \(\sigma\) as a small constant because it does not get used
+        in this model (see above)
+
+\[
+T_i \sim \text{Poisson}(\lambda_i) \\
+\log \lambda_i = \alpha + \gamma_{\text{society}[i]} + \beta_P \log P_i \\
+\gamma \sim \text{MVNormal}([0, ..., 0], \textbf{K}) \\
+\textbf{K}_{ij} = \eta^2 \exp(-\rho^2 D_{ij}^2) + \delta_{ij}(0.01) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_P \sim \text{Normal}(0, 1) \\
+\eta^2 \sim \text{HalfCauchy}(0, 1) \\
+\rho^2 \sim \text{HalfCauchy}(0, 1)
+\]
+
+  - fit using `map2stan()`
+      - use `GPL2()` in order to use a squared distance Gaussian process
+        prior
+
+<!-- end list -->
+
+``` r
+data("Kline2")
+d <- as_tibble(Kline2) %>%
+    mutate(society = row_number())
+
+stash("m13_7", {
+    m13_7 <- map2stan(
+        alist(
+            total_tools ~ dpois(lambda),
+            log(lambda) <- a + g[society] + bp*logpop,
+            g[society] ~ GPL2(Dmat, etasq, rhosq, 0.01),
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 1),
+            etasq ~ dcauchy(0, 1),
+            rhosq ~ dcauchy(0, 1)
+        ),
+        data = list(total_tools = d$total_tools,
+                    logpop = d$logpop,
+                    society = d$society,
+                    Dmat = islandsDistMatrix),
+        warmup = 2e3, iter = 1e4, chains = 4
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+plot(m13_7)
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+``` r
+precis(m13_7, depth=2)
+```
+
+    #>              mean         sd        5.5%      94.5%     n_eff    Rhat4
+    #> g[1]  -0.27856102  0.4398912 -0.99830940 0.34423072  3166.290 1.000329
+    #> g[2]  -0.13030314  0.4275290 -0.82517622 0.48309679  2920.299 1.000473
+    #> g[3]  -0.17472739  0.4129535 -0.85615406 0.39565329  2883.929 1.000473
+    #> g[4]   0.29041188  0.3673727 -0.27347655 0.81883438  2996.021 1.000574
+    #> g[5]   0.01904426  0.3632424 -0.54846932 0.52312820  2925.635 1.000645
+    #> g[6]  -0.46551126  0.3747591 -1.07984663 0.02455556  3013.954 1.000428
+    #> g[7]   0.08850494  0.3588191 -0.47706011 0.58111284  2959.900 1.000635
+    #> g[8]  -0.27052427  0.3616190 -0.84554239 0.21383134  2974.716 1.000614
+    #> g[9]   0.22699085  0.3398043 -0.28673166 0.70034159  3015.712 1.000794
+    #> g[10] -0.12811344  0.4518739 -0.83076660 0.55536172  4945.226 1.001099
+    #> a      1.30857523  1.1568335 -0.49441544 3.17347739  4408.741 1.000326
+    #> bp     0.24645057  0.1140199  0.06828176 0.42625222  5685.467 1.000516
+    #> etasq  0.33740391  0.5130216  0.04065684 0.99697571  5117.732 1.000657
+    #> rhosq  2.81525694 93.1286058  0.05231803 3.80800354 14877.678 1.000069
+
+  - interpretation:
+      - the coefficient for log population `bp` is the same as before
+        adding in the Gaussian process for varying intercepts
+          - the association between tool counts and population cannot be
+            explained by spatial correlations
+  - plot posterior of covariance functions using `rhosp` and `etasq`
+    samples
+
+<!-- end list -->
+
+``` r
+post <- extract.samples(m13_7)
+
+median_covar_df <- tibble(etasq = median(post$etasq),
+                          rhosq = median(post$rhosq),
+                          distance = seq(1, 10, length.out = 100)) %>%
+    mutate(density = etasq * exp(-rhosq * distance^2),
+           color = "median",
+           group = "median")
+
+sample_covar_df <- tibble(etasq = post$etasq[1:100],
+                          rhosq = post$rhosq[1:100]) %>%
+    mutate(group = as.character(row_number()),
+           distance = list(rep(seq(1, 10, length.out = 100), n()))) %>%
+    unnest(distance) %>%
+    mutate(density = etasq * exp(-rhosq * distance^2),
+           color = "posterior samples")
+
+bind_rows(median_covar_df, sample_covar_df) %>%
+    ggplot(aes(distance, density)) +
+    geom_line(aes(group = group, alpha = color, size = color, color = color)) +
+    scale_alpha_manual(values = c(0.8, 0.2)) +
+    scale_size_manual(values = c(2, 0.4)) +
+    scale_color_manual(values = c(blue, "grey20")) +
+    scale_y_continuous(limits = c(0, 1),
+                       expand = c(0, 0)) +
+    theme(legend.position = c(0.85, 0.7),
+          legend.title = element_blank()) +
+    labs(x = "distance (thousand km)",
+         y = "covariance",
+         title = "Posterior distribution of covariance functions")
+```
+
+    #> Warning: Removed 11100 row(s) containing missing values (geom_path).
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+  - consider the covariations among societies that are implied by the
+    posterior median
