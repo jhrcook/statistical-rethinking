@@ -1135,3 +1135,113 @@ bind_rows(median_covar_df, sample_covar_df) %>%
 
   - consider the covariations among societies that are implied by the
     posterior median
+      - first must pass the parameters back through the covariance
+        matrix \(\textbf{K}\)
+      - then convert \(\textbf{K}\) to a correlation matrix `Rho`
+
+<!-- end list -->
+
+``` r
+# 1. Create the covariance matrix K
+K <- matrix(0, nrow = 10, ncol = 10)
+for (i in 1:10) {
+    for (j in 1:10) {
+        K[i,j] <- median(post$etasq) * exp(-median(post$rhosq) * islandsDistMatrix[i,j]^2)
+    }
+}
+diag(K) <- median(post$etasq) + 0.01
+
+
+# 2. Convert K to a correlation matrix.
+Rho <- round(cov2cor(K), 2)
+# Add row and column names for convience.
+colnames(Rho) <- c("Ml", "Ti", "SC", "Ya", "Fi", "Tr", "Ch", "Mn", "To", "Ha")
+rownames(Rho) <- colnames(Rho)
+Rho
+```
+
+    #>      Ml   Ti   SC   Ya   Fi   Tr   Ch   Mn   To Ha
+    #> Ml 1.00 0.87 0.81 0.00 0.52 0.18 0.02 0.04 0.24  0
+    #> Ti 0.87 1.00 0.92 0.00 0.52 0.19 0.04 0.06 0.21  0
+    #> SC 0.81 0.92 1.00 0.00 0.37 0.30 0.07 0.11 0.12  0
+    #> Ya 0.00 0.00 0.00 1.00 0.00 0.09 0.37 0.34 0.00  0
+    #> Fi 0.52 0.52 0.37 0.00 1.00 0.02 0.00 0.00 0.76  0
+    #> Tr 0.18 0.19 0.30 0.09 0.02 1.00 0.26 0.72 0.00  0
+    #> Ch 0.02 0.04 0.07 0.37 0.00 0.26 1.00 0.53 0.00  0
+    #> Mn 0.04 0.06 0.11 0.34 0.00 0.72 0.53 1.00 0.00  0
+    #> To 0.24 0.21 0.12 0.00 0.76 0.00 0.00 0.00 1.00  0
+    #> Ha 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00  1
+
+  - a cluster of highly correlative islands Ml, Ti, and SC
+
+<!-- end list -->
+
+``` r
+long_Rho <- Rho %>%
+    as.data.frame() %>%
+    rownames_to_column(var = "island1") %>%
+    as_tibble() %>%
+    mutate(island1 = fct_inorder(island1)) %>%
+    pivot_longer(-island1, names_to = "island2") %>%
+    mutate(island2 = factor(island2, levels = levels(island1)),
+           island2 = fct_rev(island2)) 
+long_Rho %>%
+    ggplot(aes(island1, island2)) +
+    geom_tile(aes(fill = value)) +
+    scale_fill_gradient2(low = blue, mid = "grey90", high = red, midpoint = 0.5) +
+    scale_x_discrete(expand = c(0, 0)) +
+    scale_y_discrete(expand = c(0, 0))
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+
+``` r
+Rho_gr <- as_tbl_graph(Rho, directed = FALSE) %N>%
+    left_join(d %>% mutate(name = colnames(Rho)), 
+              by = "name")
+gr_layout <- create_layout(Rho_gr, layout = "nicely")
+gr_layout$x <- d$lon2[match(colnames(Rho), gr_layout$name)]
+gr_layout$y <- d$lat[match(colnames(Rho), gr_layout$name)]
+
+ggraph(gr_layout) +
+    geom_edge_link(aes(alpha = weight, width = weight),
+                   lineend = "round", linejoin = "round") +
+    geom_node_point(aes(size = logpop), color = blue) +
+    geom_node_text(aes(label = culture), repel = TRUE, size = 4) +
+    scale_edge_width_continuous(range = c(1, 3)) +
+    scale_edge_alpha_continuous(range = c(0.1, 0.6)) +
+    scale_size_continuous(range = c(2, 10)) +
+    theme_bw() +
+    labs(x = "longitude",
+         y = "latitude",
+         size = "log-pop",
+         edge_width = "correlation",
+         edge_alpha = "correlation")
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+gr_layout <- create_layout(Rho_gr, layout = "nicely")
+gr_layout$x <- d$logpop[match(colnames(Rho), gr_layout$name)]
+gr_layout$y <- d$total_tools[match(colnames(Rho), gr_layout$name)]
+
+ggraph(gr_layout) +
+    geom_edge_link(aes(alpha = weight, width = weight),
+                   lineend = "round", linejoin = "round") +
+    geom_node_point(aes(size = logpop), color = blue) +
+    geom_node_text(aes(label = culture), repel = TRUE, size = 4) +
+    scale_edge_width_continuous(range = c(1, 3)) +
+    scale_edge_alpha_continuous(range = c(0.1, 0.6)) +
+    scale_size_continuous(range = c(2, 10)) +
+    theme_bw() +
+    labs(x = "log population",
+         y = "total tools",
+         size = "log-pop",
+         edge_width = "correlation",
+         edge_alpha = "correlation")
+```
+
+![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
+
+  - interpretation of above plots:

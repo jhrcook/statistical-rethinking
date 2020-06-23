@@ -15,6 +15,8 @@ library(magrittr)
 library(broom)
 library(patchwork)
 library(MASS)
+library(tidygraph)
+library(ggraph)
 library(rethinking)
 library(tidyverse)
 library(conflicted)
@@ -868,3 +870,90 @@ bind_rows(median_covar_df, sample_covar_df) %>%
 ```
 
 - consider the covariations among societies that are implied by the posterior median
+    * first must pass the parameters back through the covariance matrix $\textbf{K}$ 
+    * then convert $\textbf{K}$ to a correlation matrix `Rho`
+
+```{r}
+# 1. Create the covariance matrix K
+K <- matrix(0, nrow = 10, ncol = 10)
+for (i in 1:10) {
+    for (j in 1:10) {
+        K[i,j] <- median(post$etasq) * exp(-median(post$rhosq) * islandsDistMatrix[i,j]^2)
+    }
+}
+diag(K) <- median(post$etasq) + 0.01
+
+
+# 2. Convert K to a correlation matrix.
+Rho <- round(cov2cor(K), 2)
+# Add row and column names for convience.
+colnames(Rho) <- c("Ml", "Ti", "SC", "Ya", "Fi", "Tr", "Ch", "Mn", "To", "Ha")
+rownames(Rho) <- colnames(Rho)
+Rho
+```
+
+- a cluster of highly correlative islands Ml, Ti, and SC
+
+```{r}
+long_Rho <- Rho %>%
+    as.data.frame() %>%
+    rownames_to_column(var = "island1") %>%
+    as_tibble() %>%
+    mutate(island1 = fct_inorder(island1)) %>%
+    pivot_longer(-island1, names_to = "island2") %>%
+    mutate(island2 = factor(island2, levels = levels(island1)),
+           island2 = fct_rev(island2)) 
+long_Rho %>%
+    ggplot(aes(island1, island2)) +
+    geom_tile(aes(fill = value)) +
+    scale_fill_gradient2(low = blue, mid = "grey90", high = red, midpoint = 0.5) +
+    scale_x_discrete(expand = c(0, 0)) +
+    scale_y_discrete(expand = c(0, 0))
+```
+
+```{r}
+Rho_gr <- as_tbl_graph(Rho, directed = FALSE) %N>%
+    left_join(d %>% mutate(name = colnames(Rho)), 
+              by = "name")
+gr_layout <- create_layout(Rho_gr, layout = "nicely")
+gr_layout$x <- d$lon2[match(colnames(Rho), gr_layout$name)]
+gr_layout$y <- d$lat[match(colnames(Rho), gr_layout$name)]
+
+ggraph(gr_layout) +
+    geom_edge_link(aes(alpha = weight, width = weight),
+                   lineend = "round", linejoin = "round") +
+    geom_node_point(aes(size = logpop), color = blue) +
+    geom_node_text(aes(label = culture), repel = TRUE, size = 4) +
+    scale_edge_width_continuous(range = c(1, 3)) +
+    scale_edge_alpha_continuous(range = c(0.1, 0.6)) +
+    scale_size_continuous(range = c(2, 10)) +
+    theme_bw() +
+    labs(x = "longitude",
+         y = "latitude",
+         size = "log-pop",
+         edge_width = "correlation",
+         edge_alpha = "correlation")
+```
+
+```{r}
+gr_layout <- create_layout(Rho_gr, layout = "nicely")
+gr_layout$x <- d$logpop[match(colnames(Rho), gr_layout$name)]
+gr_layout$y <- d$total_tools[match(colnames(Rho), gr_layout$name)]
+
+ggraph(gr_layout) +
+    geom_edge_link(aes(alpha = weight, width = weight),
+                   lineend = "round", linejoin = "round") +
+    geom_node_point(aes(size = logpop), color = blue) +
+    geom_node_text(aes(label = culture), repel = TRUE, size = 4) +
+    scale_edge_width_continuous(range = c(1, 3)) +
+    scale_edge_alpha_continuous(range = c(0.1, 0.6)) +
+    scale_size_continuous(range = c(2, 10)) +
+    theme_bw() +
+    labs(x = "log population",
+         y = "total tools",
+         size = "log-pop",
+         edge_width = "correlation",
+         edge_alpha = "correlation")
+```
+
+- interpretation of above plots:
