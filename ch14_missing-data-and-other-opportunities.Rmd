@@ -1,0 +1,60 @@
+---
+title: "Chapter 14. Missing Data and Other Opportunities"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
+
+library(glue)
+library(mustashe)
+library(magrittr)
+library(broom)
+library(patchwork)
+library(MASS)
+library(tidygraph)
+library(ggraph)
+library(rethinking)
+library(tidyverse)
+library(conflicted)
+
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("rename", "dplyr")
+
+# To be able to use `map2stan()`:
+conflict_prefer("collapse", "dplyr")
+conflict_prefer("extract", "tidyr")
+conflict_prefer("rstudent", "rethinking")
+conflict_prefer("lag", "dplyr")
+conflict_prefer("map", "purrr")
+conflict_prefer("Position", "ggplot2")
+
+# To be able to use 'MASS':
+conflict_prefer("area", "patchwork")
+
+theme_set(theme_minimal())
+source_scripts()
+set.seed(0)
+
+# For 'rethinking'.
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+
+purple <- "#8067bf"
+blue <- "#5896d1"
+red <- "#d15858"
+light_grey <- "grey80"
+grey <- "grey50"
+dark_grey <- "grey25"
+
+# To shut-up `summarise()` in dplyr 1.0.0
+options(dplyr.summarise.inform = FALSE)
+```
+
+- cover two common applications of Bayesian statistics:
+    1. *measurement error*
+    2. *Bayesian imputation*
+
+## 14.1 Measurement error

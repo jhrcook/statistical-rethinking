@@ -1222,11 +1222,29 @@ ggraph(gr_layout) +
 ![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
 
 ``` r
+logpop_seq <- seq(6, 14, length.out = 50)
+lambda <- map(logpop_seq, ~ exp(post$a + post$b*.x))
+lambda_median <- map_dbl(lambda, median)
+lambda_pi80 <- map(lambda, PI, prob = 0.80) %>% 
+    map_dfr(pi_to_df)
+
+post_pred <- tibble(logpop = logpop_seq,
+                    lambda_median = lambda_median) %>%
+    bind_cols(lambda_pi80) %>%
+    mutate(x10_percent = map_dbl(x10_percent, ~ max(c(.x, 10))),
+           x90_percent = map_dbl(x90_percent, ~ min(c(.x, 75))))
+
 gr_layout <- create_layout(Rho_gr, layout = "nicely")
 gr_layout$x <- d$logpop[match(colnames(Rho), gr_layout$name)]
 gr_layout$y <- d$total_tools[match(colnames(Rho), gr_layout$name)]
 
 ggraph(gr_layout) +
+    geom_ribbon((aes(x = logpop, ymin = x10_percent, ymax = x90_percent)),
+                data = post_pred,
+                alpha = 0.1) +
+    geom_line(aes(x = logpop, y = lambda_median),
+              data = post_pred,
+              color = grey, size = 1, alpha = 0.7, lty = 2) +
     geom_edge_link(aes(alpha = weight, width = weight),
                    lineend = "round", linejoin = "round") +
     geom_node_point(aes(size = logpop), color = blue) +
@@ -1234,14 +1252,39 @@ ggraph(gr_layout) +
     scale_edge_width_continuous(range = c(1, 3)) +
     scale_edge_alpha_continuous(range = c(0.1, 0.6)) +
     scale_size_continuous(range = c(2, 10)) +
+    scale_x_continuous(limits = c(6, 13), expand = c(0, 0)) +
+    scale_y_continuous(limits = c(10, 75), expand = c(0, 0)) +
     theme_bw() +
     labs(x = "log population",
          y = "total tools",
          size = "log-pop",
          edge_width = "correlation",
-         edge_alpha = "correlation")
+         edge_alpha = "correlation",
+         title = "Association of log-population and total tools, accouting for spatial correlations",
+         subtitle = "The dashed line is the median of the posterior prediction of the total tools given the log-population\n(ignoring the spatial variance), surrounded by the 80 PI.")
 ```
+
+    #> Warning: Removed 11 row(s) containing missing values (geom_path).
 
 ![](ch13_adventures-in-covariance_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
 
   - interpretation of above plots:
+      - in the first, we see that Ml, Ti, and SC are all very close
+        together spatially and have a high correlation of their varying
+        intercepts
+      - the second shows that these three cultures are below the
+        expected number of tools per their population
+          - they they all lie below the expectation and are so close
+            together is consistent with spatial covariance
+
+### 13.4.2 Other kinds of “distance”
+
+  - other examples of a continuous variable for the varying effect:
+      - phyolgenetic distance
+      - network distance
+      - cyclic covariation of time
+          - build the covariance matrix with a periodic function such as
+            sine or cosine
+  - also possible to have more than one dimension of distance in the
+    same model
+      - gets merged into a single covariance matrix

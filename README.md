@@ -60,6 +60,9 @@ Classification](ch10_counting-and-classification.md)
 
 [Chapter 13. Adventures in Covariance](ch13_adventures-in-covariance.md)
 
+[Chapter 14. Chapter 14. Missing Data and Other
+Opportunities](ch14_missing-data-and-other-opportunities.md)
+
 -----
 
 ## Other R packages for Bayes
