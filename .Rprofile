@@ -4,3 +4,8 @@ source_scripts <- function() {
         source(f)
     }
 }
+
+home_r_profile <- file.path("~", ".Rprofile")
+if (file.exists(home_r_profile)) {
+    source(home_r_profile)
+}

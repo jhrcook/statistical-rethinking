@@ -30,6 +30,7 @@ conflict_prefer("rstudent", "rethinking")
 conflict_prefer("lag", "dplyr")
 conflict_prefer("map", "purrr")
 conflict_prefer("Position", "ggplot2")
+conflict_prefer("circle", "rethinking")
 
 # To be able to use 'MASS':
 conflict_prefer("area", "patchwork")
@@ -58,3 +59,192 @@ options(dplyr.summarise.inform = FALSE)
     2. *Bayesian imputation*
 
 ## 14.1 Measurement error
+
+- in the divorce and marriage data of states in the US, there was error in the measured variables (marriage and divorce rates)
+    * this data can be incorporated into the model
+    * the plot below shows the standard error in the measurement against median age of marriage and the population
+    * seems like smaller states have more error (smaller sample size)
+
+```{r}
+# Load the data.
+data("WaffleDivorce")
+d <- as_tibble(WaffleDivorce) %>%
+    janitor::clean_names()
+
+p1 <- d %>%
+    ggplot(aes(median_age_marriage, divorce)) +
+    geom_linerange(aes(ymin = divorce - divorce_se, ymax = divorce + divorce_se),
+                   size = 1, color = grey, alpha = 0.6) +
+    geom_point(size = 2, color = dark_grey) +
+    labs(x = "median age of marriage",
+         y = "divorce rate")
+
+p2 <- d %>%
+    ggplot(aes(log(population), divorce)) +
+    geom_linerange(aes(ymin = divorce - divorce_se, ymax = divorce + divorce_se),
+                   size = 1, color = grey, alpha = 0.6) +
+    geom_point(size = 2, color = dark_grey) +
+    labs(x = "log population",
+         y = "divorce rate")
+
+p1 | p2
+```
+
+- makes sense to have the more certain estimates have more influence on the regression
+    * many *ad hoc* methods for including this confidence as a weight in the analysis, but they leave out some data
+
+### 14.1.1 Error on the outcome
+
+> **Note:** In the book, McElreath does not standardize the input variables for the new model (accounting for measurement error), but does standardize the variables in the previous model (not accounting for measurement error). Here I have standardized the input variables in both models and the differences from accounting for measurement error are not as astounding as reported in the book. I believe that my decision was correct and it does not remove the overall point of the section.
+
+- to incorporate measurement error, *replace the observed data for divorce rate with a distribution*
+- example:
+    * use a Gaussian distribution with a mean equal to the observed value and standard deviation equal to the measurement's standard error
+    * define the distribution for each divorce rate:
+        - for each observed value $D_{\text{obs}, i}$ there will be one parameter $D_{\text{est}, i}$
+        - the measruement $D_{\text{obs}, i}$ is specified as a Gaussian distribution with the center of the estimate and standard deviation of the measurement
+    * can then estimate the plausible true values consistent with the observed data
+
+$$
+D_{\text{obs}, i} \sim \text{Normal}(D_{\text{est}, i}, D_{\text{SE}, i})
+$$
+
+- the model for the divorce rate $D$ as a linear function of age at marriage $A$ and marriage rate $R$
+    * the first line is the *likelihood for estimates*
+    * the second line is the linear model
+    * the third line is the *prior for estimates*
+    * the main difference with this model compared to the normal ones we have used previously is that the outcome is a vector of parameters
+        - each outcome parameter also gets a second role as the unknown mean of another distribution to predict the observed measurement
+    * information will flow in both directions:
+        - the uncertainty in the measurement influences the regression parameters in the linear model
+        - the regression parameters in the linear model influence the uncertainty in the measurements
+
+$$
+D_{\text{est}, i} \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_A A_i + \beta_R R_i \\
+D_{\text{obs}, i} \sim \text{Normal}(D_{\text{est}, i}, D_{\text{SE}, i}) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_A \sim \text{Normal}(0, 10) \\
+\beta_R \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Cauchy}(0, 2.5) \\
+$$
+
+- a few notes on the `map2stan()` implementation of the above formula
+    * turned off WAIC calculation because it will incorrectly compute WAIC by integrating over the `div_est` values
+    * gave the model a starting point for `div_est` as the observed values
+        - this also tells it how many parameters it needs
+    * set the *target acceptance rate* from default 0.8 to 0.95 which causes Stan to "work harder" during warmup to improve the later sampling
+
+```{r}
+dlist <- d %>% 
+    transmute(div_obs = divorce,
+              div_sd = divorce_se,
+              R = scale_nums(marriage),
+              A = scale_nums(median_age_marriage))
+
+stash("m14_1", depends_on = "dlist", {
+    m14_1 <- map2stan(
+        alist(
+            div_est ~ dnorm(mu, sigma),
+            mu <- a + bA*A + bR*R,
+            div_obs ~ dnorm(div_est, div_sd),
+            a ~ dnorm(0, 10),
+            bA ~ dnorm(0, 10),
+            bR ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 2.5)
+        ),
+        data = dlist,
+        start = list(div_est = dlist$div_obs),
+        WAIC = FALSE,
+        iter = 5e3, warmup = 1e3, chains = 2, cores = 2,
+        control = list(adapt_delta = 0.95)
+    )
+})
+```
+
+- previously, the estimate for `bA` was about -1, now it is -0.5, but still comfortably negative
+     * including measurement error reduced the estimated effect of another variable
+
+```{r}
+precis(m14_1, depth = 1)
+precis(m14_1, depth = 2)
+```
+
+- the estimated effect of marriage age was reduced by including the measurement error of divorce
+    * can see why because states with very high or low ages at marriage tended to have high uncertainty in divorce rates
+    * in the model, the rates with greater uncertainty have been shrunk towards the mean that is more defined by the measurements with smaller measurement error\
+        - this is *shrinkage*
+
+```{r}
+estimated_divorce_post <- extract.samples(m14_1)$div_est
+
+d %>%
+    mutate(estimated_divorce = apply(estimated_divorce_post, 2, mean)) %>%
+    ggplot(aes(x = divorce_se, y = estimated_divorce - divorce)) +
+    geom_hline(yintercept = 0, lty = 2, color = light_grey, size = 0.8) +
+    geom_point(size = 2, color = dark_grey) +
+    labs(x = "divorce observed standard error",
+         y = "divorce estimated - divorce observed",
+         title = "The more measurement error, the more shrinkage of estimated rate")
+```
+
+- below, the model without accounting for measurement error is created and the posterior estimates of median age are shown
+
+```{r}
+stash("m14_1_noerr", depends_on = "dlist", {
+    m14_1_noerr <- map2stan(
+        alist(
+            div_obs ~ dnorm(mu, sigma),
+            mu <- a + bA*A + bR*R,
+            a ~ dnorm(0, 10),
+            bA ~ dnorm(0, 10),
+            bR ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 10)
+        ),
+        data = dlist,
+        WAIC = FALSE,
+        iter = 5e3, warmup = 1e3, chains = 2, cores = 2,
+        control = list(adapt_delta = 0.95)
+    )
+})
+
+median_age_seq <- seq(-2.3, 3, length.out = 100)
+avg_marriage <- mean(dlist$R)
+pred_d <- tibble(A = median_age_seq, R = avg_marriage)
+m14_1_post <- link(m14_1, data = pred_d)
+m14_1_noerr_post <- link(m14_1_noerr, data = pred_d)
+
+pred_d_post <- pred_d %>%
+    rename(median_age_marriage = A, marriage = R) %>%
+    mutate(witherr_divorce_est = apply(m14_1_post, 2, mean),
+           noerr_divorce_est = apply(m14_1_noerr_post, 2, mean)) %>%
+    bind_cols(
+        apply(m14_1_post, 2, PI) %>% 
+            pi_to_df() %>% 
+            set_names(c("with_err_5", "with_err_94")),
+        apply(m14_1_noerr_post, 2, PI) %>% 
+            pi_to_df() %>% 
+            set_names(c("no_err_5", "no_err_94"))
+    )
+
+d %>%
+    mutate(median_age_marriage = scale_nums(median_age_marriage)) %>%
+    ggplot(aes(x = median_age_marriage)) +
+    geom_ribbon(aes(ymin = with_err_5, ymax = with_err_94),
+                data = pred_d_post,
+                alpha = 0.2, fill = blue) +
+    geom_ribbon(aes(ymin = no_err_5, ymax = no_err_94),
+                data = pred_d_post,
+                alpha = 0.2, fill = light_grey) +
+    geom_line(aes(y = witherr_divorce_est), 
+              data = pred_d_post,
+              color = blue, lty = 2, size = 0.8) +
+    geom_line(aes(y = noerr_divorce_est), 
+              data = pred_d_post,
+              color = grey, lty = 2, size = 0.8) +
+    geom_linerange(aes(ymin = divorce - divorce_se, ymax = divorce + divorce_se), 
+                   size = 0.5, color = dark_grey) +
+    geom_point(aes(y = divorce), size = 0.7, color = dark_grey)
+```
+
+### 14.1.2 Error on both outcome and predictor

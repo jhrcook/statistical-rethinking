@@ -57,7 +57,7 @@ devtools::install_github("rmcelreath/rethinking")
 
 [Chapter 13. Adventures in Covariance](ch13_adventures-in-covariance.md)
 
-[Chapter 14. Chapter 14. Missing Data and Other Opportunities](ch14_missing-data-and-other-opportunities.md)
+[Chapter 14. Missing Data and Other Opportunities](ch14_missing-data-and-other-opportunities.md)
 
 ---
 
@@ -69,14 +69,10 @@ As I work through their vignettes (and possible other associated tutorals/articl
 
 **['rstanarm'](https://mc-stan.org/rstanarm/index.html)**
 
-
 **['brms'](https://paul-buerkner.github.io/brms/)**
-
 
 **['ggmcmc'](https://cran.r-project.org/web/packages/ggmcmc/index.html)**
 
-
 **['tidybayes'](http://mjskay.github.io/tidybayes)**
-
 
 **['bayetestR'](https://easystats.github.io/bayestestR/)** (part of the 'easystats' suite of packages)
