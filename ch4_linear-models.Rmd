@@ -4,13 +4,14 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
 
 library(glue)
-library(conflicted)
+library(mustashe)
 library(rethinking)
 library(patchwork)
 library(tidyverse)
+library(conflicted)
 
 theme_set(theme_minimal())
 

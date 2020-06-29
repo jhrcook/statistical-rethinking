@@ -215,12 +215,12 @@ m8_1 <- quap(
 precis(m8_1)
 ```
 
-    ##             mean         sd       5.5%       94.5%
-    ## a      9.2227717 0.13798197  9.0022499  9.44329359
-    ## bR    -0.2026506 0.07646932 -0.3248634 -0.08043786
-    ## bA    -1.9469424 0.22450135 -2.3057389 -1.58814589
-    ## bAR    0.3929006 0.13004832  0.1850583  0.60074296
-    ## sigma  0.9326829 0.05058184  0.8518433  1.01352241
+    #>             mean         sd       5.5%       94.5%
+    #> a      9.2227717 0.13798197  9.0022499  9.44329359
+    #> bR    -0.2026506 0.07646932 -0.3248634 -0.08043786
+    #> bA    -1.9469424 0.22450135 -2.3057389 -1.58814589
+    #> bAR    0.3929006 0.13004832  0.1850583  0.60074296
+    #> sigma  0.9326829 0.05058184  0.8518433  1.01352241
 
 ### 8.3.1 Preparation
 
@@ -243,81 +243,34 @@ dd_trim <- dd %>%
 <!-- end list -->
 
 ``` r
-m8_1stan <- map2stan(
-    alist(
-        log_gdp ~ dnorm(mu, sigma),
-        mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
-        a ~ dnorm(0, 100),
-        bR ~ dnorm(0, 10),
-        bA ~ dnorm(0, 10),
-        bAR ~ dnorm(0, 10),
-        sigma ~ dcauchy(0, 2)
-    ),
-    data = dd_trim
-)
+stash("m8_1stan", depends_on = "dd_trim", {
+    m8_1stan <- map2stan(
+        alist(
+            log_gdp ~ dnorm(mu, sigma),
+            mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
+            a ~ dnorm(0, 100),
+            bR ~ dnorm(0, 10),
+            bA ~ dnorm(0, 10),
+            bAR ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 2)
+        ),
+        data = dd_trim
+    )
+})
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL 'e3427aaee5ad40daea09a9a2e19cfcf3' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000137 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.37 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
-    ## Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
-    ## Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
-    ## Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
-    ## Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
-    ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
-    ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.35654 seconds (Warm-up)
-    ## Chain 1:                0.369299 seconds (Sampling)
-    ## Chain 1:                0.725839 seconds (Total)
-    ## Chain 1:
-
-    ## Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m8_1stan)
 ```
 
-    ##             mean         sd       5.5%       94.5%    n_eff     Rhat4
-    ## a      9.2182611 0.14034806  8.9999067  9.43564460 381.7565 1.0081349
-    ## bR    -0.2002538 0.08066235 -0.3253604 -0.07468424 348.7989 1.0179494
-    ## bA    -1.9413043 0.23158324 -2.2990252 -1.56245440 475.1342 0.9990503
-    ## bAR    0.3897727 0.14112017  0.1729353  0.60830114 452.2939 0.9999791
-    ## sigma  0.9504754 0.05263645  0.8721904  1.03751376 454.5194 1.0041046
+    #>             mean         sd       5.5%       94.5%    n_eff     Rhat4
+    #> a      9.2279802 0.13623705  9.0088339  9.43951036 533.1568 0.9996015
+    #> bR    -0.2073055 0.07649824 -0.3246416 -0.08044154 488.1808 0.9990947
+    #> bA    -1.9543006 0.23002089 -2.3383725 -1.57899659 620.7081 0.9990050
+    #> bAR    0.3981646 0.13082165  0.1962853  0.60559040 534.1085 0.9989998
+    #> sigma  0.9483330 0.05010279  0.8736709  1.02811206 557.1305 1.0012550
 
   - a half-Cauchy prior was used for \(\sigma\)
       - a uniform distribution would work here, too
@@ -346,32 +299,23 @@ precis(m8_1stan)
 <!-- end list -->
 
 ``` r
-m8_1stan_4chains <- map2stan(m8_1stan, chains = 4, cores = 4)
+stash("m8_1stan_4chains", {
+    m8_1stan_4chains <- map2stan(m8_1stan, chains = 4, cores = 4)
+})
 ```
 
-    ## Warning in .local(object, ...): some chains had errors; consider specifying
-    ## chains = 1 to debug
-
-    ## here are whatever error messages were returned
-
-    ## [[1]]
-    ## Stan model 'e3427aaee5ad40daea09a9a2e19cfcf3' does not contain samples.
-    ## 
-    ## [[2]]
-    ## Stan model 'e3427aaee5ad40daea09a9a2e19cfcf3' does not contain samples.
-
-    ## Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m8_1stan_4chains)
 ```
 
-    ##             mean         sd       5.5%       94.5%     n_eff     Rhat4
-    ## a      9.2256832 0.14362460  8.9906977  9.45258878  877.9440 1.0034584
-    ## bR    -0.2045680 0.08014458 -0.3281884 -0.07372293  894.0294 1.0031833
-    ## bA    -1.9464960 0.23749000 -2.3392785 -1.58143450  890.1520 1.0032003
-    ## bAR    0.3933826 0.13793937  0.1767777  0.62174432  872.0515 1.0013379
-    ## sigma  0.9505496 0.05415063  0.8688302  1.04002911 1357.1632 0.9997233
+    #>             mean         sd       5.5%       94.5%    n_eff    Rhat4
+    #> a      9.2208308 0.14563430  8.9854237  9.45860657 1754.883 1.001898
+    #> bR    -0.2016824 0.08038236 -0.3308949 -0.07520045 1696.929 1.000701
+    #> bA    -1.9430034 0.23543180 -2.3190455 -1.56646767 1804.943 1.002227
+    #> bAR    0.3887506 0.13646037  0.1660543  0.60290154 1705.157 1.003037
+    #> sigma  0.9510894 0.05287941  0.8711512  1.04114772 2878.768 1.000296
 
 ### 8.3.4 Visualization
 
@@ -385,12 +329,12 @@ post <- extract.samples(m8_1stan)
 str(post)
 ```
 
-    ## List of 5
-    ##  $ a    : num [1:1000(1d)] 9.01 9.25 9.26 9.29 9.23 ...
-    ##  $ bR   : num [1:1000(1d)] -0.0536 -0.1974 -0.3163 -0.3114 -0.1873 ...
-    ##  $ bA   : num [1:1000(1d)] -1.82 -1.93 -2.04 -2.03 -1.84 ...
-    ##  $ bAR  : num [1:1000(1d)] 0.189 0.436 0.568 0.526 0.319 ...
-    ##  $ sigma: num [1:1000(1d)] 0.879 0.917 0.957 0.875 0.903 ...
+    #> List of 5
+    #>  $ a    : num [1:1000(1d)] 9.26 9.46 9.3 9.07 9.37 ...
+    #>  $ bR   : num [1:1000(1d)] -0.236 -0.385 -0.207 -0.18 -0.225 ...
+    #>  $ bA   : num [1:1000(1d)] -1.92 -2.38 -1.95 -2.12 -2.04 ...
+    #>  $ bAR  : num [1:1000(1d)] 0.449 0.645 0.292 0.435 0.32 ...
+    #>  $ sigma: num [1:1000(1d)] 0.951 0.985 0.888 0.915 0.935 ...
 
 ``` r
 pairs(m8_1stan)
@@ -412,31 +356,31 @@ pairs(m8_1stan)
 show(m8_1stan)
 ```
 
-    ## map2stan model
-    ## 1000 samples from 1 chain
-    ## 
-    ## Sampling durations (seconds):
-    ##         warmup sample total
-    ## chain:1   0.36   0.37  0.73
-    ## 
-    ## Formula:
-    ## log_gdp ~ dnorm(mu, sigma)
-    ## mu <- a + bR * rugged + bA * cont_africa + bAR * rugged * cont_africa
-    ## a ~ dnorm(0, 100)
-    ## bR ~ dnorm(0, 10)
-    ## bA ~ dnorm(0, 10)
-    ## bAR ~ dnorm(0, 10)
-    ## sigma ~ dcauchy(0, 2)
-    ## 
-    ## WAIC (SE): 470 (14.8)
-    ## pWAIC: 5.2
+    #> map2stan model
+    #> 1000 samples from 1 chain
+    #> 
+    #> Sampling durations (seconds):
+    #>         warmup sample total
+    #> chain:1   0.33   0.34  0.67
+    #> 
+    #> Formula:
+    #> log_gdp ~ dnorm(mu, sigma)
+    #> mu <- a + bR * rugged + bA * cont_africa + bAR * rugged * cont_africa
+    #> a ~ dnorm(0, 100)
+    #> bR ~ dnorm(0, 10)
+    #> bA ~ dnorm(0, 10)
+    #> bAR ~ dnorm(0, 10)
+    #> sigma ~ dcauchy(0, 2)
+    #> 
+    #> WAIC (SE): 469 (14.9)
+    #> pWAIC: 5.09
 
 ``` r
 WAIC(m8_1stan)
 ```
 
-    ##       WAIC      lppd penalty  std_err
-    ## 1 469.5071 -229.5579 5.19567 14.76377
+    #>       WAIC     lppd  penalty  std_err
+    #> 1 469.2187 -229.516 5.093422 14.86534
 
 ### 8.3.6 Checking the chain
 
@@ -472,41 +416,41 @@ plot(m8_1stan)
 str_split(m8_1stan@model, "\n")
 ```
 
-    ## [[1]]
-    ##  [1] "//2020-05-12 07:22:09"                                                                       
-    ##  [2] "data{"                                                                                       
-    ##  [3] "    int<lower=1> N;"                                                                         
-    ##  [4] "    real log_gdp[N];"                                                                        
-    ##  [5] "    real rugged[N];"                                                                         
-    ##  [6] "    int cont_africa[N];"                                                                     
-    ##  [7] "}"                                                                                           
-    ##  [8] "parameters{"                                                                                 
-    ##  [9] "    real a;"                                                                                 
-    ## [10] "    real bR;"                                                                                
-    ## [11] "    real bA;"                                                                                
-    ## [12] "    real bAR;"                                                                               
-    ## [13] "    real<lower=0> sigma;"                                                                    
-    ## [14] "}"                                                                                           
-    ## [15] "model{"                                                                                      
-    ## [16] "    vector[N] mu;"                                                                           
-    ## [17] "    sigma ~ cauchy( 0 , 2 );"                                                                
-    ## [18] "    bAR ~ normal( 0 , 10 );"                                                                 
-    ## [19] "    bA ~ normal( 0 , 10 );"                                                                  
-    ## [20] "    bR ~ normal( 0 , 10 );"                                                                  
-    ## [21] "    a ~ normal( 0 , 100 );"                                                                  
-    ## [22] "    for ( i in 1:N ) {"                                                                      
-    ## [23] "        mu[i] = a + bR * rugged[i] + bA * cont_africa[i] + bAR * rugged[i] * cont_africa[i];"
-    ## [24] "    }"                                                                                       
-    ## [25] "    log_gdp ~ normal( mu , sigma );"                                                         
-    ## [26] "}"                                                                                           
-    ## [27] "generated quantities{"                                                                       
-    ## [28] "    vector[N] mu;"                                                                           
-    ## [29] "    for ( i in 1:N ) {"                                                                      
-    ## [30] "        mu[i] = a + bR * rugged[i] + bA * cont_africa[i] + bAR * rugged[i] * cont_africa[i];"
-    ## [31] "    }"                                                                                       
-    ## [32] "}"                                                                                           
-    ## [33] ""                                                                                            
-    ## [34] ""
+    #> [[1]]
+    #>  [1] "//2020-06-28 08:59:43"                                                                       
+    #>  [2] "data{"                                                                                       
+    #>  [3] "    int<lower=1> N;"                                                                         
+    #>  [4] "    real log_gdp[N];"                                                                        
+    #>  [5] "    real rugged[N];"                                                                         
+    #>  [6] "    int cont_africa[N];"                                                                     
+    #>  [7] "}"                                                                                           
+    #>  [8] "parameters{"                                                                                 
+    #>  [9] "    real a;"                                                                                 
+    #> [10] "    real bR;"                                                                                
+    #> [11] "    real bA;"                                                                                
+    #> [12] "    real bAR;"                                                                               
+    #> [13] "    real<lower=0> sigma;"                                                                    
+    #> [14] "}"                                                                                           
+    #> [15] "model{"                                                                                      
+    #> [16] "    vector[N] mu;"                                                                           
+    #> [17] "    sigma ~ cauchy( 0 , 2 );"                                                                
+    #> [18] "    bAR ~ normal( 0 , 10 );"                                                                 
+    #> [19] "    bA ~ normal( 0 , 10 );"                                                                  
+    #> [20] "    bR ~ normal( 0 , 10 );"                                                                  
+    #> [21] "    a ~ normal( 0 , 100 );"                                                                  
+    #> [22] "    for ( i in 1:N ) {"                                                                      
+    #> [23] "        mu[i] = a + bR * rugged[i] + bA * cont_africa[i] + bAR * rugged[i] * cont_africa[i];"
+    #> [24] "    }"                                                                                       
+    #> [25] "    log_gdp ~ normal( mu , sigma );"                                                         
+    #> [26] "}"                                                                                           
+    #> [27] "generated quantities{"                                                                       
+    #> [28] "    vector[N] mu;"                                                                           
+    #> [29] "    for ( i in 1:N ) {"                                                                      
+    #> [30] "        mu[i] = a + bR * rugged[i] + bA * cont_africa[i] + bAR * rugged[i] * cont_africa[i];"
+    #> [31] "    }"                                                                                       
+    #> [32] "}"                                                                                           
+    #> [33] ""                                                                                            
+    #> [34] ""
 
 ## 8.4 Care and feeding of your Markov chain
 
@@ -578,115 +522,92 @@ m8_2 <- map2stan(
 )
 ```
 
-    ## Trying to compile a simple C file
+    #> 
+    #> SAMPLING FOR MODEL '6f2e075bef607e1f726668e58a99bff0' NOW (CHAIN 1).
+    #> Chain 1: 
+    #> Chain 1: Gradient evaluation took 2.8e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.28 seconds.
+    #> Chain 1: Adjust your expectations accordingly!
+    #> Chain 1: 
+    #> Chain 1: 
+    #> Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 1: 
+    #> Chain 1:  Elapsed Time: 0.131985 seconds (Warm-up)
+    #> Chain 1:                0.456826 seconds (Sampling)
+    #> Chain 1:                0.588811 seconds (Total)
+    #> Chain 1: 
+    #> 
+    #> SAMPLING FOR MODEL '6f2e075bef607e1f726668e58a99bff0' NOW (CHAIN 2).
+    #> Chain 2: 
+    #> Chain 2: Gradient evaluation took 3e-06 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.03 seconds.
+    #> Chain 2: Adjust your expectations accordingly!
+    #> Chain 2: 
+    #> Chain 2: 
+    #> Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 2: 
+    #> Chain 2:  Elapsed Time: 0.203848 seconds (Warm-up)
+    #> Chain 2:                2.09653 seconds (Sampling)
+    #> Chain 2:                2.30038 seconds (Total)
+    #> Chain 2:
 
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL '571532afc9bffe279a1665cbbd33b727' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 1.3e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.371168 seconds (Warm-up)
-    ## Chain 1:                4.1506 seconds (Sampling)
-    ## Chain 1:                4.52177 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL '571532afc9bffe279a1665cbbd33b727' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 4e-06 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.04 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.23025 seconds (Warm-up)
-    ## Chain 2:                0.624818 seconds (Sampling)
-    ## Chain 2:                0.855068 seconds (Total)
-    ## Chain 2:
+    #> Warning: There were 486 divergent transitions after warmup. Increasing adapt_delta above 0.95 may help. See
+    #> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
 
-    ## Warning: There were 290 divergent transitions after warmup. Increasing adapt_delta above 0.95 may help. See
-    ## http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+    #> Warning: There were 762 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+    #> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
 
-    ## Warning: There were 830 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-    ## http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+    #> Warning: There were 2 chains where the estimated Bayesian Fraction of Missing Information was low. See
+    #> http://mc-stan.org/misc/warnings.html#bfmi-low
 
-    ## Warning: There were 1 chains where the estimated Bayesian Fraction of Missing Information was low. See
-    ## http://mc-stan.org/misc/warnings.html#bfmi-low
+    #> Warning: Examine the pairs() plot to diagnose sampling problems
 
-    ## Warning: Examine the pairs() plot to diagnose sampling problems
+    #> Warning: The largest R-hat is 1.79, indicating chains have not mixed.
+    #> Running the chains for more iterations may help. See
+    #> http://mc-stan.org/misc/warnings.html#r-hat
 
-    ## Warning: The largest R-hat is 1.78, indicating chains have not mixed.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#r-hat
+    #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+    #> Running the chains for more iterations may help. See
+    #> http://mc-stan.org/misc/warnings.html#bulk-ess
 
-    ## Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#bulk-ess
+    #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+    #> Running the chains for more iterations may help. See
+    #> http://mc-stan.org/misc/warnings.html#tail-ess
 
-    ## Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#tail-ess
+    #> Computing WAIC
 
-    ## Computing WAIC
-
-    ## Warning in map2stan(alist(y ~ dnorm(mu, sigma), mu <- alpha), data = list(y = y), : There were 290 divergent iterations during sampling.
-    ## Check the chains (trace plots, n_eff, Rhat) carefully to ensure they are valid.
+    #> Warning in map2stan(alist(y ~ dnorm(mu, sigma), mu <- alpha), data = list(y = y), : There were 486 divergent iterations during sampling.
+    #> Check the chains (trace plots, n_eff, Rhat) carefully to ensure they are valid.
 
 ``` r
 precis(m8_2)
 ```
 
-    ##            mean         sd          5.5%        94.5%       n_eff    Rhat4
-    ## alpha -11344634   19063351 -4.898574e+07     55684.63    3.047456 4.761419
-    ## sigma 386832172 9077430705  1.545358e+02 240666065.35 1450.000907 1.000965
+    #>             mean          sd          5.5%      94.5%      n_eff    Rhat4
+    #> alpha  340932479   676743337 -1447269.4408 1944065744   3.843847 1.845591
+    #> sigma 2478059834 21092479052      979.8273 6291182718 123.015633 1.017844
 
 ``` r
 plot(m8_2)
@@ -703,104 +624,33 @@ plot(m8_2)
 <!-- end list -->
 
 ``` r
-m8_3 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- alpha,
-        alpha ~ dnorm(1, 10),
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = list(y = y),
-    start = list(alpha = 0, sigma = 1),
-    chains = 2,
-    iter = 4e3,
-    warmup = 1e3
-)
+stash("m8_3", depends_on = "y", {
+    m8_3 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- alpha,
+            alpha ~ dnorm(1, 10),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = list(y = y),
+        start = list(alpha = 0, sigma = 1),
+        chains = 2,
+        iter = 4e3,
+        warmup = 1e3
+    )
+
+})
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL '203fd6200c5f58c2a0ed20b4073f10e5' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 1.7e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.17 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.045488 seconds (Warm-up)
-    ## Chain 1:                0.098704 seconds (Sampling)
-    ## Chain 1:                0.144192 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL '203fd6200c5f58c2a0ed20b4073f10e5' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 5e-06 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.05 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.048107 seconds (Warm-up)
-    ## Chain 2:                0.128481 seconds (Sampling)
-    ## Chain 2:                0.176588 seconds (Total)
-    ## Chain 2:
-
-    ## Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m8_3)
 ```
 
-    ##              mean      sd       5.5%    94.5%     n_eff    Rhat4
-    ## alpha -0.02719121 1.73907 -2.2428414 2.285462  788.3031 1.003092
-    ## sigma  2.05057649 1.94621  0.7119935 5.023105 1037.2390 1.000961
+    #>             mean       sd       5.5%    94.5%    n_eff   Rhat4
+    #> alpha 0.08573212 1.993184 -2.1229459 2.659450 789.2122 1.00402
+    #> sigma 2.11063133 2.155345  0.7041848 5.041159 782.4874 1.00443
 
 ``` r
 plot(m8_3)
@@ -858,121 +708,102 @@ y_i \sim \text{Normal}(\mu, \sigma) \\
 ``` r
 y <- rnorm(100, 0, 1)
 
-m8_4 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- a1 + a2,
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = list(y = y),
-    start = list(a1 = 0, a2 = 0, sigma = 1),
-    chains = 2,
-    iter = 4e3,
-    warmup = 1e3
-)
+stash("m8_4", depends_on = "y", {
+    m8_4 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- a1 + a2,
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = list(y = y),
+        start = list(a1 = 0, a2 = 0, sigma = 1),
+        chains = 2,
+        iter = 4e3,
+        warmup = 1e3
+    )
+})
 ```
 
-    ## Trying to compile a simple C file
+    #> Updating stash.
 
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL 'e7abe70d7cc7b58d0a557d9c1a6eb116' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2.1e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.21 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 5.16559 seconds (Warm-up)
-    ## Chain 1:                16.9725 seconds (Sampling)
-    ## Chain 1:                22.1381 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL 'e7abe70d7cc7b58d0a557d9c1a6eb116' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 1.8e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 5.21362 seconds (Warm-up)
-    ## Chain 2:                17.4444 seconds (Sampling)
-    ## Chain 2:                22.658 seconds (Total)
-    ## Chain 2:
+    #> 
+    #> SAMPLING FOR MODEL '8a3b497b759a01c82a3a8d33a14f46f5' NOW (CHAIN 1).
+    #> Chain 1: 
+    #> Chain 1: Gradient evaluation took 1.5e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.
+    #> Chain 1: Adjust your expectations accordingly!
+    #> Chain 1: 
+    #> Chain 1: 
+    #> Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 1: 
+    #> Chain 1:  Elapsed Time: 3.88358 seconds (Warm-up)
+    #> Chain 1:                12.7242 seconds (Sampling)
+    #> Chain 1:                16.6078 seconds (Total)
+    #> Chain 1: 
+    #> 
+    #> SAMPLING FOR MODEL '8a3b497b759a01c82a3a8d33a14f46f5' NOW (CHAIN 2).
+    #> Chain 2: 
+    #> Chain 2: Gradient evaluation took 2.3e-05 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.23 seconds.
+    #> Chain 2: Adjust your expectations accordingly!
+    #> Chain 2: 
+    #> Chain 2: 
+    #> Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 2: 
+    #> Chain 2:  Elapsed Time: 3.7533 seconds (Warm-up)
+    #> Chain 2:                12.2775 seconds (Sampling)
+    #> Chain 2:                16.0308 seconds (Total)
+    #> Chain 2:
 
-    ## Warning: There were 4778 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-    ## http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+    #> Warning: There were 4904 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+    #> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
 
-    ## Warning: Examine the pairs() plot to diagnose sampling problems
+    #> Warning: Examine the pairs() plot to diagnose sampling problems
 
-    ## Warning: The largest R-hat is 2.78, indicating chains have not mixed.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#r-hat
+    #> Warning: The largest R-hat is 2.23, indicating chains have not mixed.
+    #> Running the chains for more iterations may help. See
+    #> http://mc-stan.org/misc/warnings.html#r-hat
 
-    ## Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#bulk-ess
+    #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+    #> Running the chains for more iterations may help. See
+    #> http://mc-stan.org/misc/warnings.html#bulk-ess
 
-    ## Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-    ## Running the chains for more iterations may help. See
-    ## http://mc-stan.org/misc/warnings.html#tail-ess
+    #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+    #> Running the chains for more iterations may help. See
+    #> http://mc-stan.org/misc/warnings.html#tail-ess
 
-    ## Computing WAIC
+    #> Computing WAIC
 
 ``` r
 precis(m8_4, digits = 3)
 ```
 
-    ##              mean           sd          5.5%       94.5%     n_eff    Rhat4
-    ## a1    -65.3955349 1.641070e+03 -2284.2818362 2181.626087  1.084254 5.780189
-    ## a2     65.4413083 1.641070e+03 -2181.5573401 2284.392501  1.084254 5.780209
-    ## sigma   0.9301922 6.133162e-02     0.8301134    1.027652 81.236798 1.034856
+    #>               mean           sd          5.5%       94.5%     n_eff    Rhat4
+    #> a1    -391.4033362 595.69514253 -1221.4540358  534.184381  1.247081 2.617230
+    #> a2     391.3949429 595.69297218  -534.1768109 1221.533418  1.247082 2.617234
+    #> sigma    0.9392861   0.06661364     0.8342817    1.046935 36.273587 1.010898
 
 ``` r
 plot(m8_4)
@@ -984,110 +815,86 @@ plot(m8_4)
 weak priors helps a lot
 
 ``` r
-m8_5 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- a1 + a2,
-        c(a1, a2) ~ dnorm(0, 10),
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = list(y = y),
-    start = list(a1 = 0, a2 = 0, sigma = 1),
-    chains = 2,
-    iter = 4e3,
-    warmup = 1e3
-)
+stash("m8_5", depends_on = "y", {
+    m8_5 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- a1 + a2,
+            c(a1, a2) ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = list(y = y),
+        start = list(a1 = 0, a2 = 0, sigma = 1),
+        chains = 2,
+        iter = 4e3,
+        warmup = 1e3
+    )
+})
 ```
 
-    ## Trying to compile a simple C file
+    #> Updating stash.
 
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL '24e9e2635d9ef97d5777cd2e55e1b0b8' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 2.7e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.27 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.80786 seconds (Warm-up)
-    ## Chain 1:                5.79671 seconds (Sampling)
-    ## Chain 1:                7.60457 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL '24e9e2635d9ef97d5777cd2e55e1b0b8' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 9e-06 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.09 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 1.9941 seconds (Warm-up)
-    ## Chain 2:                8.69307 seconds (Sampling)
-    ## Chain 2:                10.6872 seconds (Total)
-    ## Chain 2:
+    #> 
+    #> SAMPLING FOR MODEL '11263bfde196a8a36cbdbb27787b9270' NOW (CHAIN 1).
+    #> Chain 1: 
+    #> Chain 1: Gradient evaluation took 1.5e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.
+    #> Chain 1: Adjust your expectations accordingly!
+    #> Chain 1: 
+    #> Chain 1: 
+    #> Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 1: 
+    #> Chain 1:  Elapsed Time: 1.35441 seconds (Warm-up)
+    #> Chain 1:                4.1473 seconds (Sampling)
+    #> Chain 1:                5.50171 seconds (Total)
+    #> Chain 1: 
+    #> 
+    #> SAMPLING FOR MODEL '11263bfde196a8a36cbdbb27787b9270' NOW (CHAIN 2).
+    #> Chain 2: 
+    #> Chain 2: Gradient evaluation took 7e-06 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    #> Chain 2: Adjust your expectations accordingly!
+    #> Chain 2: 
+    #> Chain 2: 
+    #> Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 2: 
+    #> Chain 2:  Elapsed Time: 1.48253 seconds (Warm-up)
+    #> Chain 2:                4.67482 seconds (Sampling)
+    #> Chain 2:                6.15736 seconds (Total)
+    #> Chain 2:
 
-    ## Warning: There were 223 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-    ## http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-
-    ## Warning: Examine the pairs() plot to diagnose sampling problems
-
-    ## Computing WAIC
+    #> Computing WAIC
 
 ``` r
 precis(m8_5, digits = 3)
 ```
 
-    ##             mean         sd        5.5%     94.5%    n_eff    Rhat4
-    ## a1     0.2507003 7.14396621 -11.1655420 11.490865 1653.812 1.000255
-    ## a2    -0.2045347 7.14443366 -11.4515345 11.210318 1653.856 1.000257
-    ## sigma  0.9227452 0.06453305   0.8269159  1.034889 2064.725 1.000376
+    #>             mean        sd        5.5%     94.5%    n_eff    Rhat4
+    #> a1     0.2001348 7.2704602 -11.4631668 11.882331 2117.021 1.000506
+    #> a2    -0.2096329 7.2691112 -11.9046962 11.448639 2116.486 1.000521
+    #> sigma  0.9312246 0.0677552   0.8280074  1.043623 2167.301 1.001644
 
 ``` r
 plot(m8_5)
@@ -1106,80 +913,22 @@ what you know about the Cauchy distribution?**
 
 ``` r
 # Code from the question:
-mp <- map2stan(
-    alist(
-        a ~ dnorm(0, 1),
-        b ~ dcauchy(0, 1)
-    ),
-    data = list(y = 1),
-    start = list(a = 0, b = 0),
-    iter = 1e4,
-    warmup = 1e2,
-    WAIC = FALSE
-)
+stash("mp", {
+    mp <- map2stan(
+        alist(
+            a ~ dnorm(0, 1),
+            b ~ dcauchy(0, 1)
+        ),
+        data = list(y = 1),
+        start = list(a = 0, b = 0),
+        iter = 1e4,
+        warmup = 1e2,
+        WAIC = FALSE
+    )
+})
 ```
 
-    ## Trying to compile a simple C file
-
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/3.6/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include  -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:13:
-    ## In file included from /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/3.6/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL '01e715f03391544905dff7a031841a48' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 1.2e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.12 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: WARNING: There aren't enough warmup iterations to fit the
-    ## Chain 1:          three stages of adaptation as currently configured.
-    ## Chain 1:          Reducing each adaptation stage to 15%/75%/10% of
-    ## Chain 1:          the given number of warmup iterations:
-    ## Chain 1:            init_buffer = 15
-    ## Chain 1:            adapt_window = 75
-    ## Chain 1:            term_buffer = 10
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 10000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  101 / 10000 [  1%]  (Sampling)
-    ## Chain 1: Iteration: 1100 / 10000 [ 11%]  (Sampling)
-    ## Chain 1: Iteration: 2100 / 10000 [ 21%]  (Sampling)
-    ## Chain 1: Iteration: 3100 / 10000 [ 31%]  (Sampling)
-    ## Chain 1: Iteration: 4100 / 10000 [ 41%]  (Sampling)
-    ## Chain 1: Iteration: 5100 / 10000 [ 51%]  (Sampling)
-    ## Chain 1: Iteration: 6100 / 10000 [ 61%]  (Sampling)
-    ## Chain 1: Iteration: 7100 / 10000 [ 71%]  (Sampling)
-    ## Chain 1: Iteration: 8100 / 10000 [ 81%]  (Sampling)
-    ## Chain 1: Iteration: 9100 / 10000 [ 91%]  (Sampling)
-    ## Chain 1: Iteration: 10000 / 10000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.003343 seconds (Warm-up)
-    ## Chain 1:                0.433505 seconds (Sampling)
-    ## Chain 1:                0.436848 seconds (Total)
-    ## Chain 1:
-
-    ## Warning: There were 4 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-    ## http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-
-    ## Warning: Examine the pairs() plot to diagnose sampling problems
+    #> Loading stashed object.
 
 ``` r
 ###
@@ -1189,9 +938,9 @@ mp <- map2stan(
 precis(mp, digits = 3)
 ```
 
-    ##         mean        sd      5.5%    94.5%    n_eff     Rhat4
-    ## a 0.01433886  1.001241 -1.580225 1.597349 6691.664 0.9999763
-    ## b 1.05268454 29.838094 -5.578936 5.656617 1041.716 1.0014795
+    #>          mean         sd      5.5%    94.5%    n_eff     Rhat4
+    #> a -0.01937564  0.9901903 -1.639211 1.551454 6378.180 0.9999028
+    #> b  0.13195629 16.1875973 -5.871213 6.160236 2842.154 1.0009003
 
 ``` r
 plot(mp)
@@ -1209,7 +958,7 @@ enframe(post) %>%
     scale_color_brewer(palette = "Set1")
 ```
 
-    ## Warning: Removed 598 rows containing non-finite values (stat_density).
+    #> Warning: Removed 666 rows containing non-finite values (stat_density).
 
 ![](ch8_markov-chain-monte-carlo_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 

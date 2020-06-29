@@ -177,13 +177,13 @@ m11_1 <- quap(
 precis(m11_1)
 ```
 
-    ##          mean         sd       5.5%      94.5%
-    ## a1 -1.9160695 0.03000701 -1.9640265 -1.8681125
-    ## a2 -1.2666001 0.02423126 -1.3053263 -1.2278739
-    ## a3 -0.7186296 0.02137978 -0.7527986 -0.6844606
-    ## a4  0.2477844 0.02022442  0.2154619  0.2801070
-    ## a5  0.8898583 0.02208975  0.8545546  0.9251620
-    ## a6  1.7693642 0.02845011  1.7238954  1.8148329
+    #>          mean         sd       5.5%      94.5%
+    #> a1 -1.9160695 0.03000701 -1.9640265 -1.8681125
+    #> a2 -1.2666001 0.02423126 -1.3053263 -1.2278739
+    #> a3 -0.7186296 0.02137978 -0.7527986 -0.6844606
+    #> a4  0.2477844 0.02022442  0.2154619  0.2801070
+    #> a5  0.8898583 0.02208975  0.8545546  0.9251620
+    #> a6  1.7693642 0.02845011  1.7238954  1.8148329
 
   - transform from log-cumulative-odds to cumulative probabilities
 
@@ -193,8 +193,8 @@ precis(m11_1)
 logistic(coef(m11_1))
 ```
 
-    ##        a1        a2        a3        a4        a5        a6 
-    ## 0.1283005 0.2198398 0.3276948 0.5616311 0.7088609 0.8543786
+    #>        a1        a2        a3        a4        a5        a6 
+    #> 0.1283005 0.2198398 0.3276948 0.5616311 0.7088609 0.8543786
 
 ``` r
 m11_1_link <- extract.samples(m11_1)
@@ -212,7 +212,7 @@ m11_1_link %>%
          title = "Posterior probability distributions of intercept from categorical model")
 ```
 
-    ## Picking joint bandwidth of 0.00348
+    #> Picking joint bandwidth of 0.00348
 
 ![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
@@ -288,19 +288,19 @@ m11_3 <- quap(
 coeftab(m11_1, m11_2, m11_3)
 ```
 
-    ##      m11_1   m11_2   m11_3  
-    ## a1     -1.92   -2.84   -2.63
-    ## a2     -1.27   -2.15   -1.94
-    ## a3     -0.72   -1.57   -1.34
-    ## a4      0.25   -0.55   -0.31
-    ## a5      0.89    0.12    0.36
-    ## a6      1.77    1.02    1.27
-    ## bA        NA   -0.71   -0.47
-    ## bI        NA   -0.72   -0.28
-    ## bC        NA   -0.96   -0.33
-    ## bAI       NA      NA   -0.45
-    ## bCI       NA      NA   -1.27
-    ## nobs    9930    9930    9930
+    #>      m11_1   m11_2   m11_3  
+    #> a1     -1.92   -2.84   -2.63
+    #> a2     -1.27   -2.15   -1.94
+    #> a3     -0.72   -1.57   -1.34
+    #> a4      0.25   -0.55   -0.31
+    #> a5      0.89    0.12    0.36
+    #> a6      1.77    1.02    1.27
+    #> bA        NA   -0.71   -0.47
+    #> bI        NA   -0.72   -0.28
+    #> bC        NA   -0.96   -0.33
+    #> bAI       NA      NA   -0.45
+    #> bCI       NA      NA   -1.27
+    #> nobs    9930    9930    9930
 
   - interpretation:
       - the intercepts are difficult to interpret on their own, but act
@@ -324,10 +324,10 @@ coeftab(m11_1, m11_2, m11_3)
 compare(m11_1, m11_2, m11_3)
 ```
 
-    ##           WAIC       SE    dWAIC      dSE     pWAIC        weight
-    ## m11_3 36929.15 81.16718   0.0000       NA 11.004379  1.000000e+00
-    ## m11_2 37090.36 76.34564 161.2159 25.78738  9.253143  9.826897e-36
-    ## m11_1 37854.49 57.63045 925.3444 62.65109  6.020406 1.158826e-201
+    #>           WAIC       SE    dWAIC      dSE     pWAIC        weight
+    #> m11_3 36929.15 81.16718   0.0000       NA 11.004379  1.000000e+00
+    #> m11_2 37090.36 76.34564 161.2159 25.78738  9.253143  9.826897e-36
+    #> m11_1 37854.49 57.63045 925.3444 62.65109  6.020406 1.158826e-201
 
   - plot implied predictions to understand what model `m11_3` implies
       - difficult to plot the predictions of log-cumulative-odds because
@@ -522,21 +522,21 @@ m11_4 <- quap(
 precis(m11_4)
 ```
 
-    ##           mean         sd        5.5%      94.5%
-    ## ap -1.08474003 0.27298308 -1.52101972 -0.6484603
-    ## al  0.04329227 0.08613731 -0.09437178  0.1809563
+    #>           mean         sd        5.5%      94.5%
+    #> ap -1.08474003 0.27298308 -1.52101972 -0.6484603
+    #> al  0.04329227 0.08613731 -0.09437178  0.1809563
 
 ``` r
 logistic(m11_4@coef[["ap"]])
 ```
 
-    ## [1] 0.2526101
+    #> [1] 0.2526101
 
 ``` r
 exp(m11_4@coef[["al"]])
 ```
 
-    ## [1] 1.044243
+    #> [1] 1.044243
 
   - can get a very accurate prediction for the proportion of days taken
     off by the monks and the rate of manuscript production per working
@@ -644,98 +644,79 @@ data("UCBadmit")
 d <- as_tibble(UCBadmit) %>%
     janitor::clean_names()
 
-m11_5 <- map2stan(
-    alist(
-        admit ~ dbetabinom(applications, pbar, theta),
-        logit(pbar) <- a,
-        a ~ dnorm(0, 2),
-        theta ~ dexp(1)
-    ),
-    data = d,
-    constraints = list(theta = "lower=0"),
-    start = list(theta = 3),
-    iter = 4e3, 
-    warmup = 1e3, 
-    chains = 2, 
-    cores = 1
-)
+stash("m11_5", depends_on = "d", {
+    m11_5 <- map2stan(
+        alist(
+            admit ~ dbetabinom(applications, pbar, theta),
+            logit(pbar) <- a,
+            a ~ dnorm(0, 2),
+            theta ~ dexp(1)
+        ),
+        data = d,
+        constraints = list(theta = "lower=0"),
+        start = list(theta = 3),
+        iter = 4e3, 
+        warmup = 1e3, 
+        chains = 2, 
+        cores = 1
+    )
+})
 ```
 
-    ## Trying to compile a simple C file
+    #> Stashing object.
 
-    ## Running /Library/Frameworks/R.framework/Resources/bin/R CMD SHLIB foo.c
-    ## clang -mmacosx-version-min=10.13 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/Rcpp/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/unsupported"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/BH/include" -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/src/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/"  -I"/Library/Frameworks/R.framework/Versions/4.0/Resources/library/rstan/include" -DEIGEN_NO_DEBUG  -D_REENTRANT  -DBOOST_DISABLE_ASSERTS -DBOOST_PENDING_INTEGER_LOG2_HPP -include stan/math/prim/mat/fun/Eigen.hpp   -I/usr/local/include   -fPIC  -Wall -g -O2  -c foo.c -o foo.o
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:88:
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:1: error: unknown type name 'namespace'
-    ## namespace Eigen {
-    ## ^
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/src/Core/util/Macros.h:613:16: error: expected ';' after top level declarator
-    ## namespace Eigen {
-    ##                ^
-    ##                ;
-    ## In file included from <built-in>:1:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/Eigen.hpp:4:
-    ## In file included from /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Dense:1:
-    ## /Library/Frameworks/R.framework/Versions/4.0/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: 'complex' file not found
-    ## #include <complex>
-    ##          ^~~~~~~~~
-    ## 3 errors generated.
-    ## make: *** [foo.o] Error 1
-    ## 
-    ## SAMPLING FOR MODEL 'c669d85dc0a14c2d86390e076d692f11' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000135 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1.35 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.097638 seconds (Warm-up)
-    ## Chain 1:                0.227966 seconds (Sampling)
-    ## Chain 1:                0.325604 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL 'c669d85dc0a14c2d86390e076d692f11' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 3.9e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.39 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    ## Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    ## Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    ## Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    ## Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    ## Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    ## Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    ## Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    ## Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.088638 seconds (Warm-up)
-    ## Chain 2:                0.212247 seconds (Sampling)
-    ## Chain 2:                0.300885 seconds (Total)
-    ## Chain 2:
+    #> 
+    #> SAMPLING FOR MODEL '56998f09386e6ddb29b6ab7261c0a7b3' NOW (CHAIN 1).
+    #> Chain 1: 
+    #> Chain 1: Gradient evaluation took 4e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.4 seconds.
+    #> Chain 1: Adjust your expectations accordingly!
+    #> Chain 1: 
+    #> Chain 1: 
+    #> Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 1: 
+    #> Chain 1:  Elapsed Time: 0.09488 seconds (Warm-up)
+    #> Chain 1:                0.279311 seconds (Sampling)
+    #> Chain 1:                0.374191 seconds (Total)
+    #> Chain 1: 
+    #> 
+    #> SAMPLING FOR MODEL '56998f09386e6ddb29b6ab7261c0a7b3' NOW (CHAIN 2).
+    #> Chain 2: 
+    #> Chain 2: Gradient evaluation took 1.7e-05 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.17 seconds.
+    #> Chain 2: Adjust your expectations accordingly!
+    #> Chain 2: 
+    #> Chain 2: 
+    #> Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
+    #> Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
+    #> Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
+    #> Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
+    #> Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
+    #> Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
+    #> Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
+    #> Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
+    #> Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
+    #> Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
+    #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
+    #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
+    #> Chain 2: 
+    #> Chain 2:  Elapsed Time: 0.085334 seconds (Warm-up)
+    #> Chain 2:                0.253464 seconds (Sampling)
+    #> Chain 2:                0.338798 seconds (Total)
+    #> Chain 2:
 
-    ## Computing WAIC
+    #> Computing WAIC
 
 ``` r
 plot(m11_5)
@@ -753,9 +734,9 @@ pairs(m11_5)
 precis(m11_5)
 ```
 
-    ##             mean       sd       5.5%     94.5%    n_eff     Rhat4
-    ## theta  2.7399242 0.946932  1.4355572 4.4392494 3913.286 0.9997085
-    ## a     -0.3775653 0.307988 -0.8717805 0.1203542 3450.286 1.0000152
+    #>             mean       sd       5.5%     94.5%    n_eff     Rhat4
+    #> theta  2.7399242 0.946932  1.4355572 4.4392494 3913.286 0.9997085
+    #> a     -0.3775653 0.307988 -0.8717805 0.1203542 3450.286 1.0000152
 
   - interpretation:
       - `a` is on the log-odds scale and defines \(\bar{\textbf{p}}\) of
@@ -770,8 +751,8 @@ post <- extract.samples(m11_5)
 quantile(logistic(post$a), c(0.025, 0.5, 0.975))
 ```
 
-    ##      2.5%       50%     97.5% 
-    ## 0.2749293 0.4066962 0.5588299
+    #>      2.5%       50%     97.5% 
+    #> 0.2749293 0.4066962 0.5588299
 
   - to see what the model says of the data, need to account for
     correlation between \(\bar{\textbf{p}}\) and \(\theta\)
@@ -822,8 +803,8 @@ dist_of_dist %>%
 postcheck(m11_5)
 ```
 
-    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
-    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+    #> [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+    #> [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
 
 ![](ch11_monsters-and-mixtures_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 

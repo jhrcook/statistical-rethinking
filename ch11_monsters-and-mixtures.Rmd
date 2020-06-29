@@ -4,10 +4,10 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, 
-                      cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
 
 library(glue)
+library(mustashe)
 library(broom)
 library(patchwork)
 library(MASS)
@@ -518,21 +518,23 @@ data("UCBadmit")
 d <- as_tibble(UCBadmit) %>%
     janitor::clean_names()
 
-m11_5 <- map2stan(
-    alist(
-        admit ~ dbetabinom(applications, pbar, theta),
-        logit(pbar) <- a,
-        a ~ dnorm(0, 2),
-        theta ~ dexp(1)
-    ),
-    data = d,
-    constraints = list(theta = "lower=0"),
-    start = list(theta = 3),
-    iter = 4e3, 
-    warmup = 1e3, 
-    chains = 2, 
-    cores = 1
-)
+stash("m11_5", depends_on = "d", {
+    m11_5 <- map2stan(
+        alist(
+            admit ~ dbetabinom(applications, pbar, theta),
+            logit(pbar) <- a,
+            a ~ dnorm(0, 2),
+            theta ~ dexp(1)
+        ),
+        data = d,
+        constraints = list(theta = "lower=0"),
+        start = list(theta = 3),
+        iter = 4e3, 
+        warmup = 1e3, 
+        chains = 2, 
+        cores = 1
+    )
+})
 
 plot(m11_5)
 pairs(m11_5)

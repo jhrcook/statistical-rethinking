@@ -55,7 +55,7 @@ m6_1 <- lm(brain ~ mass, data = d)
 1 - var(resid(m6_1)) / var(d$brain)  # R-squared
 ```
 
-    ## [1] 0.490158
+    #> [1] 0.490158
 
   - consider 5 more models, each more complex with higher degree
     polynomials
@@ -103,10 +103,10 @@ list(m6_1, m6_2, m6_3, m6_4, m6_5, m6_6) %>%
     patchwork::wrap_plots(ncol = 2)
 ```
 
-    ## Warning in qt((1 - level)/2, df): NaNs produced
+    #> Warning in qt((1 - level)/2, df): NaNs produced
 
-    ## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning -
-    ## Inf
+    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning -
+    #> Inf
 
 ![](ch6_overfitting-regularization-and-information-criteria_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
@@ -247,7 +247,7 @@ D(q) = -2 \sum_i \log(q_i)
 -2 * logLik(m6_1)  # deviance
 ```
 
-    ## 'log Lik.' 94.92499 (df=3)
+    #> 'log Lik.' 94.92499 (df=3)
 
 ### 6.2.5 From deviance to out-of-sample
 
@@ -445,8 +445,8 @@ m6_14 <- quap(
 WAIC(m6_14)
 ```
 
-    ##        WAIC     lppd  penalty  std_err
-    ## 1 -15.39206 12.33699 4.640955 7.612751
+    #>        WAIC     lppd  penalty  std_err
+    #> 1 -15.39206 12.33699 4.640955 7.612751
 
   - get WAIC for all models
       - the “weight” is roughly “an estiamte of the probability that the
@@ -460,11 +460,11 @@ milk_models <- compare(m6_11, m6_12, m6_13, m6_14)
 milk_models
 ```
 
-    ##             WAIC       SE    dWAIC      dSE    pWAIC     weight
-    ## m6_14 -15.862631 7.081823 0.000000       NA 4.406564 0.94839376
-    ## m6_11  -8.242263 4.517978 7.620368 6.802299 1.834151 0.02100133
-    ## m6_13  -8.136854 5.418315 7.725778 4.954064 2.874894 0.01992312
-    ## m6_12  -6.890172 4.251610 8.972459 7.101033 2.594300 0.01068179
+    #>             WAIC       SE    dWAIC      dSE    pWAIC     weight
+    #> m6_14 -15.862631 7.081823 0.000000       NA 4.406564 0.94839376
+    #> m6_11  -8.242263 4.517978 7.620368 6.802299 1.834151 0.02100133
+    #> m6_13  -8.136854 5.418315 7.725778 4.954064 2.874894 0.01992312
+    #> m6_12  -6.890172 4.251610 8.972459 7.101033 2.594300 0.01068179
 
   - can plot the WAIC values and distributions
       - unfilled points are the WAIC
@@ -492,12 +492,12 @@ plot(milk_models, SE = TRUE, dSE = TRUE)
 coeftab(m6_11, m6_12, m6_13, m6_14)
 ```
 
-    ##           m6_11   m6_12   m6_13   m6_14  
-    ## a            0.66    0.35    0.71   -1.09
-    ## log_sigma   -1.79   -1.80   -1.85   -2.16
-    ## bn             NA    0.45      NA    2.79
-    ## bm             NA      NA   -0.03   -0.10
-    ## nobs           17      17      17      17
+    #>           m6_11   m6_12   m6_13   m6_14  
+    #> a            0.66    0.35    0.71   -1.09
+    #> log_sigma   -1.79   -1.80   -1.85   -2.16
+    #> bn             NA    0.45      NA    2.79
+    #> bm             NA      NA   -0.03   -0.10
+    #> nobs           17      17      17      17
 
 ``` r
 plot(coeftab(m6_11, m6_12, m6_13, m6_14))

@@ -116,7 +116,7 @@ Chapter 2. Small Worlds and Large Worlds
 dbinom(6, size = 9, prob = 0.5)
 ```
 
-    ## [1] 0.1640625
+    #> [1] 0.1640625
 
 ``` r
 probs <- seq(0, 1, 0.01)
@@ -333,44 +333,7 @@ tibble(p = p_grid, posterior = posterior) %>%
 
 ``` r
 library(rethinking)
-```
 
-    ## Loading required package: rstan
-
-    ## Loading required package: StanHeaders
-
-    ## rstan (Version 2.19.3, GitRev: 2e1f913d3ca3)
-
-    ## For execution on a local, multicore CPU with excess RAM we recommend calling
-    ## options(mc.cores = parallel::detectCores()).
-    ## To avoid recompilation of unchanged Stan programs, we recommend calling
-    ## rstan_options(auto_write = TRUE)
-
-    ## 
-    ## Attaching package: 'rstan'
-
-    ## The following object is masked from 'package:tidyr':
-    ## 
-    ##     extract
-
-    ## Loading required package: parallel
-
-    ## Loading required package: dagitty
-
-    ## rethinking (Version 2.00)
-
-    ## 
-    ## Attaching package: 'rethinking'
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     map
-
-    ## The following object is masked from 'package:stats':
-    ## 
-    ##     rstudent
-
-``` r
 globe_qa <- quap(
     alist(
         W ~ dbinom(W+L, p),  # binomial likelihood
@@ -383,8 +346,8 @@ globe_qa_res <- precis(globe_qa)
 globe_qa_res
 ```
 
-    ##        mean        sd      5.5%     94.5%
-    ## p 0.6666667 0.1571338 0.4155366 0.9177968
+    #>        mean        sd      5.5%     94.5%
+    #> p 0.6666667 0.1571338 0.4155366 0.9177968
 
 ``` r
 qa_posterior <- dnorm(probs, mean = globe_qa_res$mean, sd = globe_qa_res$sd)
@@ -412,6 +375,8 @@ tibble(p = probs,
 
 ## 2.6 Practice
 
+### Easy
+
 **2E1. Which of the expressions below correspond to the statement: “the
 probability of rain on Monday”?**
 
@@ -426,6 +391,8 @@ probability of rain on Monday”?**
 probability that is it is Monday, given it is raining”?**
 
 1: \(\Pr(\text{Monday} | \text{rain})\)
+
+### Medium
 
 **2M1. Recall the globe tossing model from the chapter. Compute and plot
 the grid approximate posterior distribution for each of the following
@@ -570,14 +537,14 @@ Now the priors are left as raw counts and will be normalized at the end.
 (W,W): 3 \times 0 = 0
 \]
 
-\*\*2M7. Assume again the original card problem, with a single card
+**2M7. Assume again the original card problem, with a single card
 showing a black side face up. Before looking at the other side, we draw
 another card from the bad and lay it face up on the table. The face that
 is shown on the new card is white. Show that the probability that the
 first card, the one showing a black side, has black on the other side is
 now 0.75. Use the counting method, if you can. Hint: Treat this like the
 sequence of globe tosses, counting all the ways to see each observation,
-for each possible fist card.
+for each possible fist card.**
 
 The prior is again a uniform distribution. I then count the number of
 ways of getting the first card and multiply this by the number of ways
@@ -590,6 +557,8 @@ possibilities.
 (B,W): \frac{1}{3} \times 1 \times 2 = \frac{2}{3} \rightarrow \frac{1}{4} \\
 (W,W): \frac{1}{3} \times 0 = 0
 \]
+
+### Hard
 
 **2H1. Suppose there are two species of panda bear. Both are equally
 common in the wild and live in the same places. They look exactly alike

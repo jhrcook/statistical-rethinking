@@ -4,12 +4,14 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
 
 library(glue)
 library(tidyverse)
 
 theme_set(theme_minimal())
+
+set.seed(0)
 ```
 
 * all models contain a "small world" and a "large world

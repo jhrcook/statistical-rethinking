@@ -4,9 +4,10 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
 
 library(glue)
+library(mustashe)
 library(broom)
 library(patchwork)
 library(rethinking)

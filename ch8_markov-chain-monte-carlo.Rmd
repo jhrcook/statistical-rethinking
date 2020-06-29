@@ -4,9 +4,10 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
 
 library(glue)
+library(mustashe)
 library(broom)
 library(patchwork)
 library(rethinking)
@@ -35,7 +36,7 @@ set.seed(0)
     * sample directly from the posterior instead of approximating curves (like the quadratic approximation)
     * allows for models that do not assume a multivariate normality
         - can use generalized linear and multilevel models
-- use **Stan* to fit these models
+- use *Stan* to fit these models
 
 ## 8.1 Good King Markov and His island kingdom
 
@@ -211,18 +212,20 @@ dd_trim <- dd %>%
 - can now fit the model with HMC using `map2stan()`
 
 ```{r, cache=TRUE}
-m8_1stan <- map2stan(
-    alist(
-        log_gdp ~ dnorm(mu, sigma),
-        mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
-        a ~ dnorm(0, 100),
-        bR ~ dnorm(0, 10),
-        bA ~ dnorm(0, 10),
-        bAR ~ dnorm(0, 10),
-        sigma ~ dcauchy(0, 2)
-    ),
-    data = dd_trim
-)
+stash("m8_1stan", depends_on = "dd_trim", {
+    m8_1stan <- map2stan(
+        alist(
+            log_gdp ~ dnorm(mu, sigma),
+            mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa,
+            a ~ dnorm(0, 100),
+            bR ~ dnorm(0, 10),
+            bA ~ dnorm(0, 10),
+            bAR ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 2)
+        ),
+        data = dd_trim
+    )
+})
 
 precis(m8_1stan)
 ```
@@ -246,7 +249,9 @@ precis(m8_1stan)
     * multiple chains can also be used and run in parallel
 
 ```{r}
-m8_1stan_4chains <- map2stan(m8_1stan, chains = 4, cores = 4)
+stash("m8_1stan_4chains", {
+    m8_1stan_4chains <- map2stan(m8_1stan, chains = 4, cores = 4)
+})
 precis(m8_1stan_4chains)
 ```
 
@@ -342,17 +347,19 @@ str_split(m8_1stan@model, "\n")
 
 ```{r}
 y <- c(-1, 1)
-m8_2 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- alpha
-    ),
-    data = list(y = y),
-    start = list(alpha = 0, sigma = 1),
-    chains = 2,
-    iter = 4000,
-    warmup = 1000
-)
+stash("m8_2", depends_on = "y", {
+    m8_2 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- alpha
+        ),
+        data = list(y = y),
+        start = list(alpha = 0, sigma = 1),
+        chains = 2,
+        iter = 4000,
+        warmup = 1000
+    )
+})
 ```
 
 ```{r}
@@ -370,19 +377,22 @@ plot(m8_2)
 - here's the same model with weak, but more informative priors
 
 ```{r}
-m8_3 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- alpha,
-        alpha ~ dnorm(1, 10),
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = list(y = y),
-    start = list(alpha = 0, sigma = 1),
-    chains = 2,
-    iter = 4e3,
-    warmup = 1e3
-)
+stash("m8_3", depends_on = "y", {
+    m8_3 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- alpha,
+            alpha ~ dnorm(1, 10),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = list(y = y),
+        start = list(alpha = 0, sigma = 1),
+        chains = 2,
+        iter = 4e3,
+        warmup = 1e3
+    )
+
+})
 
 precis(m8_3)
 plot(m8_3)
@@ -433,18 +443,20 @@ $$
 ```{r}
 y <- rnorm(100, 0, 1)
 
-m8_4 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- a1 + a2,
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = list(y = y),
-    start = list(a1 = 0, a2 = 0, sigma = 1),
-    chains = 2,
-    iter = 4e3,
-    warmup = 1e3
-)
+stash("m8_4", depends_on = "y", {
+    m8_4 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- a1 + a2,
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = list(y = y),
+        start = list(a1 = 0, a2 = 0, sigma = 1),
+        chains = 2,
+        iter = 4e3,
+        warmup = 1e3
+    )
+})
 
 precis(m8_4, digits = 3)
 plot(m8_4)
@@ -455,19 +467,21 @@ plot(m8_4)
 - using weak priors helps a lot
 
 ```{r}
-m8_5 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- a1 + a2,
-        c(a1, a2) ~ dnorm(0, 10),
-        sigma ~ dcauchy(0, 1)
-    ),
-    data = list(y = y),
-    start = list(a1 = 0, a2 = 0, sigma = 1),
-    chains = 2,
-    iter = 4e3,
-    warmup = 1e3
-)
+stash("m8_5", depends_on = "y", {
+    m8_5 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- a1 + a2,
+            c(a1, a2) ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = list(y = y),
+        start = list(a1 = 0, a2 = 0, sigma = 1),
+        chains = 2,
+        iter = 4e3,
+        warmup = 1e3
+    )
+})
 
 precis(m8_5, digits = 3)
 plot(m8_5)
@@ -481,17 +495,19 @@ plot(m8_5)
 
 ```{r}
 # Code from the question:
-mp <- map2stan(
-    alist(
-        a ~ dnorm(0, 1),
-        b ~ dcauchy(0, 1)
-    ),
-    data = list(y = 1),
-    start = list(a = 0, b = 0),
-    iter = 1e4,
-    warmup = 1e2,
-    WAIC = FALSE
-)
+stash("mp", {
+    mp <- map2stan(
+        alist(
+            a ~ dnorm(0, 1),
+            b ~ dcauchy(0, 1)
+        ),
+        data = list(y = 1),
+        start = list(a = 0, b = 0),
+        iter = 1e4,
+        warmup = 1e2,
+        WAIC = FALSE
+    )
+})
 ###
 ```
 

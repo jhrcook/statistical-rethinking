@@ -78,7 +78,7 @@ plot(density(samples))
 sum(posterior[p_grid < 0.5])
 ```
 
-    ## [1] 0.1718746
+    #> [1] 0.1718746
 
   - however, this calculation using the grid approximation becomes far
     more complicated when there is more than one parameter
@@ -91,7 +91,7 @@ sum(posterior[p_grid < 0.5])
 sum(samples < 0.5) / length(samples)
 ```
 
-    ## [1] 0.1696
+    #> [1] 0.1696
 
   - we can also ask: How much of the posterior lies between 0.5 and
     0.75?
@@ -102,7 +102,7 @@ sum(samples < 0.5) / length(samples)
 sum(samples > 0.5 & samples < 0.75) / length(samples)
 ```
 
-    ## [1] 0.6071
+    #> [1] 0.6071
 
 ### 3.2.2 Intervals of defined mass
 
@@ -119,8 +119,8 @@ sum(samples > 0.5 & samples < 0.75) / length(samples)
 quantile(samples, c(0.1, 0.9))
 ```
 
-    ##       10%       90% 
-    ## 0.4514515 0.8098098
+    #>       10%       90% 
+    #> 0.4514515 0.8098098
 
   - however, a credible interval can be misleading if the sampled
     posterior is too asymmetric
@@ -171,8 +171,8 @@ tibble(x = samples) %>%
 HPDI(samples, prob = 0.5)
 ```
 
-    ##      |0.5      0.5| 
-    ## 0.8448448 1.0000000
+    #>      |0.5      0.5| 
+    #> 0.8448448 1.0000000
 
 ``` r
 tibble(x = samples) %>%
@@ -208,7 +208,7 @@ tibble(x = samples) %>%
 p_grid[which.max(posterior)]
 ```
 
-    ## [1] 1
+    #> [1] 1
 
   - when we only have samples from the posterior, it must be
     approximated
@@ -219,7 +219,7 @@ p_grid[which.max(posterior)]
 chainmode(samples, adj = 0.01)
 ```
 
-    ## [1] 0.9953597
+    #> [1] 0.9953597
 
   - we can also report the mean or median, but they all have different
     values in this example
@@ -230,13 +230,13 @@ chainmode(samples, adj = 0.01)
 mean(samples)
 ```
 
-    ## [1] 0.802544
+    #> [1] 0.802544
 
 ``` r
 median(samples)
 ```
 
-    ## [1] 0.8448448
+    #> [1] 0.8448448
 
   - we can use a *loss function* to provide a cost to use any particular
     point estimate
@@ -296,22 +296,22 @@ median(samples)
 rbinom(1, size = 2, prob = 0.7)
 ```
 
-    ## [1] 1
+    #> [1] 1
 
 ``` r
 rbinom(10, size = 2, prob = 0.7)
 ```
 
-    ##  [1] 1 2 0 1 2 2 1 1 1 1
+    #>  [1] 1 2 0 1 2 2 1 1 1 1
 
 ``` r
 dummy_w <- rbinom(1e5, size = 2, prob = 0.7)
 table(dummy_w) / length(dummy_w)
 ```
 
-    ## dummy_w
-    ##       0       1       2 
-    ## 0.08910 0.42262 0.48828
+    #> dummy_w
+    #>       0       1       2 
+    #> 0.08910 0.42262 0.48828
 
   - the following samples 9 tosses and counts the number of waters
     expected given \(p=0.7\)
@@ -490,7 +490,7 @@ samples <- sample(p_grid, prob = posterior, size=1e4, replace = TRUE)
 sum(samples < 0.2) / length(samples)
 ```
 
-    ## [1] 4e-04
+    #> [1] 4e-04
 
 **3E2. How much posterior probability lies above p = 0.8?**
 
@@ -498,7 +498,7 @@ sum(samples < 0.2) / length(samples)
 sum(samples > 0.8) / length(samples)
 ```
 
-    ## [1] 0.1116
+    #> [1] 0.1116
 
 **3E3. How much posterior probability lies between p = 0.2 and p =
 0.8?**
@@ -507,7 +507,7 @@ sum(samples > 0.8) / length(samples)
 sum(samples > 0.2 & samples < 0.8) / length(samples)
 ```
 
-    ## [1] 0.888
+    #> [1] 0.888
 
 **3E4. 20% of the posterior probability lies below which value of p?**
 
@@ -515,8 +515,8 @@ sum(samples > 0.2 & samples < 0.8) / length(samples)
 quantile(samples, 0.2)
 ```
 
-    ##       20% 
-    ## 0.5185185
+    #>       20% 
+    #> 0.5185185
 
 **3E5. 20% of the posterior probability lies above which value of p?**
 
@@ -524,8 +524,8 @@ quantile(samples, 0.2)
 quantile(samples, 0.8)
 ```
 
-    ##       80% 
-    ## 0.7557558
+    #>       80% 
+    #> 0.7557558
 
 **3E6. Which values of p contain the narrowest interval equal to 66% of
 the posterior probability?**
@@ -534,8 +534,8 @@ the posterior probability?**
 HPDI(samples, prob = 0.66)
 ```
 
-    ##     |0.66     0.66| 
-    ## 0.5085085 0.7737738
+    #>     |0.66     0.66| 
+    #> 0.5085085 0.7737738
 
 **3E7. Which values of p contain 66% of the posterior probability,
 assuming equal posterior probability both below and above the
@@ -545,8 +545,8 @@ interval?**
 PI(samples, prob = 0.66)
 ```
 
-    ##       17%       83% 
-    ## 0.5025025 0.7697698
+    #>       17%       83% 
+    #> 0.5025025 0.7697698
 
 ### Medium
 
@@ -578,8 +578,8 @@ samples <- sample(p_grid, size = 1e4, prob = posterior, replace = TRUE)
 HPDI(samples, prob = 0.90)
 ```
 
-    ##      |0.9      0.9| 
-    ## 0.3304330 0.7166717
+    #>      |0.9      0.9| 
+    #> 0.3304330 0.7166717
 
 ``` r
 plot(density(samples))
@@ -597,7 +597,7 @@ ppd <- rbinom(1e4, size = 15, prob = samples)
 sum(ppd == 8) / length(ppd)
 ```
 
-    ## [1] 0.1547
+    #> [1] 0.1547
 
 ``` r
 simplehist(ppd)
@@ -613,7 +613,7 @@ ppd <- rbinom(1e4, size = 9, prob = samples)
 sum(ppd == 6) / length(ppd)
 ```
 
-    ## [1] 0.1735
+    #> [1] 0.1735
 
 ``` r
 simplehist(ppd)
@@ -641,14 +641,14 @@ samples <- sample(p_grid, size = 1e4, prob = posterior, replace = TRUE)
 cat("HPDI:\n")
 ```
 
-    ## HPDI:
+    #> HPDI:
 
 ``` r
 HPDI(samples, prob = 0.90)
 ```
 
-    ##      |0.9      0.9| 
-    ## 0.5000500 0.7119712
+    #>      |0.9      0.9| 
+    #> 0.5000500 0.7119712
 
 ``` r
 cat("\n")
@@ -659,14 +659,14 @@ ppd <- rbinom(1e4, size = 15, prob = samples)
 glue("Prob of 8 waters of 15 tosses: {sum(ppd == 8) / length(ppd)}")
 ```
 
-    ## Prob of 8 waters of 15 tosses: 0.1632
+    #> Prob of 8 waters of 15 tosses: 0.1632
 
 ``` r
 ppd <- rbinom(1e4, size = 9, prob = samples)
 glue("Prob of 6 waters of 9 tosses: {sum(ppd == 6) / length(ppd)}")
 ```
 
-    ## Prob of 6 waters of 9 tosses: 0.2266
+    #> Prob of 6 waters of 9 tosses: 0.2266
 
 ### Hard
 
@@ -684,13 +684,13 @@ data(homeworkch3)
 head(birth1)
 ```
 
-    ## [1] 1 0 0 0 1 1
+    #> [1] 1 0 0 0 1 1
 
 ``` r
 head(birth2)
 ```
 
-    ## [1] 0 1 0 1 0 1
+    #> [1] 0 1 0 1 0 1
 
 **3H1. Using grid approximation, compute the posterior distribution for
 the probability of a birth being a boy. Assume a uniform prior
@@ -713,7 +713,7 @@ posterior <- posterior / sum(posterior)
 glue("MAP of prob of getting a boy: {round(p_grid[which.max(posterior)], 5)}")
 ```
 
-    ## MAP of prob of getting a boy: 0.55496
+    #> MAP of prob of getting a boy: 0.55496
 
 **3H2. Using the sample function, draw 10,000 random parameter values
 from the posterior distribution you calculated above. Use these samples
@@ -730,17 +730,17 @@ plot(density(birth_samples))
 purrr::map(c(0.5, 0.89, 0.97), ~ HPDI(birth_samples, prob = .x))
 ```
 
-    ## [[1]]
-    ##      |0.5      0.5| 
-    ## 0.5298530 0.5778578 
-    ## 
-    ## [[2]]
-    ##     |0.89     0.89| 
-    ## 0.5012501 0.6131613 
-    ## 
-    ## [[3]]
-    ##     |0.97     0.97| 
-    ## 0.4750475 0.6271627
+    #> [[1]]
+    #>      |0.5      0.5| 
+    #> 0.5298530 0.5778578 
+    #> 
+    #> [[2]]
+    #>     |0.89     0.89| 
+    #> 0.5012501 0.6131613 
+    #> 
+    #> [[3]]
+    #>     |0.97     0.97| 
+    #> 0.4750475 0.6271627
 
 **3H3. Use rbinom to simulate 10,000 replicates of 200 births. You
 should end up with 10,000 numbers, each one a count of boys out of 200
@@ -811,13 +811,13 @@ birth2_after_girl <- birth2[birth1 == 0]
 glue("There were {num_girls_first} girls in `birth1`")
 ```
 
-    ## There were 49 girls in `birth1`
+    #> There were 49 girls in `birth1`
 
 ``` r
 glue("There were {sum(birth2_after_girl)} boys that followed girls.")
 ```
 
-    ## There were 39 boys that followed girls.
+    #> There were 39 boys that followed girls.
 
 ``` r
 boy_counts <- rbinom(1e4, num_girls_first, prob = birth_samples)

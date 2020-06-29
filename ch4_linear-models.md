@@ -88,7 +88,7 @@ walks_plot / step_densities + plot_layout(heights = c(3, 2))
 prod(1 + runif(12, 0, 0.1))
 ```
 
-    ## [1] 1.846713
+    #> [1] 1.846713
 
 ``` r
 growth <- replicate(1e4, prod(1 + runif(12, 0, 0.1)))
@@ -193,18 +193,18 @@ d <- Howell1
 str(d)
 ```
 
-    ## 'data.frame':    544 obs. of  4 variables:
-    ##  $ height: num  152 140 137 157 145 ...
-    ##  $ weight: num  47.8 36.5 31.9 53 41.3 ...
-    ##  $ age   : num  63 63 65 41 51 35 32 27 19 54 ...
-    ##  $ male  : int  1 0 0 1 0 1 0 1 0 1 ...
+    #> 'data.frame':    544 obs. of  4 variables:
+    #>  $ height: num  152 140 137 157 145 ...
+    #>  $ weight: num  47.8 36.5 31.9 53 41.3 ...
+    #>  $ age   : num  63 63 65 41 51 35 32 27 19 54 ...
+    #>  $ male  : int  1 0 0 1 0 1 0 1 0 1 ...
 
 ``` r
 d2 <- d[d$age >= 18, ]
 nrow(d2)
 ```
 
-    ## [1] 352
+    #> [1] 352
 
 ### 4.3.2 The model
 
@@ -287,13 +287,13 @@ post <- expand.grid(mu = mu_list, sigma = sigma_list)
 head(post)
 ```
 
-    ##         mu sigma
-    ## 1 140.0000     4
-    ## 2 140.1005     4
-    ## 3 140.2010     4
-    ## 4 140.3015     4
-    ## 5 140.4020     4
-    ## 6 140.5025     4
+    #>         mu sigma
+    #> 1 140.0000     4
+    #> 2 140.1005     4
+    #> 3 140.2010     4
+    #> 4 140.3015     4
+    #> 5 140.4020     4
+    #> 6 140.5025     4
 
 ``` r
 set.seed(0)
@@ -371,28 +371,28 @@ tibble(name = c(rep("mu", 1e4), rep("sigma", 1e4)),
 cat("HPDI of mu:\n")
 ```
 
-    ## HPDI of mu:
+    #> HPDI of mu:
 
 ``` r
 HPDI(sample_mu)
 ```
 
-    ##    |0.89    0.89| 
-    ## 153.8693 155.1759
+    #>    |0.89    0.89| 
+    #> 153.8693 155.1759
 
 ``` r
 cat("\nHPDI of sigma:\n")
 ```
 
-    ## 
-    ## HPDI of sigma:
+    #> 
+    #> HPDI of sigma:
 
 ``` r
 HPDI(sample_sigma)
 ```
 
-    ##    |0.89    0.89| 
-    ## 7.291457 8.221106
+    #>    |0.89    0.89| 
+    #> 7.291457 8.221106
 
 4.3.5 Fitting the model with `map()`
 
@@ -422,14 +422,14 @@ formula_list <- alist(
 formula_list
 ```
 
-    ## [[1]]
-    ## height ~ dnorm(mu, sigma)
-    ## 
-    ## [[2]]
-    ## mu ~ dnorm(178, 20)
-    ## 
-    ## [[3]]
-    ## sigma ~ dunif(0, 50)
+    #> [[1]]
+    #> height ~ dnorm(mu, sigma)
+    #> 
+    #> [[2]]
+    #> mu ~ dnorm(178, 20)
+    #> 
+    #> [[3]]
+    #> sigma ~ dunif(0, 50)
 
   - then we can fit the model to the data using `quap()` and the data in
     `d2`
@@ -441,9 +441,9 @@ m4_1 <- quap(formula_list, data = d2)
 summary(m4_1)
 ```
 
-    ##             mean        sd       5.5%     94.5%
-    ## mu    154.607032 0.4120116 153.948558 155.26551
-    ## sigma   7.731651 0.2914160   7.265912   8.19739
+    #>             mean        sd       5.5%     94.5%
+    #> mu    154.607032 0.4120116 153.948558 155.26551
+    #> sigma   7.731651 0.2914160   7.265912   8.19739
 
 ### 4.3.6 Sampling from a map fit
 
@@ -457,9 +457,9 @@ summary(m4_1)
 vcov(m4_1)
 ```
 
-    ##                 mu        sigma
-    ## mu    0.1697535649 0.0002182476
-    ## sigma 0.0002182476 0.0849232811
+    #>                 mu        sigma
+    #> mu    0.1697535649 0.0002182476
+    #> sigma 0.0002182476 0.0849232811
 
   - the variance-covariance matrix tells us how the parameters relate to
     each other
@@ -474,29 +474,29 @@ vcov(m4_1)
 cat("Covariances:\n")
 ```
 
-    ## Covariances:
+    #> Covariances:
 
 ``` r
 diag(vcov(m4_1))
 ```
 
-    ##         mu      sigma 
-    ## 0.16975356 0.08492328
+    #>         mu      sigma 
+    #> 0.16975356 0.08492328
 
 ``` r
 cat("\nCorrelations:\n")
 ```
 
-    ## 
-    ## Correlations:
+    #> 
+    #> Correlations:
 
 ``` r
 cov2cor(vcov(m4_1))
 ```
 
-    ##                mu       sigma
-    ## mu    1.000000000 0.001817718
-    ## sigma 0.001817718 1.000000000
+    #>                mu       sigma
+    #> mu    1.000000000 0.001817718
+    #> sigma 0.001817718 1.000000000
 
   - instead of sampling single values from a simple Gaussian
     distribution, we sample vectors of values from a multi-dimensional
@@ -511,21 +511,21 @@ post <- extract.samples(m4_1, n = 1e4)
 head(post)
 ```
 
-    ##         mu    sigma
-    ## 1 154.1145 7.599922
-    ## 2 154.8011 7.305567
-    ## 3 154.7124 7.813402
-    ## 4 154.6557 7.511392
-    ## 5 154.9872 8.218177
-    ## 6 154.5500 7.601779
+    #>         mu    sigma
+    #> 1 154.1145 7.599922
+    #> 2 154.8011 7.305567
+    #> 3 154.7124 7.813402
+    #> 4 154.6557 7.511392
+    #> 5 154.9872 8.218177
+    #> 6 154.5500 7.601779
 
 ``` r
 precis(post)
 ```
 
-    ##             mean        sd       5.5%      94.5%    histogram
-    ## mu    154.605370 0.4174050 153.935029 155.272336      ▁▁▅▇▂▁▁
-    ## sigma   7.733771 0.2884477   7.275115   8.193431 ▁▁▁▂▅▇▇▃▁▁▁▁
+    #>             mean        sd       5.5%      94.5%    histogram
+    #> mu    154.605370 0.4174050 153.935029 155.272336      ▁▁▅▇▂▁▁
+    #> sigma   7.733771 0.2884477   7.275115   8.193431 ▁▁▁▂▅▇▇▃▁▁▁▁
 
 ## 4.4 Adding a predictor
 
@@ -582,10 +582,10 @@ m4_3 <- quap(
 summary(m4_3)
 ```
 
-    ##              mean         sd        5.5%       94.5%
-    ## a     113.9033852 1.90526701 110.8584005 116.9483699
-    ## b       0.9045063 0.04192009   0.8375099   0.9715027
-    ## sigma   5.0718671 0.19115324   4.7663673   5.3773669
+    #>              mean         sd        5.5%       94.5%
+    #> a     113.9033852 1.90526701 110.8584005 116.9483699
+    #> b       0.9045063 0.04192009   0.8375099   0.9715027
+    #> sigma   5.0718671 0.19115324   4.7663673   5.3773669
 
 4.4.3 Interpreting the model fit
 
@@ -620,10 +620,10 @@ summary(m4_3)
 precis(m4_3)
 ```
 
-    ##              mean         sd        5.5%       94.5%
-    ## a     113.9033852 1.90526701 110.8584005 116.9483699
-    ## b       0.9045063 0.04192009   0.8375099   0.9715027
-    ## sigma   5.0718671 0.19115324   4.7663673   5.3773669
+    #>              mean         sd        5.5%       94.5%
+    #> a     113.9033852 1.90526701 110.8584005 116.9483699
+    #> b       0.9045063 0.04192009   0.8375099   0.9715027
+    #> sigma   5.0718671 0.19115324   4.7663673   5.3773669
 
   - we can also inspect the correlation of parameters
       - there is strong correlation between `a` and `b` because this is
@@ -637,10 +637,10 @@ precis(m4_3)
 cov2cor(vcov(m4_3))
 ```
 
-    ##                   a             b         sigma
-    ## a      1.0000000000 -0.9898830254  0.0009488233
-    ## b     -0.9898830254  1.0000000000 -0.0009398017
-    ## sigma  0.0009488233 -0.0009398017  1.0000000000
+    #>                   a             b         sigma
+    #> a      1.0000000000 -0.9898830254  0.0009488233
+    #> b     -0.9898830254  1.0000000000 -0.0009398017
+    #> sigma  0.0009488233 -0.0009398017  1.0000000000
 
   - one way to avoid correlation is by centering the data
       - subtracting the mean of the variable from each value
@@ -668,19 +668,19 @@ m4_4 <- quap(
 summary(m4_4)
 ```
 
-    ##              mean         sd        5.5%       94.5%
-    ## a     154.5974770 0.27030258 154.1654813 155.0294727
-    ## b       0.9050075 0.04192321   0.8380061   0.9720089
-    ## sigma   5.0713444 0.19110397   4.7659234   5.3767655
+    #>              mean         sd        5.5%       94.5%
+    #> a     154.5974770 0.27030258 154.1654813 155.0294727
+    #> b       0.9050075 0.04192321   0.8380061   0.9720089
+    #> sigma   5.0713444 0.19110397   4.7659234   5.3767655
 
 ``` r
 cov2cor(vcov(m4_4))
 ```
 
-    ##                   a             b         sigma
-    ## a      1.000000e+00 -4.169566e-09  1.071719e-04
-    ## b     -4.169566e-09  1.000000e+00 -3.890539e-05
-    ## sigma  1.071719e-04 -3.890539e-05  1.000000e+00
+    #>                   a             b         sigma
+    #> a      1.000000e+00 -4.169566e-09  1.071719e-04
+    #> b     -4.169566e-09  1.000000e+00 -3.890539e-05
+    #> sigma  1.071719e-04 -3.890539e-05  1.000000e+00
 
 #### 4.4.3.2 Plotting posterior inference against the data
 
@@ -713,13 +713,13 @@ post <- extract.samples(m4_3)
 head(post)
 ```
 
-    ##          a         b    sigma
-    ## 1 116.4236 0.8412152 5.041186
-    ## 2 114.0396 0.9071210 4.853101
-    ## 3 115.1166 0.8780719 5.232571
-    ## 4 118.4739 0.7949162 5.231642
-    ## 5 113.7912 0.9102064 5.199805
-    ## 6 116.0722 0.8559793 5.161445
+    #>          a         b    sigma
+    #> 1 116.4236 0.8412152 5.041186
+    #> 2 114.0396 0.9071210 4.853101
+    #> 3 115.1166 0.8780719 5.232571
+    #> 4 118.4739 0.7949162 5.231642
+    #> 5 113.7912 0.9102064 5.199805
+    #> 6 116.0722 0.8559793 5.161445
 
 ``` r
 d2 %>%
@@ -762,8 +762,8 @@ plot(density(mu_at_50), xlab = "mu | weight=50")
 HPDI(mu_at_50)
 ```
 
-    ##    |0.89    0.89| 
-    ## 158.5909 159.6806
+    #>    |0.89    0.89| 
+    #> 158.5909 159.6806
 
   - we can use the `link()` function from ‘rethinking’ to sample from
     the posterior and compute \(\mu\) for each case in the data and
@@ -778,18 +778,18 @@ mu <- link(m4_3)
 dim(mu)
 ```
 
-    ## [1] 1000  352
+    #> [1] 1000  352
 
 ``` r
 mu[1:5, 1:5]
 ```
 
-    ##          [,1]     [,2]     [,3]     [,4]     [,5]
-    ## [1,] 157.2735 146.5395 142.1654 162.2111 151.0746
-    ## [2,] 156.8582 145.7179 141.1782 161.9828 150.4247
-    ## [3,] 156.9177 145.9155 141.4321 161.9787 150.5639
-    ## [4,] 157.5256 146.8543 142.5057 162.4343 151.3629
-    ## [5,] 157.1968 146.7853 142.5426 161.9861 151.1841
+    #>          [,1]     [,2]     [,3]     [,4]     [,5]
+    #> [1,] 157.2735 146.5395 142.1654 162.2111 151.0746
+    #> [2,] 156.8582 145.7179 141.1782 161.9828 150.4247
+    #> [3,] 156.9177 145.9155 141.4321 161.9787 150.5639
+    #> [4,] 157.5256 146.8543 142.5057 162.4343 151.3629
+    #> [5,] 157.1968 146.7853 142.5426 161.9861 151.1841
 
   - however, we want something slightly different, so we must pass
     `link()` each value from the x-axis (weight)
@@ -803,7 +803,7 @@ mu <- link(m4_3, data = data.frame(weight = weight_seq))
 dim(mu)
 ```
 
-    ## [1] 1000   46
+    #> [1] 1000   46
 
 ``` r
 as_tibble(as.data.frame(mu)) %>%
@@ -870,7 +870,7 @@ sim_height <- sim(m4_3, data = list(weight = weight_seq))
 str(sim_height)
 ```
 
-    ##  num [1:1000, 1:46] 143 134 133 142 140 ...
+    #>  num [1:1000, 1:46] 143 134 133 142 140 ...
 
 ``` r
 height_pi <- apply(sim_height, 2, PI, prob = 0.89)
@@ -990,11 +990,11 @@ m4_5 <- quap(
 summary(m4_5)
 ```
 
-    ##             mean        sd       5.5%      94.5%
-    ## a     146.663373 0.3736588 146.066194 147.260552
-    ## b1     21.400351 0.2898512  20.937113  21.863590
-    ## b2     -8.415056 0.2813197  -8.864659  -7.965453
-    ## sigma   5.749786 0.1743169   5.471194   6.028378
+    #>             mean        sd       5.5%      94.5%
+    #> a     146.663373 0.3736588 146.066194 147.260552
+    #> b1     21.400351 0.2898512  20.937113  21.863590
+    #> b2     -8.415056 0.2813197  -8.864659  -7.965453
+    #> sigma   5.749786 0.1743169   5.471194   6.028378
 
   - we have to plot the fit of the model to make sense of these values
 
@@ -1109,14 +1109,14 @@ alist(
 )
 ```
 
-    ## [[1]]
-    ## y ~ dnorm(mu, sigma)
-    ## 
-    ## [[2]]
-    ## mu ~ dnorm(0, 10)
-    ## 
-    ## [[3]]
-    ## sigma ~ dunif(0, 10)
+    #> [[1]]
+    #> y ~ dnorm(mu, sigma)
+    #> 
+    #> [[2]]
+    #> mu ~ dnorm(0, 10)
+    #> 
+    #> [[3]]
+    #> sigma ~ dunif(0, 10)
 
 **4M3. Translate the map model formula below into a mathematical model
 definition.**
@@ -1211,14 +1211,14 @@ new_data %>%
     select(individual, weight, expected_height, hpdi)
 ```
 
-    ## # A tibble: 5 x 4
-    ##   individual weight expected_height hpdi           
-    ##        <int>  <dbl>           <dbl> <chr>          
-    ## 1          1   47.0            158. 157.68 - 158.71
-    ## 2          2   43.7            156. 155.42 - 156.4 
-    ## 3          3   64.8            156. 154.15 - 158.01
-    ## 4          4   32.6            142. 141.33 - 142.5 
-    ## 5          5   54.6            160. 159.41 - 161.12
+    #> # A tibble: 5 x 4
+    #>   individual weight expected_height hpdi           
+    #>        <int>  <dbl>           <dbl> <chr>          
+    #> 1          1   47.0            158. 157.68 - 158.71
+    #> 2          2   43.7            156. 155.42 - 156.4 
+    #> 3          3   64.8            156. 154.15 - 158.01
+    #> 4          4   32.6            142. 141.33 - 142.5 
+    #> 5          5   54.6            160. 159.41 - 161.12
 
 **4H2. Select out all the rows in the Howelll data with ages below 18
 years of age. If you do it right, you should end up with a new data
@@ -1229,7 +1229,7 @@ qh2_data <- Howell1[Howell1$age < 18, ]
 dim(qh2_data)
 ```
 
-    ## [1] 192   4
+    #> [1] 192   4
 
 ``` r
 qh2_data %>%
@@ -1260,10 +1260,10 @@ qh2_model <- quap(
 summary(qh2_model)
 ```
 
-    ##            mean        sd       5.5%      94.5%
-    ## a     108.31112 0.6086166 107.338436 109.283810
-    ## b      24.30242 0.6102073  23.327195  25.277653
-    ## sigma   8.43714 0.4305592   7.749023   9.125257
+    #>            mean        sd       5.5%      94.5%
+    #> a     108.31112 0.6086166 107.338436 109.283810
+    #> b      24.30242 0.6102073  23.327195  25.277653
+    #> sigma   8.43714 0.4305592   7.749023   9.125257
 
 ``` r
 # Change in 10 original units of weight.
@@ -1272,7 +1272,7 @@ weight_seq_std <- (weight_seq - mean(qh2_data$weight)) / sd(qh2_data$weight)
 diff(coef(qh2_model)["a"] +  weight_seq_std * coef(qh2_model)["b"])
 ```
 
-    ## [1] 27.18601
+    #> [1] 27.18601
 
 **(b) Plot the raw data, with height on the vertical axis and weight on
 the horizontal axis. Superimpose the MAP regression line and 89% HPDI
@@ -1362,10 +1362,10 @@ qh3_model <- quap(
 summary(qh3_model)
 ```
 
-    ##             mean        sd       5.5%      94.5%
-    ## a     138.265117 0.2201783 137.913230 138.617004
-    ## b      27.119402 0.2203809  26.767191  27.471614
-    ## sigma   5.135408 0.1557218   4.886535   5.384282
+    #>             mean        sd       5.5%      94.5%
+    #> a     138.265117 0.2201783 137.913230 138.617004
+    #> b      27.119402 0.2203809  26.767191  27.471614
+    #> sigma   5.135408 0.1557218   4.886535   5.384282
 
 **(b) Begin with this plot:**
 

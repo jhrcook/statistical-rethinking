@@ -4,9 +4,10 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE, dpi = 300)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
 
 library(glue)
+library(mustashe)
 library(broom)
 library(patchwork)
 library(MASS)
@@ -284,16 +285,18 @@ $$
 # Clean up data frame for use with `map2stan()`.
 d2 <- d %>% select(pulled_left, actor, condition, prosoc_left)
 
-m10_4 <- map2stan(
-    alist(
-        pulled_left ~ dbinom(1, p),
-        logit(p) <- a[actor] + (bp + bpc*condition)*prosoc_left,
-        a[actor] ~ dnorm(0, 10),
-        bp ~ dnorm(0, 10),
-        bpc ~ dnorm(0, 10)
-    ),
-    data = d2, chains = 2, iter = 2500, warmup = 500
-)
+stash("m10_4", depends_on = "d2", {
+    m10_4 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- a[actor] + (bp + bpc*condition)*prosoc_left,
+            a[actor] ~ dnorm(0, 10),
+            bp ~ dnorm(0, 10),
+            bpc ~ dnorm(0, 10)
+        ),
+        data = d2, chains = 2, iter = 2500, warmup = 500
+    )
+})
 
 precis(m10_4, depth = 2)
 plot(m10_4)
@@ -822,7 +825,9 @@ d_pred %>%
 - verify that the MAP estimates made above accurately describe the shape of the posterior by fitting with MCMC
 
 ```{r}
-m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
+stash("m10_10_stan", {
+    m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
+})
 precis(m10_10_stan)
 plot(m10_10_stan)
 ```
@@ -844,20 +849,22 @@ extract.samples(m10_10_stan) %>%
 
 d$log_pop_c <- d$log_pop - mean(d$log_pop)
 
-m10_10_stan_c <- map2stan(
-    alist(
-        total_tools ~ dpois(lambda),
-        log(lambda) <- a + bp*log_pop_c + bc*contact_high + bcp*log_pop_c*contact_high,
-        a ~ dnorm(0, 10),
-        bp ~ dnorm(0, 1),
-        bc ~ dnorm(0, 1),
-        bcp ~ dnorm(0, 1)
-    ),
-    data = d,
-    iter = 3e3,
-    warmup = 1e3,
-    chains = 4
-)
+stash("m10_10_stan_c", depends_on = "d", {
+    m10_10_stan_c <- map2stan(
+        alist(
+            total_tools ~ dpois(lambda),
+            log(lambda) <- a + bp*log_pop_c + bc*contact_high + bcp*log_pop_c*contact_high,
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 1),
+            bc ~ dnorm(0, 1),
+            bcp ~ dnorm(0, 1)
+        ),
+        data = d,
+        iter = 3e3,
+        warmup = 1e3,
+        chains = 4
+    )
+})
 
 precis(m10_10_stan_c)
 plot(m10_10_stan_c)
@@ -1154,18 +1161,20 @@ m_binom <- quap(
 )
 
 # Poisson model of overall admission rate and rejection rate
-m_pois <- map2stan(
-    alist(
-        admit ~ dpois(lambda1),
-        rej ~ dpois(lambda2),
-        log(lambda1) <- a1,
-        log(lambda2) <- a2,
-        c(a1, a2) ~ dnorm(0, 10)
-    ),
-    data = d,
-    chains = 3, 
-    cores = 3
-)
+stash("m_pois", depends_on = "d", {
+    m_pois <- map2stan(
+        alist(
+            admit ~ dpois(lambda1),
+            rej ~ dpois(lambda2),
+            log(lambda1) <- a1,
+            log(lambda2) <- a2,
+            c(a1, a2) ~ dnorm(0, 10)
+        ),
+        data = d,
+        chains = 3, 
+        cores = 3
+    )
+})
 
 plot(m_pois)
 ```
@@ -1353,16 +1362,18 @@ m10h_1 <- quap(
     data = d
 )
 
-m10h_2 <- map2stan(
-    alist(
-        pulled_left ~ dbinom(1, p),
-        logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
-        alpha[actor] ~ dnorm(0, 10),
-        c(bp, bpc) ~ dnorm(0, 10)
-    ),
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
+stash("m10h_2", depends_on = "d", {
+    m10h_2 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
+            alpha[actor] ~ dnorm(0, 10),
+            c(bp, bpc) ~ dnorm(0, 10)
+        ),
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 
 precis(m10h_1)
 precis(m10h_2)
@@ -1398,25 +1409,29 @@ This means we should not rely on the quadratic approximation for this analysis.
 **10H2. Use WAIC to compare the chimpanzee model that includes a unique intercept for each actor, `m10.4` (page 299), to the simpler models fit in the same section.**
 
 ```{r}
-m10h_3 <- map2stan(
-    m10_1,
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
+stash("m10h_3", depends_on = "d", {
+    m10h_3 <- map2stan(
+        m10_1,
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 
+stash("m10h_4", depends_on = "d", {
+    m10h_4 <- map2stan(
+        m10_2,
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 
-m10h_4 <- map2stan(
-    m10_2,
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
-
-m10h_5 <- map2stan(
-    m10_3,
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
-
+stash("m10h_5", depends_on = "d", {
+    m10h_5 <- map2stan(
+        m10_3,
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 
 compare(m10h_2, m10h_3, m10h_4, m10h_5)
 ```
@@ -1452,16 +1467,18 @@ m10h3_1 <- quap(
     data = d
 )
 
-m10h3_1_stan <- map2stan(
-    alist(
-        y ~ dbinom(n, p),
-        logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
-        alpha ~ dnorm(0, 10),
-        c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
-    ), 
-    data = d,
-    chains = 2, iter = 2e3, warmup = 500, cores = 2
-)
+stash("m10h3_1_stan", depends_on = "d", {
+    m10h3_1_stan <- map2stan(
+        alist(
+            y ~ dbinom(n, p),
+            logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
+            alpha ~ dnorm(0, 10),
+            c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
+        ), 
+        data = d,
+        chains = 2, iter = 2e3, warmup = 500, cores = 2
+    )
+})
 
 precis(m10h3_1)
 precis(m10h3_1_stan)

@@ -59,20 +59,20 @@ d <- as_tibble(chimpanzees) %>% janitor::clean_names()
 d
 ```
 
-    ## # A tibble: 504 x 8
-    ##    actor recipient condition block trial prosoc_left chose_prosoc pulled_left
-    ##    <int>     <int>     <int> <int> <int>       <int>        <int>       <int>
-    ##  1     1        NA         0     1     2           0            1           0
-    ##  2     1        NA         0     1     4           0            0           1
-    ##  3     1        NA         0     1     6           1            0           0
-    ##  4     1        NA         0     1     8           0            1           0
-    ##  5     1        NA         0     1    10           1            1           1
-    ##  6     1        NA         0     1    12           1            1           1
-    ##  7     1        NA         0     2    14           1            0           0
-    ##  8     1        NA         0     2    16           1            0           0
-    ##  9     1        NA         0     2    18           0            1           0
-    ## 10     1        NA         0     2    20           0            1           0
-    ## # … with 494 more rows
+    #> # A tibble: 504 x 8
+    #>    actor recipient condition block trial prosoc_left chose_prosoc pulled_left
+    #>    <int>     <int>     <int> <int> <int>       <int>        <int>       <int>
+    #>  1     1        NA         0     1     2           0            1           0
+    #>  2     1        NA         0     1     4           0            0           1
+    #>  3     1        NA         0     1     6           1            0           0
+    #>  4     1        NA         0     1     8           0            1           0
+    #>  5     1        NA         0     1    10           1            1           1
+    #>  6     1        NA         0     1    12           1            1           1
+    #>  7     1        NA         0     2    14           1            0           0
+    #>  8     1        NA         0     2    16           1            0           0
+    #>  9     1        NA         0     2    18           0            1           0
+    #> 10     1        NA         0     2    20           0            1           0
+    #> # … with 494 more rows
 
   - we will focus on the columns:
       - `pulled_left`: the outcome to predict
@@ -137,8 +137,8 @@ m10_1 <- quap(
 precis(m10_1)
 ```
 
-    ##        mean         sd     5.5%    94.5%
-    ## a 0.3201415 0.09022718 0.175941 0.464342
+    #>        mean         sd     5.5%    94.5%
+    #> a 0.3201415 0.09022718 0.175941 0.464342
 
   - \(\alpha\) is on the scale of log-odds
       - to get it to probability scale, must use the inverse link
@@ -154,27 +154,27 @@ precis(m10_1)
 1 / (1 + exp(-0.32))
 ```
 
-    ## [1] 0.5793243
+    #> [1] 0.5793243
 
 ``` r
 # 89% interval
 c(1 / (1 + exp(-0.18)), 1 / (1 + exp(-0.46)))
 ```
 
-    ## [1] 0.5448789 0.6130142
+    #> [1] 0.5448789 0.6130142
 
 ``` r
 logistic
 ```
 
-    ## function (x) 
-    ## {
-    ##     p <- 1/(1 + exp(-x))
-    ##     p <- ifelse(x == Inf, 1, p)
-    ##     p
-    ## }
-    ## <bytecode: 0x7f96b083ecb0>
-    ## <environment: namespace:rethinking>
+    #> function (x) 
+    #> {
+    #>     p <- 1/(1 + exp(-x))
+    #>     p <- ifelse(x == Inf, 1, p)
+    #>     p
+    #> }
+    #> <bytecode: 0x7fb5861d4468>
+    #> <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
     pulling the left-hand lever was 0.58 with an 89% interval of 0.54 to
@@ -200,9 +200,9 @@ m10_2 <- quap(
 precis(m10_2)
 ```
 
-    ##         mean        sd       5.5%     94.5%
-    ## a  0.0477090 0.1260040 -0.1536697 0.2490877
-    ## bp 0.5573081 0.1823154  0.2659328 0.8486833
+    #>         mean        sd       5.5%     94.5%
+    #> a  0.0477090 0.1260040 -0.1536697 0.2490877
+    #> bp 0.5573081 0.1823154  0.2659328 0.8486833
 
 ``` r
 m10_3 <- quap(
@@ -219,19 +219,19 @@ m10_3 <- quap(
 precis(m10_3)
 ```
 
-    ##            mean        sd       5.5%     94.5%
-    ## a    0.04771766 0.1260040 -0.1536611 0.2490964
-    ## bp   0.60967089 0.2261462  0.2482456 0.9710962
-    ## bpc -0.10396684 0.2635904 -0.5252352 0.3173015
+    #>            mean        sd       5.5%     94.5%
+    #> a    0.04771766 0.1260040 -0.1536611 0.2490964
+    #> bp   0.60967089 0.2261462  0.2482456 0.9710962
+    #> bpc -0.10396684 0.2635904 -0.5252352 0.3173015
 
 ``` r
 compare(m10_1, m10_2, m10_3)
 ```
 
-    ##           WAIC       SE    dWAIC       dSE     pWAIC    weight
-    ## m10_2 680.4648 9.165323 0.000000        NA 1.9807109 0.7106338
-    ## m10_3 682.3826 9.403175 1.917804 0.8137132 3.0213904 0.2723955
-    ## m10_1 687.9341 7.070955 7.469337 6.0718121 0.9966656 0.0169707
+    #>           WAIC       SE    dWAIC       dSE     pWAIC    weight
+    #> m10_2 680.4648 9.165323 0.000000        NA 1.9807109 0.7106338
+    #> m10_3 682.3826 9.403175 1.917804 0.8137132 3.0213904 0.2723955
+    #> m10_1 687.9341 7.070955 7.469337 6.0718121 0.9966656 0.0169707
 
 ``` r
 plot(compare(m10_1, m10_2, m10_3))
@@ -376,85 +376,89 @@ L_i \sim \text{Binomial}(1, p_i) \\
 # Clean up data frame for use with `map2stan()`.
 d2 <- d %>% select(pulled_left, actor, condition, prosoc_left)
 
-m10_4 <- map2stan(
-    alist(
-        pulled_left ~ dbinom(1, p),
-        logit(p) <- a[actor] + (bp + bpc*condition)*prosoc_left,
-        a[actor] ~ dnorm(0, 10),
-        bp ~ dnorm(0, 10),
-        bpc ~ dnorm(0, 10)
-    ),
-    data = d2, chains = 2, iter = 2500, warmup = 500
-)
+stash("m10_4", depends_on = "d2", {
+    m10_4 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- a[actor] + (bp + bpc*condition)*prosoc_left,
+            a[actor] ~ dnorm(0, 10),
+            bp ~ dnorm(0, 10),
+            bpc ~ dnorm(0, 10)
+        ),
+        data = d2, chains = 2, iter = 2500, warmup = 500
+    )
+})
 ```
 
-    ## 
-    ## SAMPLING FOR MODEL 'db03c8d21dae80f3ddb9618a7d25318a' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 0.000242 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.42 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 2500 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  250 / 2500 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  500 / 2500 [ 20%]  (Warmup)
-    ## Chain 1: Iteration:  501 / 2500 [ 20%]  (Sampling)
-    ## Chain 1: Iteration:  750 / 2500 [ 30%]  (Sampling)
-    ## Chain 1: Iteration: 1000 / 2500 [ 40%]  (Sampling)
-    ## Chain 1: Iteration: 1250 / 2500 [ 50%]  (Sampling)
-    ## Chain 1: Iteration: 1500 / 2500 [ 60%]  (Sampling)
-    ## Chain 1: Iteration: 1750 / 2500 [ 70%]  (Sampling)
-    ## Chain 1: Iteration: 2000 / 2500 [ 80%]  (Sampling)
-    ## Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
-    ## Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 1.25196 seconds (Warm-up)
-    ## Chain 1:                4.74256 seconds (Sampling)
-    ## Chain 1:                5.99452 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL 'db03c8d21dae80f3ddb9618a7d25318a' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 0.00031 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 3.1 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 2500 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  250 / 2500 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  500 / 2500 [ 20%]  (Warmup)
-    ## Chain 2: Iteration:  501 / 2500 [ 20%]  (Sampling)
-    ## Chain 2: Iteration:  750 / 2500 [ 30%]  (Sampling)
-    ## Chain 2: Iteration: 1000 / 2500 [ 40%]  (Sampling)
-    ## Chain 2: Iteration: 1250 / 2500 [ 50%]  (Sampling)
-    ## Chain 2: Iteration: 1500 / 2500 [ 60%]  (Sampling)
-    ## Chain 2: Iteration: 1750 / 2500 [ 70%]  (Sampling)
-    ## Chain 2: Iteration: 2000 / 2500 [ 80%]  (Sampling)
-    ## Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
-    ## Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 1.3271 seconds (Warm-up)
-    ## Chain 2:                3.89156 seconds (Sampling)
-    ## Chain 2:                5.21866 seconds (Total)
-    ## Chain 2:
+    #> Stashing object.
 
-    ## Computing WAIC
+    #> 
+    #> SAMPLING FOR MODEL 'b4b1d7ec20a801537be53f2c886c0fca' NOW (CHAIN 1).
+    #> Chain 1: 
+    #> Chain 1: Gradient evaluation took 0.000241 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.41 seconds.
+    #> Chain 1: Adjust your expectations accordingly!
+    #> Chain 1: 
+    #> Chain 1: 
+    #> Chain 1: Iteration:    1 / 2500 [  0%]  (Warmup)
+    #> Chain 1: Iteration:  250 / 2500 [ 10%]  (Warmup)
+    #> Chain 1: Iteration:  500 / 2500 [ 20%]  (Warmup)
+    #> Chain 1: Iteration:  501 / 2500 [ 20%]  (Sampling)
+    #> Chain 1: Iteration:  750 / 2500 [ 30%]  (Sampling)
+    #> Chain 1: Iteration: 1000 / 2500 [ 40%]  (Sampling)
+    #> Chain 1: Iteration: 1250 / 2500 [ 50%]  (Sampling)
+    #> Chain 1: Iteration: 1500 / 2500 [ 60%]  (Sampling)
+    #> Chain 1: Iteration: 1750 / 2500 [ 70%]  (Sampling)
+    #> Chain 1: Iteration: 2000 / 2500 [ 80%]  (Sampling)
+    #> Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
+    #> Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
+    #> Chain 1: 
+    #> Chain 1:  Elapsed Time: 1.27131 seconds (Warm-up)
+    #> Chain 1:                3.53968 seconds (Sampling)
+    #> Chain 1:                4.81099 seconds (Total)
+    #> Chain 1: 
+    #> 
+    #> SAMPLING FOR MODEL 'b4b1d7ec20a801537be53f2c886c0fca' NOW (CHAIN 2).
+    #> Chain 2: 
+    #> Chain 2: Gradient evaluation took 8.3e-05 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.83 seconds.
+    #> Chain 2: Adjust your expectations accordingly!
+    #> Chain 2: 
+    #> Chain 2: 
+    #> Chain 2: Iteration:    1 / 2500 [  0%]  (Warmup)
+    #> Chain 2: Iteration:  250 / 2500 [ 10%]  (Warmup)
+    #> Chain 2: Iteration:  500 / 2500 [ 20%]  (Warmup)
+    #> Chain 2: Iteration:  501 / 2500 [ 20%]  (Sampling)
+    #> Chain 2: Iteration:  750 / 2500 [ 30%]  (Sampling)
+    #> Chain 2: Iteration: 1000 / 2500 [ 40%]  (Sampling)
+    #> Chain 2: Iteration: 1250 / 2500 [ 50%]  (Sampling)
+    #> Chain 2: Iteration: 1500 / 2500 [ 60%]  (Sampling)
+    #> Chain 2: Iteration: 1750 / 2500 [ 70%]  (Sampling)
+    #> Chain 2: Iteration: 2000 / 2500 [ 80%]  (Sampling)
+    #> Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
+    #> Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
+    #> Chain 2: 
+    #> Chain 2:  Elapsed Time: 1.02504 seconds (Warm-up)
+    #> Chain 2:                3.0854 seconds (Sampling)
+    #> Chain 2:                4.11044 seconds (Total)
+    #> Chain 2:
+
+    #> Computing WAIC
 
 ``` r
 precis(m10_4, depth = 2)
 ```
 
-    ##            mean        sd       5.5%      94.5%    n_eff     Rhat4
-    ## a[1] -0.7366683 0.2712491 -1.1710162 -0.3075729 3649.712 0.9996477
-    ## a[2] 10.8842654 5.3959957  4.4191227 20.9936577 1263.201 1.0021457
-    ## a[3] -1.0519842 0.2796649 -1.4932984 -0.6025021 3778.823 1.0000896
-    ## a[4] -1.0486000 0.2852542 -1.5153380 -0.6104066 3715.073 0.9997516
-    ## a[5] -0.7400692 0.2758792 -1.1794915 -0.2941442 3548.078 1.0004204
-    ## a[6]  0.2251357 0.2670588 -0.2007725  0.6625168 3733.206 0.9999222
-    ## a[7]  1.8192916 0.3816515  1.2359523  2.4514860 4009.508 1.0001734
-    ## bp    0.8330853 0.2650125  0.4210950  1.2630915 2200.519 1.0000930
-    ## bpc  -0.1350464 0.2970094 -0.6115411  0.3353930 3317.273 0.9999492
+    #>            mean        sd       5.5%      94.5%    n_eff     Rhat4
+    #> a[1] -0.7366683 0.2712491 -1.1710162 -0.3075729 3649.712 0.9996477
+    #> a[2] 10.8842654 5.3959957  4.4191227 20.9936577 1263.201 1.0021457
+    #> a[3] -1.0519842 0.2796649 -1.4932984 -0.6025021 3778.823 1.0000896
+    #> a[4] -1.0486000 0.2852542 -1.5153380 -0.6104066 3715.073 0.9997516
+    #> a[5] -0.7400692 0.2758792 -1.1794915 -0.2941442 3548.078 1.0004204
+    #> a[6]  0.2251357 0.2670588 -0.2007725  0.6625168 3733.206 0.9999222
+    #> a[7]  1.8192916 0.3816515  1.2359523  2.4514860 4009.508 1.0001734
+    #> bp    0.8330853 0.2650125  0.4210950  1.2630915 2200.519 1.0000930
+    #> bpc  -0.1350464 0.2970094 -0.6115411  0.3353930 3317.273 0.9999492
 
 ``` r
 plot(m10_4)
@@ -505,7 +509,7 @@ link_m10_4 <- link(m10_4, data = d_pred_all) %>%
     as_tibble()
 ```
 
-    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+    #> [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
 
 ``` r
 link_names <- c("0/0", "1/0", "0/1", "1/1")
@@ -559,20 +563,20 @@ d_aggregated <- d %>%
 d_aggregated
 ```
 
-    ## # A tibble: 28 x 4
-    ##    prosoc_left condition actor     x
-    ##          <int>     <int> <int> <int>
-    ##  1           0         0     1     6
-    ##  2           0         0     2    18
-    ##  3           0         0     3     5
-    ##  4           0         0     4     6
-    ##  5           0         0     5     6
-    ##  6           0         0     6    14
-    ##  7           0         0     7    14
-    ##  8           0         1     1     5
-    ##  9           0         1     2    18
-    ## 10           0         1     3     3
-    ## # … with 18 more rows
+    #> # A tibble: 28 x 4
+    #>    prosoc_left condition actor     x
+    #>          <int>     <int> <int> <int>
+    #>  1           0         0     1     6
+    #>  2           0         0     2    18
+    #>  3           0         0     3     5
+    #>  4           0         0     4     6
+    #>  5           0         0     5     6
+    #>  6           0         0     6    14
+    #>  7           0         0     7    14
+    #>  8           0         1     1     5
+    #>  9           0         1     2    18
+    #> 10           0         1     3     3
+    #> # … with 18 more rows
 
   - can define the model using these counts
       - there were 18 trials for each animal
@@ -594,10 +598,10 @@ m10_5 <- quap(
 precis(m10_5)
 ```
 
-    ##           mean        sd       5.5%     94.5%
-    ## a    0.0477173 0.1260040 -0.1536615 0.2490961
-    ## bp   0.6096713 0.2261462  0.2482460 0.9710966
-    ## bpc -0.1039677 0.2635904 -0.5252361 0.3173006
+    #>           mean        sd       5.5%     94.5%
+    #> a    0.0477173 0.1260040 -0.1536615 0.2490961
+    #> bp   0.6096713 0.2261462  0.2482460 0.9710966
+    #> bpc -0.1039677 0.2635904 -0.5252361 0.3173006
 
 ### 10.1.3 Aggregated binomial: Graduate school admissions
 
@@ -616,21 +620,21 @@ d <- as_tibble(UCBadmit) %>% janitor::clean_names()
 d
 ```
 
-    ## # A tibble: 12 x 5
-    ##    dept  applicant_gender admit reject applications
-    ##    <fct> <fct>            <int>  <int>        <int>
-    ##  1 A     male               512    313          825
-    ##  2 A     female              89     19          108
-    ##  3 B     male               353    207          560
-    ##  4 B     female              17      8           25
-    ##  5 C     male               120    205          325
-    ##  6 C     female             202    391          593
-    ##  7 D     male               138    279          417
-    ##  8 D     female             131    244          375
-    ##  9 E     male                53    138          191
-    ## 10 E     female              94    299          393
-    ## 11 F     male                22    351          373
-    ## 12 F     female              24    317          341
+    #> # A tibble: 12 x 5
+    #>    dept  applicant_gender admit reject applications
+    #>    <fct> <fct>            <int>  <int>        <int>
+    #>  1 A     male               512    313          825
+    #>  2 A     female              89     19          108
+    #>  3 B     male               353    207          560
+    #>  4 B     female              17      8           25
+    #>  5 C     male               120    205          325
+    #>  6 C     female             202    391          593
+    #>  7 D     male               138    279          417
+    #>  8 D     female             131    244          375
+    #>  9 E     male                53    138          191
+    #> 10 E     female              94    299          393
+    #> 11 F     male                22    351          373
+    #> 12 F     female              24    317          341
 
   - goal: to estimate if there is gender bias in the admissions
   - fit two models:
@@ -677,24 +681,24 @@ m10_7 <- quap(
 precis(m10_6)
 ```
 
-    ##          mean         sd       5.5%      94.5%
-    ## a  -0.8304482 0.05077040 -0.9115892 -0.7493073
-    ## bm  0.6103056 0.06389094  0.5081955  0.7124156
+    #>          mean         sd       5.5%      94.5%
+    #> a  -0.8304482 0.05077040 -0.9115892 -0.7493073
+    #> bm  0.6103056 0.06389094  0.5081955  0.7124156
 
 ``` r
 precis(m10_7)
 ```
 
-    ##         mean         sd       5.5%      94.5%
-    ## a -0.4567351 0.03050691 -0.5054911 -0.4079792
+    #>         mean         sd       5.5%      94.5%
+    #> a -0.4567351 0.03050691 -0.5054911 -0.4079792
 
 ``` r
 compare(m10_6, m10_7)
 ```
 
-    ##            WAIC       SE    dWAIC      dSE     pWAIC       weight
-    ## m10_6  997.0243 314.8625  0.00000       NA 112.90698 1.000000e+00
-    ## m10_7 1050.7649 315.6198 53.74066 165.8455  83.98725 2.139758e-12
+    #>            WAIC       SE    dWAIC      dSE     pWAIC       weight
+    #> m10_6  997.0243 314.8625  0.00000       NA 112.90698 1.000000e+00
+    #> m10_7 1050.7649 315.6198 53.74066 165.8455  83.98725 2.139758e-12
 
 ``` r
 plot(compare(m10_6, m10_7))
@@ -721,8 +725,8 @@ diff_admit <- p_admit_male - p_admit_female
 quantile(diff_admit, c(0.025, 0.50, 0.975))
 ```
 
-    ##      2.5%       50%     97.5% 
-    ## 0.1134907 0.1416585 0.1690224
+    #>      2.5%       50%     97.5% 
+    #> 0.1134907 0.1416585 0.1690224
 
   - plot posterior predictions for the model
       - can use the function `postcheck()`, though I also made a plot of
@@ -805,36 +809,36 @@ m10_9 <- quap(
 precis(m10_8, depth = 2)
 ```
 
-    ##            mean         sd       5.5%      94.5%
-    ## a[1]  0.5934323 0.06837899  0.4841494  0.7027151
-    ## a[2]  0.5428251 0.08575108  0.4057783  0.6798719
-    ## a[3] -0.6156597 0.06916048 -0.7261915 -0.5051279
-    ## a[4] -0.6648327 0.07502756 -0.7847412 -0.5449242
-    ## a[5] -1.0894017 0.09534033 -1.2417739 -0.9370294
-    ## a[6] -2.6750255 0.15237509 -2.9185503 -2.4315007
+    #>            mean         sd       5.5%      94.5%
+    #> a[1]  0.5934323 0.06837899  0.4841494  0.7027151
+    #> a[2]  0.5428251 0.08575108  0.4057783  0.6798719
+    #> a[3] -0.6156597 0.06916048 -0.7261915 -0.5051279
+    #> a[4] -0.6648327 0.07502756 -0.7847412 -0.5449242
+    #> a[5] -1.0894017 0.09534033 -1.2417739 -0.9370294
+    #> a[6] -2.6750255 0.15237509 -2.9185503 -2.4315007
 
 ``` r
 precis(m10_9, depth = 2)
 ```
 
-    ##             mean         sd       5.5%       94.5%
-    ## a[1]  0.68192790 0.09910209  0.5235436  0.84031218
-    ## a[2]  0.63848061 0.11556492  0.4537856  0.82317567
-    ## a[3] -0.58063410 0.07465095 -0.6999407 -0.46132747
-    ## a[4] -0.61263537 0.08596013 -0.7500163 -0.47525449
-    ## a[5] -1.05730724 0.09872370 -1.2150868 -0.89952770
-    ## a[6] -2.62397851 0.15767079 -2.8759669 -2.37199013
-    ## bm   -0.09990425 0.08083560 -0.2290951  0.02928665
+    #>             mean         sd       5.5%       94.5%
+    #> a[1]  0.68192790 0.09910209  0.5235436  0.84031218
+    #> a[2]  0.63848061 0.11556492  0.4537856  0.82317567
+    #> a[3] -0.58063410 0.07465095 -0.6999407 -0.46132747
+    #> a[4] -0.61263537 0.08596013 -0.7500163 -0.47525449
+    #> a[5] -1.05730724 0.09872370 -1.2150868 -0.89952770
+    #> a[6] -2.62397851 0.15767079 -2.8759669 -2.37199013
+    #> bm   -0.09990425 0.08083560 -0.2290951  0.02928665
 
 ``` r
 compare(m10_6, m10_7, m10_8, m10_9)
 ```
 
-    ##            WAIC        SE     dWAIC       dSE      pWAIC        weight
-    ## m10_8  104.8648  17.24390   0.00000        NA   6.364957  8.818243e-01
-    ## m10_9  108.8845  15.76447   4.01964   3.43047   9.554601  1.181757e-01
-    ## m10_6  991.1103 315.13238 886.24541 326.08968 107.333881 3.159632e-193
-    ## m10_7 1049.2754 315.02937 944.41052 326.65090  81.900773 7.400203e-206
+    #>            WAIC        SE     dWAIC       dSE      pWAIC        weight
+    #> m10_8  104.8648  17.24390   0.00000        NA   6.364957  8.818243e-01
+    #> m10_9  108.8845  15.76447   4.01964   3.43047   9.554601  1.181757e-01
+    #> m10_6  991.1103 315.13238 886.24541 326.08968 107.333881 3.159632e-193
+    #> m10_7 1049.2754 315.02937 944.41052 326.65090  81.900773 7.400203e-206
 
 ``` r
 plot(compare(m10_6, m10_7, m10_8, m10_9))
@@ -856,7 +860,7 @@ plot(compare(m10_6, m10_7, m10_8, m10_9))
 exp(m10_9@coef[["bm"]])
 ```
 
-    ## [1] 0.9049241
+    #> [1] 0.9049241
 
 ``` r
 postcheck(m10_9)
@@ -898,36 +902,36 @@ m10_9glm <- glm(cbind(admit, reject) ~ male + dept,
 summary(m10_9glm)
 ```
 
-    ## 
-    ## Call:
-    ## glm(formula = cbind(admit, reject) ~ male + dept, family = binomial, 
-    ##     data = d)
-    ## 
-    ## Deviance Residuals: 
-    ##       1        2        3        4        5        6        7        8  
-    ## -1.2487   3.7189  -0.0560   0.2706   1.2533  -0.9243   0.0826  -0.0858  
-    ##       9       10       11       12  
-    ##  1.2205  -0.8509  -0.2076   0.2052  
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)  0.68192    0.09911   6.880 5.97e-12 ***
-    ## male        -0.09987    0.08085  -1.235    0.217    
-    ## deptB       -0.04340    0.10984  -0.395    0.693    
-    ## deptC       -1.26260    0.10663 -11.841  < 2e-16 ***
-    ## deptD       -1.29461    0.10582 -12.234  < 2e-16 ***
-    ## deptE       -1.73931    0.12611 -13.792  < 2e-16 ***
-    ## deptF       -3.30648    0.16998 -19.452  < 2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 877.056  on 11  degrees of freedom
-    ## Residual deviance:  20.204  on  5  degrees of freedom
-    ## AIC: 103.14
-    ## 
-    ## Number of Fisher Scoring iterations: 4
+    #> 
+    #> Call:
+    #> glm(formula = cbind(admit, reject) ~ male + dept, family = binomial, 
+    #>     data = d)
+    #> 
+    #> Deviance Residuals: 
+    #>       1        2        3        4        5        6        7        8  
+    #> -1.2487   3.7189  -0.0560   0.2706   1.2533  -0.9243   0.0826  -0.0858  
+    #>       9       10       11       12  
+    #>  1.2205  -0.8509  -0.2076   0.2052  
+    #> 
+    #> Coefficients:
+    #>             Estimate Std. Error z value Pr(>|z|)    
+    #> (Intercept)  0.68192    0.09911   6.880 5.97e-12 ***
+    #> male        -0.09987    0.08085  -1.235    0.217    
+    #> deptB       -0.04340    0.10984  -0.395    0.693    
+    #> deptC       -1.26260    0.10663 -11.841  < 2e-16 ***
+    #> deptD       -1.29461    0.10582 -12.234  < 2e-16 ***
+    #> deptE       -1.73931    0.12611 -13.792  < 2e-16 ***
+    #> deptF       -3.30648    0.16998 -19.452  < 2e-16 ***
+    #> ---
+    #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    #> 
+    #> (Dispersion parameter for binomial family taken to be 1)
+    #> 
+    #>     Null deviance: 877.056  on 11  degrees of freedom
+    #> Residual deviance:  20.204  on  5  degrees of freedom
+    #> AIC: 103.14
+    #> 
+    #> Number of Fisher Scoring iterations: 4
 
 ## 10.2 Poisson regression
 
@@ -954,7 +958,7 @@ y <- rbinom(1e6, 1000, 1/1000)
 c(mean(y), var(y))
 ```
 
-    ## [1] 0.9995910 0.9979418
+    #> [1] 0.9995910 0.9979418
 
   - this special binomial is a *Poisson distribution*
       - useful for modeling binomial events with an unknown or very
@@ -1027,19 +1031,19 @@ d <- as_tibble(Kline) %>%
 d
 ```
 
-    ## # A tibble: 10 x 7
-    ##    culture    population contact total_tools mean_tu log_pop contact_high
-    ##    <fct>           <int> <fct>         <int>   <dbl>   <dbl>        <dbl>
-    ##  1 Malekula         1100 low              13     3.2    7.00            0
-    ##  2 Tikopia          1500 low              22     4.7    7.31            0
-    ##  3 Santa Cruz       3600 low              24     4      8.19            0
-    ##  4 Yap              4791 high             43     5      8.47            1
-    ##  5 Lau Fiji         7400 high             33     5      8.91            1
-    ##  6 Trobriand        8000 high             19     4      8.99            1
-    ##  7 Chuuk            9200 high             40     3.8    9.13            1
-    ##  8 Manus           13000 low              28     6.6    9.47            0
-    ##  9 Tonga           17500 high             55     5.4    9.77            1
-    ## 10 Hawaii         275000 low              71     6.6   12.5             0
+    #> # A tibble: 10 x 7
+    #>    culture    population contact total_tools mean_tu log_pop contact_high
+    #>    <fct>           <int> <fct>         <int>   <dbl>   <dbl>        <dbl>
+    #>  1 Malekula         1100 low              13     3.2    7.00            0
+    #>  2 Tikopia          1500 low              22     4.7    7.31            0
+    #>  3 Santa Cruz       3600 low              24     4      8.19            0
+    #>  4 Yap              4791 high             43     5      8.47            1
+    #>  5 Lau Fiji         7400 high             33     5      8.91            1
+    #>  6 Trobriand        8000 high             19     4      8.99            1
+    #>  7 Chuuk            9200 high             40     3.8    9.13            1
+    #>  8 Manus           13000 low              28     6.6    9.47            0
+    #>  9 Tonga           17500 high             55     5.4    9.77            1
+    #> 10 Hawaii         275000 low              71     6.6   12.5             0
 
   - the model formula:
       - \(P\) is `population`, \(C\) is `contact_high`
@@ -1073,11 +1077,11 @@ m10_10 <- quap(
 precis(m10_10, corr = TRUE)
 ```
 
-    ##            mean         sd       5.5%     94.5%
-    ## a    0.94356226 0.36009898  0.3680545 1.5190700
-    ## bp   0.26408201 0.03466757  0.2086765 0.3194875
-    ## bc  -0.09091811 0.84140385 -1.4356440 1.2538077
-    ## bpc  0.04264538 0.09227125 -0.1048219 0.1901127
+    #>            mean         sd       5.5%     94.5%
+    #> a    0.94356226 0.36009898  0.3680545 1.5190700
+    #> bp   0.26408201 0.03466757  0.2086765 0.3194875
+    #> bc  -0.09091811 0.84140385 -1.4356440 1.2538077
+    #> bpc  0.04264538 0.09227125 -0.1048219 0.1901127
 
 ``` r
 plot(precis(m10_10))
@@ -1123,7 +1127,7 @@ tibble(diff_vals = lambda_high - lambda_low) %>%
 sum(lambda_high - lambda_low > 0) / length(lambda_high)
 ```
 
-    ## [1] 0.9586
+    #> [1] 0.9586
 
   - there is a 95% plausibility that the high-contact island has more
     tools than the low-contact island, holding population constant
@@ -1191,12 +1195,12 @@ m10_14 <- quap(
 (islands_compare <- compare(m10_10, m10_11, m10_12, m10_13, m10_14))
 ```
 
-    ##             WAIC        SE      dWAIC        dSE     pWAIC       weight
-    ## m10_11  78.96686 10.928225  0.0000000         NA  4.153861 5.660464e-01
-    ## m10_10  79.64939 11.047835  0.6825349  0.9855065  4.583836 4.023847e-01
-    ## m10_12  84.73987  8.853414  5.7730089  8.0937951  3.882621 3.156887e-02
-    ## m10_14 142.03343 31.717655 63.0665718 34.4458805  8.695272 1.143194e-14
-    ## m10_13 148.54902 43.401936 69.5821609 45.3132300 15.657562 4.398229e-16
+    #>             WAIC        SE      dWAIC        dSE     pWAIC       weight
+    #> m10_11  78.96686 10.928225  0.0000000         NA  4.153861 5.660464e-01
+    #> m10_10  79.64939 11.047835  0.6825349  0.9855065  4.583836 4.023847e-01
+    #> m10_12  84.73987  8.853414  5.7730089  8.0937951  3.882621 3.156887e-02
+    #> m10_14 142.03343 31.717655 63.0665718 34.4458805  8.695272 1.143194e-14
+    #> m10_13 148.54902 43.401936 69.5821609 45.3132300 15.657562 4.398229e-16
 
 ``` r
 plot(islands_compare)
@@ -1260,121 +1264,125 @@ d_pred %>%
 <!-- end list -->
 
 ``` r
-m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
+stash("m10_10_stan", {
+    m10_10_stan <- map2stan(m10_10, iter=3e3, warmup = 1e3, chains = 4)
+})
 ```
 
-    ## 
-    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 1.6e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.16 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.306747 seconds (Warm-up)
-    ## Chain 1:                0.542121 seconds (Sampling)
-    ## Chain 1:                0.848868 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 6e-06 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.31511 seconds (Warm-up)
-    ## Chain 2:                0.509358 seconds (Sampling)
-    ## Chain 2:                0.824468 seconds (Total)
-    ## Chain 2: 
-    ## 
-    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 3).
-    ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 2e-05 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
-    ## Chain 3: Adjust your expectations accordingly!
-    ## Chain 3: 
-    ## Chain 3: 
-    ## Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.319645 seconds (Warm-up)
-    ## Chain 3:                0.558215 seconds (Sampling)
-    ## Chain 3:                0.87786 seconds (Total)
-    ## Chain 3: 
-    ## 
-    ## SAMPLING FOR MODEL 'abc2a4a9c799c01893773560644607fc' NOW (CHAIN 4).
-    ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 7e-06 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
-    ## Chain 4: Adjust your expectations accordingly!
-    ## Chain 4: 
-    ## Chain 4: 
-    ## Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.309799 seconds (Warm-up)
-    ## Chain 4:                0.531185 seconds (Sampling)
-    ## Chain 4:                0.840984 seconds (Total)
-    ## Chain 4:
+    #> Stashing object.
 
-    ## Computing WAIC
+    #> 
+    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 1).
+    #> Chain 1: 
+    #> Chain 1: Gradient evaluation took 2.2e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.22 seconds.
+    #> Chain 1: Adjust your expectations accordingly!
+    #> Chain 1: 
+    #> Chain 1: 
+    #> Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 1: 
+    #> Chain 1:  Elapsed Time: 0.390199 seconds (Warm-up)
+    #> Chain 1:                0.669509 seconds (Sampling)
+    #> Chain 1:                1.05971 seconds (Total)
+    #> Chain 1: 
+    #> 
+    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 2).
+    #> Chain 2: 
+    #> Chain 2: Gradient evaluation took 7e-06 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    #> Chain 2: Adjust your expectations accordingly!
+    #> Chain 2: 
+    #> Chain 2: 
+    #> Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 2: 
+    #> Chain 2:  Elapsed Time: 0.379656 seconds (Warm-up)
+    #> Chain 2:                0.633989 seconds (Sampling)
+    #> Chain 2:                1.01364 seconds (Total)
+    #> Chain 2: 
+    #> 
+    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 3).
+    #> Chain 3: 
+    #> Chain 3: Gradient evaluation took 6e-06 seconds
+    #> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
+    #> Chain 3: Adjust your expectations accordingly!
+    #> Chain 3: 
+    #> Chain 3: 
+    #> Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 3: 
+    #> Chain 3:  Elapsed Time: 0.371604 seconds (Warm-up)
+    #> Chain 3:                0.725127 seconds (Sampling)
+    #> Chain 3:                1.09673 seconds (Total)
+    #> Chain 3: 
+    #> 
+    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 4).
+    #> Chain 4: 
+    #> Chain 4: Gradient evaluation took 7e-06 seconds
+    #> Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    #> Chain 4: Adjust your expectations accordingly!
+    #> Chain 4: 
+    #> Chain 4: 
+    #> Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 4: 
+    #> Chain 4:  Elapsed Time: 0.365804 seconds (Warm-up)
+    #> Chain 4:                0.63586 seconds (Sampling)
+    #> Chain 4:                1.00166 seconds (Total)
+    #> Chain 4:
+
+    #> Computing WAIC
 
 ``` r
 precis(m10_10_stan)
 ```
 
-    ##            mean         sd       5.5%     94.5%    n_eff    Rhat4
-    ## a    0.93343837 0.35388776  0.3587592 1.4814245 3285.362 1.001707
-    ## bp   0.26448526 0.03403057  0.2112632 0.3198451 3302.021 1.001876
-    ## bc  -0.08465070 0.82696216 -1.4025301 1.2376410 3150.089 1.000979
-    ## bpc  0.04216315 0.09063509 -0.1031858 0.1880385 3117.835 1.000841
+    #>            mean         sd       5.5%     94.5%    n_eff    Rhat4
+    #> a    0.93343837 0.35388776  0.3587592 1.4814245 3285.362 1.001707
+    #> bp   0.26448526 0.03403057  0.2112632 0.3198451 3302.021 1.001876
+    #> bc  -0.08465070 0.82696216 -1.4025301 1.2376410 3150.089 1.000979
+    #> bpc  0.04216315 0.09063509 -0.1031858 0.1880385 3117.835 1.000841
 
 ``` r
 plot(m10_10_stan)
@@ -1405,143 +1413,147 @@ extract.samples(m10_10_stan) %>%
     labs(title = "MCMC posterior samples from `m10_10_stan`")
 ```
 
-    ## Registered S3 method overwritten by 'GGally':
-    ##   method from   
-    ##   +.gg   ggplot2
+    #> Registered S3 method overwritten by 'GGally':
+    #>   method from   
+    #>   +.gg   ggplot2
 
 ![](ch10_counting-and-classification_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
 
 ``` r
 d$log_pop_c <- d$log_pop - mean(d$log_pop)
 
-m10_10_stan_c <- map2stan(
-    alist(
-        total_tools ~ dpois(lambda),
-        log(lambda) <- a + bp*log_pop_c + bc*contact_high + bcp*log_pop_c*contact_high,
-        a ~ dnorm(0, 10),
-        bp ~ dnorm(0, 1),
-        bc ~ dnorm(0, 1),
-        bcp ~ dnorm(0, 1)
-    ),
-    data = d,
-    iter = 3e3,
-    warmup = 1e3,
-    chains = 4
-)
+stash("m10_10_stan_c", depends_on = "d", {
+    m10_10_stan_c <- map2stan(
+        alist(
+            total_tools ~ dpois(lambda),
+            log(lambda) <- a + bp*log_pop_c + bc*contact_high + bcp*log_pop_c*contact_high,
+            a ~ dnorm(0, 10),
+            bp ~ dnorm(0, 1),
+            bc ~ dnorm(0, 1),
+            bcp ~ dnorm(0, 1)
+        ),
+        data = d,
+        iter = 3e3,
+        warmup = 1e3,
+        chains = 4
+    )
+})
 ```
 
-    ## 
-    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 1).
-    ## Chain 1: 
-    ## Chain 1: Gradient evaluation took 1.8e-05 seconds
-    ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
-    ## Chain 1: Adjust your expectations accordingly!
-    ## Chain 1: 
-    ## Chain 1: 
-    ## Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.062736 seconds (Warm-up)
-    ## Chain 1:                0.097876 seconds (Sampling)
-    ## Chain 1:                0.160612 seconds (Total)
-    ## Chain 1: 
-    ## 
-    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 2).
-    ## Chain 2: 
-    ## Chain 2: Gradient evaluation took 2.8e-05 seconds
-    ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.28 seconds.
-    ## Chain 2: Adjust your expectations accordingly!
-    ## Chain 2: 
-    ## Chain 2: 
-    ## Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.063624 seconds (Warm-up)
-    ## Chain 2:                0.100832 seconds (Sampling)
-    ## Chain 2:                0.164456 seconds (Total)
-    ## Chain 2: 
-    ## 
-    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 3).
-    ## Chain 3: 
-    ## Chain 3: Gradient evaluation took 6e-06 seconds
-    ## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
-    ## Chain 3: Adjust your expectations accordingly!
-    ## Chain 3: 
-    ## Chain 3: 
-    ## Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.048842 seconds (Warm-up)
-    ## Chain 3:                0.105713 seconds (Sampling)
-    ## Chain 3:                0.154555 seconds (Total)
-    ## Chain 3: 
-    ## 
-    ## SAMPLING FOR MODEL 'ba6c8872c5a5962a160b888bb53f0f91' NOW (CHAIN 4).
-    ## Chain 4: 
-    ## Chain 4: Gradient evaluation took 6e-06 seconds
-    ## Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
-    ## Chain 4: Adjust your expectations accordingly!
-    ## Chain 4: 
-    ## Chain 4: 
-    ## Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
-    ## Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    ## Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    ## Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    ## Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    ## Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    ## Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    ## Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    ## Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    ## Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    ## Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    ## Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
-    ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.050584 seconds (Warm-up)
-    ## Chain 4:                0.109661 seconds (Sampling)
-    ## Chain 4:                0.160245 seconds (Total)
-    ## Chain 4:
+    #> Stashing object.
 
-    ## Computing WAIC
+    #> 
+    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 1).
+    #> Chain 1: 
+    #> Chain 1: Gradient evaluation took 2.4e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.24 seconds.
+    #> Chain 1: Adjust your expectations accordingly!
+    #> Chain 1: 
+    #> Chain 1: 
+    #> Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 1: 
+    #> Chain 1:  Elapsed Time: 0.097863 seconds (Warm-up)
+    #> Chain 1:                0.169634 seconds (Sampling)
+    #> Chain 1:                0.267497 seconds (Total)
+    #> Chain 1: 
+    #> 
+    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 2).
+    #> Chain 2: 
+    #> Chain 2: Gradient evaluation took 7e-06 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    #> Chain 2: Adjust your expectations accordingly!
+    #> Chain 2: 
+    #> Chain 2: 
+    #> Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 2: 
+    #> Chain 2:  Elapsed Time: 0.068721 seconds (Warm-up)
+    #> Chain 2:                0.09533 seconds (Sampling)
+    #> Chain 2:                0.164051 seconds (Total)
+    #> Chain 2: 
+    #> 
+    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 3).
+    #> Chain 3: 
+    #> Chain 3: Gradient evaluation took 7e-06 seconds
+    #> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
+    #> Chain 3: Adjust your expectations accordingly!
+    #> Chain 3: 
+    #> Chain 3: 
+    #> Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 3: 
+    #> Chain 3:  Elapsed Time: 0.06319 seconds (Warm-up)
+    #> Chain 3:                0.1043 seconds (Sampling)
+    #> Chain 3:                0.16749 seconds (Total)
+    #> Chain 3: 
+    #> 
+    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 4).
+    #> Chain 4: 
+    #> Chain 4: Gradient evaluation took 1.8e-05 seconds
+    #> Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
+    #> Chain 4: Adjust your expectations accordingly!
+    #> Chain 4: 
+    #> Chain 4: 
+    #> Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
+    #> Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
+    #> Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
+    #> Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
+    #> Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
+    #> Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
+    #> Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
+    #> Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
+    #> Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
+    #> Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
+    #> Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
+    #> Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
+    #> Chain 4: 
+    #> Chain 4:  Elapsed Time: 0.061261 seconds (Warm-up)
+    #> Chain 4:                0.128139 seconds (Sampling)
+    #> Chain 4:                0.1894 seconds (Total)
+    #> Chain 4:
+
+    #> Computing WAIC
 
 ``` r
 precis(m10_10_stan_c)
 ```
 
-    ##           mean         sd        5.5%     94.5%    n_eff     Rhat4
-    ## a   3.30958348 0.08969397  3.16619500 3.4485627 3704.475 1.0000835
-    ## bp  0.26279100 0.03494568  0.20658046 0.3176263 4748.530 1.0001081
-    ## bc  0.28633303 0.11742884  0.09794991 0.4754851 3863.480 1.0002169
-    ## bcp 0.06699003 0.16995322 -0.20517522 0.3342323 5237.044 0.9999841
+    #>           mean         sd        5.5%     94.5%    n_eff     Rhat4
+    #> a   3.30958348 0.08969397  3.16619500 3.4485627 3704.475 1.0000835
+    #> bp  0.26279100 0.03494568  0.20658046 0.3176263 4748.530 1.0001081
+    #> bc  0.28633303 0.11742884  0.09794991 0.4754851 3863.480 1.0002169
+    #> bcp 0.06699003 0.16995322 -0.20517522 0.3342323 5237.044 0.9999841
 
 ``` r
 plot(m10_10_stan_c)
@@ -1577,9 +1589,9 @@ y <- rpois(num_days, 1.5)
 table(y)
 ```
 
-    ## y
-    ## 0 1 2 3 4 5 
-    ## 7 8 8 4 2 1
+    #> y
+    #> 0 1 2 3 4 5 
+    #> 7 8 8 4 2 1
 
   - are thinking of purchasing another monastery, but want to know the
     productivity of the new monastery
@@ -1598,9 +1610,9 @@ y_new <- rpois(num_weeks, 0.5*7)
 table(y_new)
 ```
 
-    ## y_new
-    ## 2 3 4 6 
-    ## 1 1 1 1
+    #> y_new
+    #> 2 3 4 6 
+    #> 1 1 1 1
 
   - build a data frame with data from both monasteries
 
@@ -1614,20 +1626,20 @@ d <- tibble(y = y_all, days = exposure, monastery)
 d
 ```
 
-    ## # A tibble: 34 x 3
-    ##        y  days monastery
-    ##    <int> <dbl>     <dbl>
-    ##  1     3     1         0
-    ##  2     1     1         0
-    ##  3     1     1         0
-    ##  4     2     1         0
-    ##  5     3     1         0
-    ##  6     0     1         0
-    ##  7     3     1         0
-    ##  8     4     1         0
-    ##  9     2     1         0
-    ## 10     2     1         0
-    ## # … with 24 more rows
+    #> # A tibble: 34 x 3
+    #>        y  days monastery
+    #>    <int> <dbl>     <dbl>
+    #>  1     3     1         0
+    #>  2     1     1         0
+    #>  3     1     1         0
+    #>  4     2     1         0
+    #>  5     3     1         0
+    #>  6     0     1         0
+    #>  7     3     1         0
+    #>  8     4     1         0
+    #>  9     2     1         0
+    #> 10     2     1         0
+    #> # … with 24 more rows
 
   - fit the model to estimate the rate of manuscript production at each
     monastery
@@ -1650,9 +1662,9 @@ m10_15 <- quap(
 precis(m10_15)
 ```
 
-    ##         mean        sd       5.5%      94.5%
-    ## a  0.4694331 0.1429827  0.2409192  0.6979470
-    ## b -1.0273421 0.2772045 -1.4703683 -0.5843158
+    #>         mean        sd       5.5%      94.5%
+    #> a  0.4694331 0.1429827  0.2409192  0.6979470
+    #> b -1.0273421 0.2772045 -1.4703683 -0.5843158
 
   - compute the posterior distribution of \(\lambda\) in each monastery
       - sample from the posterior and use the linear model *without* the
@@ -1669,9 +1681,9 @@ lambda_new <- exp(post$a + post$b * 1)
 precis(tibble(lambda_old, lambda_new))
 ```
 
-    ##                 mean        sd      5.5%     94.5%     histogram
-    ## lambda_old 1.6149928 0.2325102 1.2754919 2.0144941     ▁▁▃▇▇▃▁▁▁
-    ## lambda_new 0.5907316 0.1443564 0.3898033 0.8423707 ▁▂▅▇▅▃▁▁▁▁▁▁▁
+    #>                 mean        sd      5.5%     94.5%     histogram
+    #> lambda_old 1.6149928 0.2325102 1.2754919 2.0144941     ▁▁▃▇▇▃▁▁▁
+    #> lambda_new 0.5907316 0.1443564 0.3898033 0.8423707 ▁▂▅▇▅▃▁▁▁▁▁▁▁
 
 ``` r
 tibble(`old monastery` = lambda_old,
@@ -1808,8 +1820,8 @@ m10_16 <- quap(
 precis(m10_16)
 ```
 
-    ##      mean         sd      5.5%     94.5%
-    ## b 0.38192 0.04258927 0.3138541 0.4499859
+    #>      mean         sd      5.5%     94.5%
+    #> b 0.38192 0.04258927 0.3138541 0.4499859
 
   - parameter estimates are difficult to interpret
       - must instead convert them to a vector of probabilities to make
@@ -1828,12 +1840,12 @@ tibble(
 )
 ```
 
-    ## # A tibble: 3 x 3
-    ##   career  real estimate
-    ##    <int> <dbl>    <dbl>
-    ## 1      1 0.186    0.159
-    ## 2      2 0.307    0.341
-    ## 3      3 0.506    0.500
+    #> # A tibble: 3 x 3
+    #>   career  real estimate
+    #>    <int> <dbl>    <dbl>
+    #> 1      1 0.186    0.159
+    #> 2      2 0.307    0.341
+    #> 3      3 0.506    0.500
 
   - example of case 2:
       - still modeling career choice
@@ -1888,18 +1900,18 @@ m10_17 <- quap(
 )
 ```
 
-    ## Warning in if (class(prob) == "matrix") {: the condition has length > 1 and only
-    ## the first element will be used
+    #> Warning in if (class(prob) == "matrix") {: the condition has length > 1 and only
+    #> the first element will be used
 
 ``` r
 precis(m10_17)
 ```
 
-    ##          mean        sd       5.5%      94.5%
-    ## a2  1.5917877 0.5617334  0.6940293  2.4895461
-    ## a3  0.5383479 0.6201641 -0.4527942  1.5294900
-    ## b2 -2.4413279 0.9357371 -3.9368164 -0.9458393
-    ## b3 -1.0002994 0.9801092 -2.5667032  0.5661044
+    #>          mean        sd       5.5%      94.5%
+    #> a2  1.5917877 0.5617334  0.6940293  2.4895461
+    #> a3  0.5383479 0.6201641 -0.4527942  1.5294900
+    #> b2 -2.4413279 0.9357371 -3.9368164 -0.9458393
+    #> b3 -1.0002994 0.9801092 -2.5667032  0.5661044
 
   - again, the estimates are difficult to interpret without computing
     implied predictions
@@ -1960,21 +1972,25 @@ m_binom <- quap(
 )
 
 # Poisson model of overall admission rate and rejection rate
-m_pois <- map2stan(
-    alist(
-        admit ~ dpois(lambda1),
-        rej ~ dpois(lambda2),
-        log(lambda1) <- a1,
-        log(lambda2) <- a2,
-        c(a1, a2) ~ dnorm(0, 10)
-    ),
-    data = d,
-    chains = 3, 
-    cores = 3
-)
+stash("m_pois", depends_on = "d", {
+    m_pois <- map2stan(
+        alist(
+            admit ~ dpois(lambda1),
+            rej ~ dpois(lambda2),
+            log(lambda1) <- a1,
+            log(lambda2) <- a2,
+            c(a1, a2) ~ dnorm(0, 10)
+        ),
+        data = d,
+        chains = 3, 
+        cores = 3
+    )
+})
 ```
 
-    ## Computing WAIC
+    #> Stashing object.
+
+    #> Computing WAIC
 
 ``` r
 plot(m_pois)
@@ -1992,8 +2008,8 @@ plot(m_pois)
 logistic(coef(m_binom))
 ```
 
-    ##         a 
-    ## 0.3877606
+    #>         a 
+    #> 0.3877606
 
   - calculate the implied probability of admission for the Poisson model
 
@@ -2006,7 +2022,7 @@ k <- as.numeric(coef(m_pois))
 exp(k[1]) / (exp(k[1]) + exp(k[2]))
 ```
 
-    ## [1] 0.3874979
+    #> [1] 0.3874979
 
   - the inferences are the same
 
@@ -2052,9 +2068,9 @@ m10_18 <- quap(
 precis(m10_18)
 ```
 
-    ##         mean        sd       5.5%      94.5%
-    ## a -0.6846385 0.2684581 -1.1136864 -0.2555906
-    ## b  1.7184947 0.5062962  0.9093355  2.5276538
+    #>         mean        sd       5.5%      94.5%
+    #> a -0.6846385 0.2684581 -1.1136864 -0.2555906
+    #> b  1.7184947 0.5062962  0.9093355  2.5276538
 
 ``` r
 post_p <- link(m10_18)
@@ -2223,39 +2239,43 @@ m10h_1 <- quap(
     data = d
 )
 
-m10h_2 <- map2stan(
-    alist(
-        pulled_left ~ dbinom(1, p),
-        logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
-        alpha[actor] ~ dnorm(0, 10),
-        c(bp, bpc) ~ dnorm(0, 10)
-    ),
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
+stash("m10h_2", depends_on = "d", {
+    m10h_2 <- map2stan(
+        alist(
+            pulled_left ~ dbinom(1, p),
+            logit(p) <- alpha[actor] + bp*prosoc_left + bpc*prosoc_left*condition,
+            alpha[actor] ~ dnorm(0, 10),
+            c(bp, bpc) ~ dnorm(0, 10)
+        ),
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 ```
 
-    ## Computing WAIC
+    #> Stashing object.
+
+    #> Computing WAIC
 
 ``` r
 precis(m10h_1)
 ```
 
-    ## 7 vector or matrix parameters hidden. Use depth=2 to show them.
+    #> 7 vector or matrix parameters hidden. Use depth=2 to show them.
 
-    ##           mean        sd       5.5%     94.5%
-    ## bp   0.8221311 0.2610079  0.4049901 1.2392721
-    ## bpc -0.1318304 0.2969351 -0.6063901 0.3427292
+    #>           mean        sd       5.5%     94.5%
+    #> bp   0.8221311 0.2610079  0.4049901 1.2392721
+    #> bpc -0.1318304 0.2969351 -0.6063901 0.3427292
 
 ``` r
 precis(m10h_2)
 ```
 
-    ## 7 vector or matrix parameters hidden. Use depth=2 to show them.
+    #> 7 vector or matrix parameters hidden. Use depth=2 to show them.
 
-    ##           mean        sd       5.5%     94.5%    n_eff     Rhat4
-    ## bp   0.8403843 0.2572503  0.4320854 1.2593873 2474.788 1.0013597
-    ## bpc -0.1390248 0.3022528 -0.6228900 0.3453836 3655.271 0.9995638
+    #>           mean        sd       5.5%     94.5%    n_eff     Rhat4
+    #> bp   0.8403843 0.2572503  0.4320854 1.2593873 2474.788 1.0013597
+    #> bpc -0.1390248 0.3022528 -0.6228900 0.3453836 3655.271 0.9995638
 
 ``` r
 m10h_1_link <- extract.samples(m10h_1, clean = FALSE) %>%
@@ -2293,44 +2313,54 @@ intercept for each actor, `m10.4` (page 299), to the simpler models fit
 in the same section.**
 
 ``` r
-m10h_3 <- map2stan(
-    m10_1,
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
+stash("m10h_3", depends_on = "d", {
+    m10h_3 <- map2stan(
+        m10_1,
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 ```
 
-    ## Computing WAIC
+    #> Stashing object.
+
+    #> Computing WAIC
 
 ``` r
-m10h_4 <- map2stan(
-    m10_2,
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
+stash("m10h_4", depends_on = "d", {
+    m10h_4 <- map2stan(
+        m10_2,
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 ```
 
-    ## Computing WAIC
+    #> Stashing object.
+    #> Computing WAIC
 
 ``` r
-m10h_5 <- map2stan(
-    m10_3,
-    data = d,
-    chains = 3, iter = 2e3, warmup = 500, cores = 3
-)
+stash("m10h_5", depends_on = "d", {
+    m10h_5 <- map2stan(
+        m10_3,
+        data = d,
+        chains = 3, iter = 2e3, warmup = 500, cores = 3
+    )
+})
 ```
 
-    ## Computing WAIC
+    #> Stashing object.
+    #> Computing WAIC
 
 ``` r
 compare(m10h_2, m10h_3, m10h_4, m10h_5)
 ```
 
-    ##            WAIC        SE    dWAIC      dSE     pWAIC       weight
-    ## m10h_2 529.8900 19.969422   0.0000       NA 8.3479741 1.000000e+00
-    ## m10h_4 680.5999  9.344300 150.7099 19.24396 2.0520918 1.878275e-33
-    ## m10h_5 682.3688  9.480240 152.4788 19.19259 3.0144773 7.756330e-34
-    ## m10h_3 687.9294  7.176113 158.0393 19.96052 0.9943216 4.810575e-35
+    #>            WAIC        SE    dWAIC      dSE     pWAIC       weight
+    #> m10h_2 529.8900 19.969422   0.0000       NA 8.3479741 1.000000e+00
+    #> m10h_4 680.5999  9.344300 150.7099 19.24396 2.0520918 1.878275e-33
+    #> m10h_5 682.3688  9.480240 152.4788 19.19259 3.0144773 7.756330e-34
+    #> m10h_3 687.9294  7.176113 158.0393 19.96052 0.9943216 4.810575e-35
 
 **10H3. The data contained in `library(MASS);data(eagles)` are records
 of salmon pirating attempts by Bald Eagles in Washington State. See
@@ -2368,39 +2398,43 @@ m10h3_1 <- quap(
     data = d
 )
 
-m10h3_1_stan <- map2stan(
-    alist(
-        y ~ dbinom(n, p),
-        logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
-        alpha ~ dnorm(0, 10),
-        c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
-    ), 
-    data = d,
-    chains = 2, iter = 2e3, warmup = 500, cores = 2
-)
+stash("m10h3_1_stan", depends_on = "d", {
+    m10h3_1_stan <- map2stan(
+        alist(
+            y ~ dbinom(n, p),
+            logit(p) <- alpha + b_psize*large_pirate + b_vsize*large_victim + b_padult*adult_pirate,
+            alpha ~ dnorm(0, 10),
+            c(b_psize, b_vsize, b_padult) ~ dnorm(0, 5)
+        ), 
+        data = d,
+        chains = 2, iter = 2e3, warmup = 500, cores = 2
+    )
+})
 ```
 
-    ## Computing WAIC
+    #> Stashing object.
+
+    #> Computing WAIC
 
 ``` r
 precis(m10h3_1)
 ```
 
-    ##                mean        sd       5.5%     94.5%
-    ## alpha     0.5914738 0.6622702 -0.4669619  1.649909
-    ## b_psize   4.2418279 0.8960177  2.8098185  5.673837
-    ## b_vsize  -4.5925693 0.9613897 -6.1290558 -3.056083
-    ## b_padult  1.0814609 0.5339219  0.2281506  1.934771
+    #>                mean        sd       5.5%     94.5%
+    #> alpha     0.5914738 0.6622702 -0.4669619  1.649909
+    #> b_psize   4.2418279 0.8960177  2.8098185  5.673837
+    #> b_vsize  -4.5925693 0.9613897 -6.1290558 -3.056083
+    #> b_padult  1.0814609 0.5339219  0.2281506  1.934771
 
 ``` r
 precis(m10h3_1_stan)
 ```
 
-    ##                mean        sd       5.5%     94.5%    n_eff     Rhat4
-    ## alpha     0.6558778 0.6894632 -0.4258674  1.766055 1404.090 0.9998688
-    ## b_psize   4.6313846 0.9646882  3.2190820  6.275450 1388.673 0.9997662
-    ## b_vsize  -5.0396598 1.0048863 -6.6805765 -3.508317 1454.409 0.9993940
-    ## b_padult  1.1314736 0.5531476  0.2192818  1.970850 1529.977 1.0005094
+    #>                mean        sd       5.5%     94.5%    n_eff     Rhat4
+    #> alpha     0.6558778 0.6894632 -0.4258674  1.766055 1404.090 0.9998688
+    #> b_psize   4.6313846 0.9646882  3.2190820  6.275450 1388.673 0.9997662
+    #> b_vsize  -5.0396598 1.0048863 -6.6805765 -3.508317 1454.409 0.9993940
+    #> b_padult  1.1314736 0.5531476  0.2192818  1.970850 1529.977 1.0005094
 
 ``` r
 m10h3_1_samples <- extract.samples(m10h3_1, 
@@ -2445,7 +2479,7 @@ type of posterior prediction provide?**
 post <- link(m10h3_1_stan)
 ```
 
-    ## [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+    #> [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
 
 ``` r
 pred_prob <- apply(post, 2, mean)
