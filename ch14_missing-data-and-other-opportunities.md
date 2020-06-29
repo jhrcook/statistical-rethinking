@@ -169,61 +169,24 @@ precis(m14_1, depth = 1)
 precis(m14_1, depth = 2)
 ```
 
-    #>                     mean        sd       5.5%      94.5%     n_eff     Rhat4
-    #> div_est[1]  11.837344567 0.6647418 10.7887078 12.8962546  5898.515 1.0006582
-    #> div_est[2]  10.845095554 1.0216492  9.2516403 12.4942308  7078.216 0.9998781
-    #> div_est[3]  10.475214148 0.6233029  9.4918989 11.4958464  8184.472 0.9999431
-    #> div_est[4]  12.263202297 0.8633582 10.9004805 13.6692378  7962.861 1.0001279
-    #> div_est[5]   8.038420587 0.2341533  7.6635508  8.4066730  8446.959 0.9998663
-    #> div_est[6]  10.860515645 0.7293194  9.6988492 12.0197682  6845.499 1.0002496
-    #> div_est[7]   7.163170849 0.6414886  6.1314999  8.1759963  8157.261 0.9999701
-    #> div_est[8]   8.973790825 0.8960361  7.5480498 10.4324535  8011.903 0.9997761
-    #> div_est[9]   6.017474399 1.1305256  4.2243726  7.8412452  5747.723 1.0003524
-    #> div_est[10]  8.564176404 0.3057308  8.0789946  9.0489278  8983.011 0.9999920
-    #> div_est[11] 11.069878755 0.5229368 10.2494008 11.9252576  7799.606 1.0003111
-    #> div_est[12]  8.529344782 0.9040473  7.0676997  9.9674663  6047.213 1.0000865
-    #> div_est[13] 10.043196451 0.8956017  8.5872650 11.4520838  4712.640 1.0002555
-    #> div_est[14]  8.097283965 0.4177928  7.4354006  8.7486496  9969.859 1.0001777
-    #> div_est[15] 10.705737168 0.5345280  9.8579854 11.5586418  9068.945 0.9998466
-    #> div_est[16] 10.218518886 0.7074659  9.1000986 11.3362467  8647.523 0.9998100
-    #> div_est[17] 10.602823842 0.7732763  9.3709687 11.8562808  8904.705 0.9998409
-    #> div_est[18] 11.997015355 0.6428376 10.9961545 13.0240463  6638.578 0.9999078
-    #> div_est[19] 10.459064426 0.6867378  9.3805070 11.5720073  8404.221 1.0001903
-    #> div_est[20] 10.513825734 1.0014584  8.9537905 12.1405870  4612.629 1.0001426
-    #> div_est[21]  8.644745076 0.5949985  7.7052739  9.5877578  8775.663 0.9999275
-    #> div_est[22]  7.656661816 0.4836718  6.8857298  8.4152966  7949.757 1.0006751
-    #> div_est[23]  9.203606049 0.4757953  8.4311486  9.9581658  9816.742 0.9999509
-    #> div_est[24]  7.875258330 0.5429486  7.0067771  8.7366772  7426.866 1.0003481
-    #> div_est[25] 10.481750492 0.7523881  9.2793196 11.7017819  8308.266 0.9999605
-    #> div_est[26]  9.644383825 0.5755285  8.7224565 10.5642970  7831.972 0.9999809
-    #> div_est[27]  9.670190300 0.9201210  8.1929118 11.1134169  9571.456 1.0000392
-    #> div_est[28]  9.420804254 0.7263935  8.2630031 10.5614328  8513.653 0.9997711
-    #> div_est[29]  9.213878738 0.9332865  7.7619068 10.7342007  8552.353 0.9999310
-    #> div_est[30]  6.398572024 0.4254509  5.7144864  7.0757319  8167.677 0.9998057
-    #> div_est[31]  9.997584864 0.7735052  8.7600863 11.2435694  8810.013 0.9999900
-    #> div_est[32]  6.650461344 0.2969075  6.1747721  7.1182930  8678.080 1.0001313
-    #> div_est[33]  9.904728661 0.4420484  9.1884436 10.6105202  8335.879 1.0001231
-    #> div_est[34]  9.498745501 0.9460678  7.9744460 10.9711598  5474.176 0.9997938
-    #> div_est[35]  9.469109319 0.4088586  8.8131070 10.1293925  9625.518 0.9997665
-    #> div_est[36] 12.051550732 0.7467593 10.8755220 13.2629049  7553.224 0.9999420
-    #> div_est[37] 10.101744532 0.6433880  9.0870588 11.1508472  8445.059 1.0000633
-    #> div_est[38]  7.816128738 0.4043816  7.1697125  8.4593735  8924.416 0.9998252
-    #> div_est[39]  7.943434295 0.9903703  6.3789310  9.5326599  6432.167 1.0000883
-    #> div_est[40]  8.436948246 0.5818800  7.4925961  9.3453467  9629.396 1.0003676
-    #> div_est[41] 10.151963756 1.0133366  8.5469210 11.7668762  8469.031 0.9998339
-    #> div_est[42] 11.053863879 0.6313468 10.0531577 12.0821468  8072.393 1.0002549
-    #> div_est[43] 10.047639226 0.3319982  9.5208508 10.5844127 10446.567 0.9998101
-    #> div_est[44] 11.116841635 0.7865211  9.8539162 12.3624456  5792.679 1.0000036
-    #> div_est[45]  8.947189791 0.9541311  7.4564276 10.4863669  7947.125 0.9998089
-    #> div_est[46]  8.959088029 0.4712254  8.2076794  9.7024021  9106.376 1.0000010
-    #> div_est[47]  9.918694464 0.5616615  9.0315118 10.8059557  9935.964 0.9998099
-    #> div_est[48] 10.713978276 0.8432919  9.3534651 12.0548978  9511.253 0.9997788
-    #> div_est[49]  8.526858581 0.5131419  7.6963104  9.3438623  9957.818 0.9998486
-    #> div_est[50] 11.131170633 1.1190173  9.2999832 12.8755595  6010.564 1.0000341
-    #> a            9.556418825 0.2044546  9.2376879  9.8812416  5002.159 1.0011619
-    #> bA          -1.242940436 0.3208026 -1.7527063 -0.7371894  3742.422 0.9999276
-    #> bR          -0.005569283 0.3420884 -0.5595417  0.5257439  3311.623 1.0000885
-    #> sigma        1.078827705 0.1961819  0.7872871  1.4068432  2199.206 1.0006505
+    #>                  mean        sd      5.5%     94.5%    n_eff     Rhat4
+    #> div_est[1]  11.837345 0.6647418 10.788708 12.896255 5898.515 1.0006582
+    #> div_est[2]  10.845096 1.0216492  9.251640 12.494231 7078.216 0.9998781
+    #> div_est[3]  10.475214 0.6233029  9.491899 11.495846 8184.472 0.9999431
+    #> div_est[4]  12.263202 0.8633582 10.900480 13.669238 7962.861 1.0001279
+    #> div_est[5]   8.038421 0.2341533  7.663551  8.406673 8446.959 0.9998663
+    #> div_est[6]  10.860516 0.7293194  9.698849 12.019768 6845.499 1.0002496
+    #> div_est[7]   7.163171 0.6414886  6.131500  8.175996 8157.261 0.9999701
+    #> div_est[8]   8.973791 0.8960361  7.548050 10.432453 8011.903 0.9997761
+    #> div_est[9]   6.017474 1.1305256  4.224373  7.841245 5747.723 1.0003524
+    #> div_est[10]  8.564176 0.3057308  8.078995  9.048928 8983.011 0.9999920
+    #> div_est[11] 11.069879 0.5229368 10.249401 11.925258 7799.606 1.0003111
+    #> div_est[12]  8.529345 0.9040473  7.067700  9.967466 6047.213 1.0000865
+    #> div_est[13] 10.043196 0.8956017  8.587265 11.452084 4712.640 1.0002555
+    #> div_est[14]  8.097284 0.4177928  7.435401  8.748650 9969.859 1.0001777
+    #> div_est[15] 10.705737 0.5345280  9.857985 11.558642 9068.945 0.9998466
+    #> div_est[16] 10.218519 0.7074659  9.100099 11.336247 8647.523 0.9998100
+    #>  [ reached 'max' / getOption("max.print") -- omitted 38 rows ]
 
   - the estimated effect of marriage age was reduced by including the
     measurement error of divorce
@@ -329,3 +292,320 @@ d %>%
 ![](ch14_missing-data-and-other-opportunities_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ### 14.1.2 Error on both outcome and predictor
+
+  - measurement error on predictors and outcome
+      - think about the problem *generatively*:
+          - each observed predictor value is a draw from a distribution
+            with an unknown mean and standard deviation
+          - we can define a vector of parameters, one per unknown, and
+            make them the means of a Gaussian distributions
+  - example in the divorce data with error on marriage rate
+
+\[
+D_{\text{est}, i} \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_A A_i + \beta_R R_{\text{est}, i} \\
+D_{\text{obs}, i} \sim \text{Normal}(D_{\text{est}, i}, D_{\text{SE}, i}) \\
+R_{\text{obs}, i} \sim \text{Normal}(R_{\text{est}, i}, R_{\text{SE}, i}) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_A \sim \text{Normal}(0, 10) \\
+\beta_R \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Cauchy}(0, 2.5)
+\]
+
+``` r
+dlist <- d %>%
+    select(div_obs = divorce, div_sd = divorce_se,
+           mar_obs = marriage, mar_sd = marriage_se,
+           A = median_age_marriage)
+
+stash("m14_2", depends_on = "dlist", {
+    m14_2 <- map2stan(
+        alist(
+            div_est ~ dnorm(mu, sigma),
+            mu <- a + bA*A + bR*mar_est[i],
+            div_obs ~ dnorm(div_est, div_sd),
+            mar_obs ~ dnorm(mar_est, mar_sd),
+            a ~ dnorm(0, 10),
+            bA ~ dnorm(0, 10),
+            bR ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 2.5)
+        ),
+        data = dlist,
+        start = list(div_est = dlist$div_obs,
+                     mar_est = dlist$mar_obs),
+        WAIC = FALSE,
+        iter = 5e3, warmup = 1e3, chains = 3, cores = 3,
+        control = list(adapt_delta = 0.95)
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+precis(m14_2)
+```
+
+    #> 100 vector or matrix parameters hidden. Use depth=2 to show them.
+
+    #>             mean         sd         5.5%      94.5%    n_eff    Rhat4
+    #> a     20.8720987 6.82182042  9.666433007 31.5786222 2891.271 1.000815
+    #> bA    -0.5400344 0.21819074 -0.882554474 -0.1794355 3217.269 1.000645
+    #> bR     0.1384014 0.08306949  0.009533411  0.2730756 2740.129 1.000991
+    #> sigma  1.0975441 0.20658634  0.787150660  1.4454654 2899.495 1.000417
+
+``` r
+estimated_marriage_post <- extract.samples(m14_2)$mar_est
+
+d %>%
+    mutate(est_marriage = apply(estimated_marriage_post, 2, mean)) %>%
+    ggplot(aes(x = marriage_se, y = est_marriage - marriage)) +
+    geom_hline(yintercept = 0, lty = 2, color = light_grey, size = 0.8) +
+    geom_point(size = 2, color = dark_grey) +
+    labs(x = "marriage rate observed standard error",
+         y = "marraige rate estimated - observed",
+         title = "The more measurement error, the more shrinkage of estimated rate")
+```
+
+![](ch14_missing-data-and-other-opportunities_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+``` r
+m14_2_post_samples <- extract.samples(m14_2)
+
+d_est <- tibble(loc = d$loc) %>%
+    mutate(divorce = apply(m14_2_post_samples$div_est, 2, mean),
+           marriage = apply(m14_2_post_samples$mar_est, 2, mean),
+           obs_est = "estimated")
+
+d %>% 
+    select(loc, divorce, marriage) %>%
+    add_column(obs_est = "observed") %>%
+    bind_rows(d_est) %>%
+    ggplot(aes(marriage, divorce)) +
+    geom_path(aes(group = loc), alpha = 0.8, size = 1, color = dark_grey,
+              arrow = arrow(length = unit(2, "mm"), ends = "last", type = "closed")) +
+    geom_point(aes(color = obs_est), size = 1.7, alpha = 0.75) +
+    scale_color_brewer(palette = "Set1") +
+    labs(x = "marriage rate",
+         y = "divorce",
+         title = "Shrinkage in marriage and divorce rates due to modeling measurement error.",
+         color = NULL)
+```
+
+![](ch14_missing-data-and-other-opportunities_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+## 14.2 Missing data
+
+### 14.2.1 Imputing neocortex
+
+  - example using Bayesian imputation to impute the missing
+    `neocortex.perc` values in the `milk` data
+      - use information from other columns
+      - the imputed values will have posterior distributions (better
+        than a point estimate)
+  - *Missing Completely At Random* (MCAR): an imputation model that
+    assumes the points that are missing are missing due to random chance
+  - simultaneously model the predictor variable that has missing value
+    and the outcome variable
+      - the present values will produce estimates that comprise a prior
+        for each missing value
+      - then use these priors for estimating the relationship between
+        the predictor and outcome
+  - think of the predictor with missing data as a mixture of data and
+    parameters
+  - below is the formula for the model
+      - the \(N_i \sim \text{Normal}(v, \sigma_N)\) is the distribution
+        for the neocortex percent values
+          - if \(N_i\) is observed, then it is a likelihood
+          - if \(N_i\) is missing, then it is a prior distribution
+
+\[
+k_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_N N_i + \beta_M \log M_i \\
+N_i \sim \text{Normal}(\nu, \sigma_N) \\
+\alpha \sim \text{Normal}(0, 100) \\
+\beta_N \sim \text{Normal}(0, 10) \\
+\beta_M \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Normal}(0, 1) \\
+\nu \sim \text{Normal}(0.5, 1) \\
+\sigma_N \sim \text{Cauchy}(0, 1)
+\]
+
+  - several ways to implement this model
+
+<!-- end list -->
+
+``` r
+# Load the data.
+data("milk")
+d <- as_tibble(milk) %>% 
+    janitor::clean_names() %>%
+    mutate(neocortex_prop = neocortex_perc / 100,
+           logmass = log(mass))
+
+data_list <- d %>%
+    select(kcal = kcal_per_g,
+           neocortex = neocortex_prop,
+           logmass)
+
+stash("m14_3", depends_on = "data_list", {
+    m14_3 <- map2stan(
+        alist(
+            kcal ~ dnorm(mu, sigma),
+            mu <- a + bN*neocortex + bM*logmass,
+            neocortex ~ dnorm(nu, sigma_N),
+            a  ~ dnorm(0, 100),
+            c(bN, bM) ~ dnorm(0, 10),
+            nu ~ dnorm(0.5, 1),
+            sigma_N ~ dcauchy(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = data_list, iter = 1e4, chains = 2, cores = 2
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+precis(m14_3, depth = 2)
+```
+
+    #>                             mean         sd       5.5%       94.5%     n_eff
+    #> neocortex_impute[1]   0.63198252 0.05026444  0.5539061  0.71393638  7375.298
+    #> neocortex_impute[2]   0.62439457 0.05082310  0.5451610  0.70625252  7744.599
+    #> neocortex_impute[3]   0.62249738 0.05117690  0.5430334  0.70445442  6915.737
+    #> neocortex_impute[4]   0.65219955 0.04870903  0.5753615  0.73034213  9502.564
+    #> neocortex_impute[5]   0.70097228 0.04849636  0.6242957  0.78068875  8857.497
+    #> neocortex_impute[6]   0.65650853 0.05003216  0.5794043  0.73647672  8697.525
+    #> neocortex_impute[7]   0.68701466 0.04796190  0.6106304  0.76329911 10188.181
+    #> neocortex_impute[8]   0.69656253 0.04807550  0.6195392  0.77177427  8898.820
+    #> neocortex_impute[9]   0.71240683 0.04935848  0.6328875  0.78997705  9123.654
+    #> neocortex_impute[10]  0.64580225 0.04967418  0.5672966  0.72321254  8802.068
+    #> neocortex_impute[11]  0.65796422 0.04869620  0.5816114  0.73455664  9168.917
+    #> neocortex_impute[12]  0.69548363 0.04997620  0.6147117  0.77310037  8148.645
+    #> a                    -0.53192286 0.47208501 -1.2685262  0.23265819  2414.370
+    #> bN                    1.89757591 0.73606344  0.7053816  3.05058129  2343.718
+    #> bM                   -0.06920106 0.02248688 -0.1051405 -0.03326359  2847.262
+    #> nu                    0.67132733 0.01378503  0.6496262  0.69302024  7428.522
+    #>                          Rhat4
+    #> neocortex_impute[1]  0.9998108
+    #> neocortex_impute[2]  1.0004621
+    #> neocortex_impute[3]  0.9999360
+    #> neocortex_impute[4]  0.9999356
+    #> neocortex_impute[5]  0.9998307
+    #> neocortex_impute[6]  0.9999942
+    #> neocortex_impute[7]  1.0000914
+    #> neocortex_impute[8]  1.0002591
+    #> neocortex_impute[9]  0.9998138
+    #> neocortex_impute[10] 0.9998282
+    #> neocortex_impute[11] 0.9999832
+    #> neocortex_impute[12] 0.9998682
+    #> a                    1.0002426
+    #> bN                   1.0003011
+    #> bM                   1.0005604
+    #> nu                   0.9998143
+    #>  [ reached 'max' / getOption("max.print") -- omitted 2 rows ]
+
+  - for comparison, also build a model with the missing data dropped
+
+<!-- end list -->
+
+``` r
+dcc <- d[complete.cases(d$neocortex_prop), ]
+data_list_cc <- dcc %>%
+    select(kcal = kcal_per_g, neocortex = neocortex_prop, logmass)
+
+stash("m14_3_cc", depends_on = "data_list_cc", {
+    m14_3_cc <- map2stan(
+        alist(
+            kcal ~ dnorm(mu, sigma),
+            mu <- a + bN*neocortex + bM*logmass,
+            a ~ dnorm(0, 100),
+            c(bN, bM) ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = data_list_cc, iter = 1e4, chains = 2, cores = 2
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+precis(m14_3_cc)
+```
+
+    #>             mean         sd       5.5%       94.5%    n_eff    Rhat4
+    #> a     -1.0774335 0.57905288 -1.9994215 -0.17402779 2435.072 1.000556
+    #> bN     2.7813725 0.90188209  1.3639509  4.22172504 2414.102 1.000478
+    #> bM    -0.0962560 0.02811227 -0.1401678 -0.05196683 2992.969 1.000027
+    #> sigma  0.1385882 0.02948439  0.1000234  0.19141166 3061.492 1.000285
+
+  - including the incomplete cases moves the posterior mean for
+    neocortext proportion from 2.8 to 1.9 and for body mass from -0.1 to
+    -0.07
+  - the following plot shows the imputed data comparing the neocortex
+    proportion to the kcal per gram of milk
+
+<!-- end list -->
+
+``` r
+m14_3_post <- extract.samples(m14_3)
+
+neocortex_seq <- seq(0.45, 0.8, length.out = 500)
+logmass_avg <- mean(d$logmass)
+m14_3_pred_d <- tibble(neocortex = neocortex_seq, logmass = logmass_avg)
+m14_3_pred <- link(m14_3, data = m14_3_pred_d)
+```
+
+    #> [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+
+``` r
+m14_3_pred_d %<>%
+    mutate(kcal_est = apply(m14_3_pred, 2, mean)) %>%
+    bind_cols(apply(m14_3_pred, 2, PI) %>% pi_to_df()) %>%
+    filter(neocortex > 0.52) %>%
+    mutate(x5_percent = scales::squish(x5_percent, range = c(0.35, 1.0)),
+           x94_percent = scales::squish(x94_percent, range = c(0.35, 1.0)))
+
+imputed_neocortex_prop <- tibble(
+    neocortex_prop_est = apply(m14_3_post$neocortex_impute, 2, mean)
+) %>%
+    bind_cols(apply(m14_3_post$neocortex_impute, 2, PI) %>% pi_to_df()) %>%
+    mutate(miss_num_idx = row_number())
+
+d %>%
+    mutate(missing_neocortex = is.na(neocortex_prop)) %>%
+    group_by(missing_neocortex) %>%
+    mutate(miss_num_idx = row_number()) %>%
+    ungroup() %>%
+    mutate(miss_num_idx = ifelse(missing_neocortex, miss_num_idx, NA)) %>%
+    left_join(imputed_neocortex_prop, by = "miss_num_idx") %>%
+    mutate(neocortex_prop = ifelse(missing_neocortex, neocortex_prop_est, neocortex_prop)) %>%
+    ggplot(aes(neocortex_prop)) +
+    geom_ribbon(aes(x = neocortex, ymin = x5_percent, ymax = x94_percent),
+                data = m14_3_pred_d, 
+                alpha = 0.2) +
+    geom_line(aes(x = neocortex, y = kcal_est),
+              data = m14_3_pred_d, 
+              alpha = 0.8, lty = 2) +
+    geom_linerange(aes(y = kcal_per_g, xmin = x5_percent, xmax = x94_percent), 
+                   alpha = 0.7, color = grey) +
+    geom_point(aes(y = kcal_per_g, color = missing_neocortex), 
+               size = 1.7) +
+    scale_color_brewer(palette = "Dark2") +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(limits = c(0.35, 1.0), expand = c(0, 0)) +
+    labs(x = "neocortex proportion",
+         y = "kcal per gram of milk",
+         title = "Imputed neocortex values on the linear regression",
+         subtitle = "The orange points were imputes and the dashed line shows the estimated impact of\nneocortex proportion on energy density of milk, holding body mass constant.",
+         color = "missing\nneotcortex\ndata")
+```
+
+    #> Warning: Removed 17 rows containing missing values (geom_segment).
+
+![](ch14_missing-data-and-other-opportunities_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+### 14.2.2 Improving the imputation model

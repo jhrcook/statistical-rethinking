@@ -248,3 +248,227 @@ d %>%
 ```
 
 ### 14.1.2 Error on both outcome and predictor
+
+- measurement error on predictors and outcome
+    * think about the problem *generatively*:
+        - each observed predictor value is a draw from a distribution with an unknown mean and standard deviation
+        - we can define a vector of parameters, one per unknown, and make them the means of a Gaussian distributions
+- example in the divorce data with error on marriage rate
+
+$$
+D_{\text{est}, i} \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_A A_i + \beta_R R_{\text{est}, i} \\
+D_{\text{obs}, i} \sim \text{Normal}(D_{\text{est}, i}, D_{\text{SE}, i}) \\
+R_{\text{obs}, i} \sim \text{Normal}(R_{\text{est}, i}, R_{\text{SE}, i}) \\
+\alpha \sim \text{Normal}(0, 10) \\
+\beta_A \sim \text{Normal}(0, 10) \\
+\beta_R \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Cauchy}(0, 2.5)
+$$
+
+```{r}
+dlist <- d %>%
+    select(div_obs = divorce, div_sd = divorce_se,
+           mar_obs = marriage, mar_sd = marriage_se,
+           A = median_age_marriage)
+
+stash("m14_2", depends_on = "dlist", {
+    m14_2 <- map2stan(
+        alist(
+            div_est ~ dnorm(mu, sigma),
+            mu <- a + bA*A + bR*mar_est[i],
+            div_obs ~ dnorm(div_est, div_sd),
+            mar_obs ~ dnorm(mar_est, mar_sd),
+            a ~ dnorm(0, 10),
+            bA ~ dnorm(0, 10),
+            bR ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 2.5)
+        ),
+        data = dlist,
+        start = list(div_est = dlist$div_obs,
+                     mar_est = dlist$mar_obs),
+        WAIC = FALSE,
+        iter = 5e3, warmup = 1e3, chains = 3, cores = 3,
+        control = list(adapt_delta = 0.95)
+    )
+})
+
+precis(m14_2)
+```
+
+```{r}
+estimated_marriage_post <- extract.samples(m14_2)$mar_est
+
+d %>%
+    mutate(est_marriage = apply(estimated_marriage_post, 2, mean)) %>%
+    ggplot(aes(x = marriage_se, y = est_marriage - marriage)) +
+    geom_hline(yintercept = 0, lty = 2, color = light_grey, size = 0.8) +
+    geom_point(size = 2, color = dark_grey) +
+    labs(x = "marriage rate observed standard error",
+         y = "marraige rate estimated - observed",
+         title = "The more measurement error, the more shrinkage of estimated rate")
+```
+
+```{r}
+m14_2_post_samples <- extract.samples(m14_2)
+
+d_est <- tibble(loc = d$loc) %>%
+    mutate(divorce = apply(m14_2_post_samples$div_est, 2, mean),
+           marriage = apply(m14_2_post_samples$mar_est, 2, mean),
+           obs_est = "estimated")
+
+d %>% 
+    select(loc, divorce, marriage) %>%
+    add_column(obs_est = "observed") %>%
+    bind_rows(d_est) %>%
+    ggplot(aes(marriage, divorce)) +
+    geom_path(aes(group = loc), alpha = 0.8, size = 1, color = dark_grey,
+              arrow = arrow(length = unit(2, "mm"), ends = "last", type = "closed")) +
+    geom_point(aes(color = obs_est), size = 1.7, alpha = 0.75) +
+    scale_color_brewer(palette = "Set1") +
+    labs(x = "marriage rate",
+         y = "divorce",
+         title = "Shrinkage in marriage and divorce rates due to modeling measurement error.",
+         color = NULL)
+```
+
+## 14.2 Missing data
+
+### 14.2.1 Imputing neocortex
+
+- example using Bayesian imputation to impute the missing `neocortex.perc` values in the `milk` data
+    * use information from other columns
+    * the imputed values will have posterior distributions (better than a point estimate)
+- *Missing Completely At Random* (MCAR): an imputation model that assumes the points that are missing are missing due to random chance
+- simultaneously model the predictor variable that has missing value and the outcome variable
+    * the present values will produce estimates that comprise a prior for each missing value
+    * then use these priors for estimating the relationship between the predictor and outcome
+- think of the predictor with missing data as a mixture of data and parameters
+- below is the formula for the model
+    * the $N_i \sim \text{Normal}(v, \sigma_N)$ is the distribution for the neocortex percent values
+        - if $N_i$ is observed, then it is a likelihood
+        - if $N_i$ is missing, then it is a prior distribution
+
+$$
+k_i \sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i = \alpha + \beta_N N_i + \beta_M \log M_i \\
+N_i \sim \text{Normal}(\nu, \sigma_N) \\
+\alpha \sim \text{Normal}(0, 100) \\
+\beta_N \sim \text{Normal}(0, 10) \\
+\beta_M \sim \text{Normal}(0, 10) \\
+\sigma \sim \text{Normal}(0, 1) \\
+\nu \sim \text{Normal}(0.5, 1) \\
+\sigma_N \sim \text{Cauchy}(0, 1)
+$$
+
+- several ways to implement this model
+
+```{r}
+# Load the data.
+data("milk")
+d <- as_tibble(milk) %>% 
+    janitor::clean_names() %>%
+    mutate(neocortex_prop = neocortex_perc / 100,
+           logmass = log(mass))
+
+data_list <- d %>%
+    select(kcal = kcal_per_g,
+           neocortex = neocortex_prop,
+           logmass)
+
+stash("m14_3", depends_on = "data_list", {
+    m14_3 <- map2stan(
+        alist(
+            kcal ~ dnorm(mu, sigma),
+            mu <- a + bN*neocortex + bM*logmass,
+            neocortex ~ dnorm(nu, sigma_N),
+            a  ~ dnorm(0, 100),
+            c(bN, bM) ~ dnorm(0, 10),
+            nu ~ dnorm(0.5, 1),
+            sigma_N ~ dcauchy(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = data_list, iter = 1e4, chains = 2, cores = 2
+    )
+})
+
+precis(m14_3, depth = 2)
+```
+
+- for comparison, also build a model with the missing data dropped
+
+```{r}
+dcc <- d[complete.cases(d$neocortex_prop), ]
+data_list_cc <- dcc %>%
+    select(kcal = kcal_per_g, neocortex = neocortex_prop, logmass)
+
+stash("m14_3_cc", depends_on = "data_list_cc", {
+    m14_3_cc <- map2stan(
+        alist(
+            kcal ~ dnorm(mu, sigma),
+            mu <- a + bN*neocortex + bM*logmass,
+            a ~ dnorm(0, 100),
+            c(bN, bM) ~ dnorm(0, 10),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = data_list_cc, iter = 1e4, chains = 2, cores = 2
+    )
+})
+
+precis(m14_3_cc)
+```
+
+- including the incomplete cases moves the posterior mean for neocortext proportion from 2.8 to 1.9 and for body mass from -0.1 to -0.07
+- the following plot shows the imputed data comparing the neocortex proportion to the kcal per gram of milk
+
+```{r}
+m14_3_post <- extract.samples(m14_3)
+
+neocortex_seq <- seq(0.45, 0.8, length.out = 500)
+logmass_avg <- mean(d$logmass)
+m14_3_pred_d <- tibble(neocortex = neocortex_seq, logmass = logmass_avg)
+m14_3_pred <- link(m14_3, data = m14_3_pred_d)
+m14_3_pred_d %<>%
+    mutate(kcal_est = apply(m14_3_pred, 2, mean)) %>%
+    bind_cols(apply(m14_3_pred, 2, PI) %>% pi_to_df()) %>%
+    filter(neocortex > 0.52) %>%
+    mutate(x5_percent = scales::squish(x5_percent, range = c(0.35, 1.0)),
+           x94_percent = scales::squish(x94_percent, range = c(0.35, 1.0)))
+
+imputed_neocortex_prop <- tibble(
+    neocortex_prop_est = apply(m14_3_post$neocortex_impute, 2, mean)
+) %>%
+    bind_cols(apply(m14_3_post$neocortex_impute, 2, PI) %>% pi_to_df()) %>%
+    mutate(miss_num_idx = row_number())
+
+d %>%
+    mutate(missing_neocortex = is.na(neocortex_prop)) %>%
+    group_by(missing_neocortex) %>%
+    mutate(miss_num_idx = row_number()) %>%
+    ungroup() %>%
+    mutate(miss_num_idx = ifelse(missing_neocortex, miss_num_idx, NA)) %>%
+    left_join(imputed_neocortex_prop, by = "miss_num_idx") %>%
+    mutate(neocortex_prop = ifelse(missing_neocortex, neocortex_prop_est, neocortex_prop)) %>%
+    ggplot(aes(neocortex_prop)) +
+    geom_ribbon(aes(x = neocortex, ymin = x5_percent, ymax = x94_percent),
+                data = m14_3_pred_d, 
+                alpha = 0.2) +
+    geom_line(aes(x = neocortex, y = kcal_est),
+              data = m14_3_pred_d, 
+              alpha = 0.8, lty = 2) +
+    geom_linerange(aes(y = kcal_per_g, xmin = x5_percent, xmax = x94_percent), 
+                   alpha = 0.7, color = grey) +
+    geom_point(aes(y = kcal_per_g, color = missing_neocortex), 
+               size = 1.7) +
+    scale_color_brewer(palette = "Dark2") +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(limits = c(0.35, 1.0), expand = c(0, 0)) +
+    labs(x = "neocortex proportion",
+         y = "kcal per gram of milk",
+         title = "Imputed neocortex values on the linear regression",
+         subtitle = "The orange points were imputes and the dashed line shows the estimated impact of\nneocortex proportion on energy density of milk, holding body mass constant.",
+         color = "missing\nneotcortex\ndata")
+```
+
+### 14.2.2 Improving the imputation model
+
