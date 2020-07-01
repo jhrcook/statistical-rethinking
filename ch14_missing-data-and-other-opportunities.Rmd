@@ -4,7 +4,7 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = FALSE, dpi = 500)
 
 library(glue)
 library(mustashe)
@@ -471,4 +471,83 @@ d %>%
 ```
 
 ### 14.2.2 Improving the imputation model
+
+- improve the imputation model by accounting for the associations among the predictors themselves
+    * make the following change to the model in place of $N_i \sim \text{Normal}(\nu, \sigma_N)$
+    * describe a linear relationship between the neocortex and log mass using $\alpha_N$ and $\gamma_M$
+
+$$
+N_i \sim \text{Normal}(\nu_i, \sigma_N) \\
+\nu = \alpha_N + \gamma_M \log M_i
+$$
+
+```{r}
+stash("m14_4", depends_on = "data_list", {
+    m14_4 <- map2stan(
+        alist(
+            kcal ~ dnorm(mu, sigma),
+            mu <- a + bN*neocortex + bM*logmass,
+            neocortex ~ dnorm(nu, sigma_N),
+            nu <- a_N + gM*logmass,
+            a  ~ dnorm(0, 100),
+            a_N ~ dnorm(0.5, 1),
+            c(bN, bM, gM) ~ dnorm(0, 10),
+            sigma_N ~ dcauchy(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = data_list, iter = 1e4, chains = 2, cores = 2
+    )
+})
+
+precis(m14_4, depth = 2)
+```
+
+```{r}
+m14_4_post <- extract.samples(m14_4)
+
+neocortex_seq <- seq(0.45, 0.8, length.out = 500)
+logmass_avg <- mean(d$logmass)
+m14_4_pred_d <- tibble(neocortex = neocortex_seq, logmass = logmass_avg)
+m14_4_pred <- link(m14_4, data = m14_4_pred_d)
+m14_4_pred_d %<>%
+    mutate(kcal_est = apply(m14_4_pred$mu, 2, mean)) %>%
+    bind_cols(apply(m14_4_pred$mu, 2, PI) %>% pi_to_df()) %>%
+    filter(neocortex > 0.52) %>%
+    mutate(x5_percent = scales::squish(x5_percent, range = c(0.35, 1.0)),
+           x94_percent = scales::squish(x94_percent, range = c(0.35, 1.0)))
+
+imputed_neocortex_prop <- tibble(
+    neocortex_prop_est = apply(m14_4_post$neocortex_impute, 2, mean)
+) %>%
+    bind_cols(apply(m14_4_post$neocortex_impute, 2, PI) %>% pi_to_df()) %>%
+    mutate(miss_num_idx = row_number())
+
+d %>%
+    mutate(missing_neocortex = is.na(neocortex_prop)) %>%
+    group_by(missing_neocortex) %>%
+    mutate(miss_num_idx = row_number()) %>%
+    ungroup() %>%
+    mutate(miss_num_idx = ifelse(missing_neocortex, miss_num_idx, NA)) %>%
+    left_join(imputed_neocortex_prop, by = "miss_num_idx") %>%
+    mutate(neocortex_prop = ifelse(missing_neocortex, neocortex_prop_est, neocortex_prop)) %>%
+    ggplot(aes(neocortex_prop)) +
+    geom_ribbon(aes(x = neocortex, ymin = x5_percent, ymax = x94_percent),
+                data = m14_4_pred_d, 
+                alpha = 0.2) +
+    geom_line(aes(x = neocortex, y = kcal_est),
+              data = m14_4_pred_d, 
+              alpha = 0.8, lty = 2) +
+    geom_linerange(aes(y = kcal_per_g, xmin = x5_percent, xmax = x94_percent), 
+                   alpha = 0.7, color = grey) +
+    geom_point(aes(y = kcal_per_g, color = missing_neocortex), 
+               size = 1.7) +
+    scale_color_brewer(palette = "Dark2") +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(limits = c(0.35, 1.0), expand = c(0, 0)) +
+    labs(x = "neocortex proportion",
+         y = "kcal per gram of milk",
+         title = "Imputed neocortex values on the linear regression",
+         subtitle = "The orange points were imputes and the dashed line shows the estimated impact of\nneocortex proportion on energy density of milk, holding body mass constant.\nThe imputation model now includes the linear relationship between log-mass and neocortex prop.",
+         color = "missing\nneotcortex\ndata")
+```
 

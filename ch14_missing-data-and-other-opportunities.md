@@ -609,3 +609,136 @@ d %>%
 ![](ch14_missing-data-and-other-opportunities_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ### 14.2.2 Improving the imputation model
+
+  - improve the imputation model by accounting for the associations
+    among the predictors themselves
+      - make the following change to the model in place of
+        \(N_i \sim \text{Normal}(\nu, \sigma_N)\)
+      - describe a linear relationship between the neocortex and log
+        mass using \(\alpha_N\) and \(\gamma_M\)
+
+\[
+N_i \sim \text{Normal}(\nu_i, \sigma_N) \\
+\nu = \alpha_N + \gamma_M \log M_i
+\]
+
+``` r
+stash("m14_4", depends_on = "data_list", {
+    m14_4 <- map2stan(
+        alist(
+            kcal ~ dnorm(mu, sigma),
+            mu <- a + bN*neocortex + bM*logmass,
+            neocortex ~ dnorm(nu, sigma_N),
+            nu <- a_N + gM*logmass,
+            a  ~ dnorm(0, 100),
+            a_N ~ dnorm(0.5, 1),
+            c(bN, bM, gM) ~ dnorm(0, 10),
+            sigma_N ~ dcauchy(0, 1),
+            sigma ~ dcauchy(0, 1)
+        ),
+        data = data_list, iter = 1e4, chains = 2, cores = 2
+    )
+})
+```
+
+    #> Loading stashed object.
+
+``` r
+precis(m14_4, depth = 2)
+```
+
+    #>                             mean         sd       5.5%       94.5%    n_eff
+    #> neocortex_impute[1]   0.63156684 0.03637137  0.5733482  0.68927381 7393.707
+    #> neocortex_impute[2]   0.62901603 0.03594894  0.5719131  0.68595036 7020.294
+    #> neocortex_impute[3]   0.62017155 0.03581074  0.5642132  0.67718484 7479.422
+    #> neocortex_impute[4]   0.64732183 0.03463234  0.5921108  0.70133376 9219.062
+    #> neocortex_impute[5]   0.66276294 0.03704484  0.6034764  0.72211903 7277.220
+    #> neocortex_impute[6]   0.62725276 0.03531693  0.5712322  0.68333750 8092.599
+    #> neocortex_impute[7]   0.67966994 0.03409030  0.6252496  0.73318426 9503.017
+    #> neocortex_impute[8]   0.69813729 0.03391513  0.6441340  0.75147620 8922.176
+    #> neocortex_impute[9]   0.71191533 0.03501537  0.6549321  0.76659425 8487.077
+    #> neocortex_impute[10]  0.66371400 0.03461562  0.6087791  0.71863769 8378.396
+    #> neocortex_impute[11]  0.67755183 0.03409107  0.6233687  0.73095538 9481.087
+    #> neocortex_impute[12]  0.74287971 0.03589815  0.6857309  0.80081662 8040.294
+    #> a                    -0.85248132 0.48314860 -1.6012869 -0.07478841 2768.100
+    #> a_N                   0.63821972 0.01244794  0.6181859  0.65775742 4877.374
+    #> bN                    2.41331628 0.75582831  1.1939338  3.58663403 2728.551
+    #> bM                   -0.08780227 0.02315191 -0.1240904 -0.05057892 3544.639
+    #>                          Rhat4
+    #> neocortex_impute[1]  1.0007608
+    #> neocortex_impute[2]  1.0002637
+    #> neocortex_impute[3]  0.9998614
+    #> neocortex_impute[4]  0.9998810
+    #> neocortex_impute[5]  1.0002131
+    #> neocortex_impute[6]  1.0000067
+    #> neocortex_impute[7]  0.9998735
+    #> neocortex_impute[8]  0.9999079
+    #> neocortex_impute[9]  0.9998110
+    #> neocortex_impute[10] 1.0001477
+    #> neocortex_impute[11] 0.9998439
+    #> neocortex_impute[12] 1.0000570
+    #> a                    1.0001689
+    #> a_N                  1.0001027
+    #> bN                   1.0001993
+    #> bM                   1.0004306
+    #>  [ reached 'max' / getOption("max.print") -- omitted 3 rows ]
+
+``` r
+m14_4_post <- extract.samples(m14_4)
+
+neocortex_seq <- seq(0.45, 0.8, length.out = 500)
+logmass_avg <- mean(d$logmass)
+m14_4_pred_d <- tibble(neocortex = neocortex_seq, logmass = logmass_avg)
+m14_4_pred <- link(m14_4, data = m14_4_pred_d)
+```
+
+    #> [ 100 / 1000 ][ 200 / 1000 ][ 300 / 1000 ][ 400 / 1000 ][ 500 / 1000 ][ 600 / 1000 ][ 700 / 1000 ][ 800 / 1000 ][ 900 / 1000 ][ 1000 / 1000 ]
+
+``` r
+m14_4_pred_d %<>%
+    mutate(kcal_est = apply(m14_4_pred$mu, 2, mean)) %>%
+    bind_cols(apply(m14_4_pred$mu, 2, PI) %>% pi_to_df()) %>%
+    filter(neocortex > 0.52) %>%
+    mutate(x5_percent = scales::squish(x5_percent, range = c(0.35, 1.0)),
+           x94_percent = scales::squish(x94_percent, range = c(0.35, 1.0)))
+
+imputed_neocortex_prop <- tibble(
+    neocortex_prop_est = apply(m14_4_post$neocortex_impute, 2, mean)
+) %>%
+    bind_cols(apply(m14_4_post$neocortex_impute, 2, PI) %>% pi_to_df()) %>%
+    mutate(miss_num_idx = row_number())
+
+d %>%
+    mutate(missing_neocortex = is.na(neocortex_prop)) %>%
+    group_by(missing_neocortex) %>%
+    mutate(miss_num_idx = row_number()) %>%
+    ungroup() %>%
+    mutate(miss_num_idx = ifelse(missing_neocortex, miss_num_idx, NA)) %>%
+    left_join(imputed_neocortex_prop, by = "miss_num_idx") %>%
+    mutate(neocortex_prop = ifelse(missing_neocortex, neocortex_prop_est, neocortex_prop)) %>%
+    ggplot(aes(neocortex_prop)) +
+    geom_ribbon(aes(x = neocortex, ymin = x5_percent, ymax = x94_percent),
+                data = m14_4_pred_d, 
+                alpha = 0.2) +
+    geom_line(aes(x = neocortex, y = kcal_est),
+              data = m14_4_pred_d, 
+              alpha = 0.8, lty = 2) +
+    geom_linerange(aes(y = kcal_per_g, xmin = x5_percent, xmax = x94_percent), 
+                   alpha = 0.7, color = grey) +
+    geom_point(aes(y = kcal_per_g, color = missing_neocortex), 
+               size = 1.7) +
+    scale_color_brewer(palette = "Dark2") +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(limits = c(0.35, 1.0), expand = c(0, 0)) +
+    labs(x = "neocortex proportion",
+         y = "kcal per gram of milk",
+         title = "Imputed neocortex values on the linear regression",
+         subtitle = "The orange points were imputes and the dashed line shows the estimated impact of\nneocortex proportion on energy density of milk, holding body mass constant.\nThe imputation model now includes the linear relationship between log-mass and neocortex prop.",
+         color = "missing\nneotcortex\ndata")
+```
+
+    #> Warning: Removed 45 row(s) containing missing values (geom_path).
+
+    #> Warning: Removed 17 rows containing missing values (geom_segment).
+
+![](ch14_missing-data-and-other-opportunities_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
