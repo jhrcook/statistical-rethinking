@@ -4,7 +4,7 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, comment = "#>", cache = TRUE, dpi = 500)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", dpi = 500)
 
 library(glue)
 library(mustashe)
@@ -211,7 +211,7 @@ dd_trim <- dd %>%
 
 - can now fit the model with HMC using `map2stan()`
 
-```{r, cache=TRUE}
+```{r}
 stash("m8_1stan", depends_on = "dd_trim", {
     m8_1stan <- map2stan(
         alist(

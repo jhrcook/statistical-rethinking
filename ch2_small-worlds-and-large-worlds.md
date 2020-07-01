@@ -333,7 +333,42 @@ tibble(p = p_grid, posterior = posterior) %>%
 
 ``` r
 library(rethinking)
+```
 
+    #> Loading required package: rstan
+
+    #> Loading required package: StanHeaders
+
+    #> rstan (Version 2.19.3, GitRev: 2e1f913d3ca3)
+
+    #> For execution on a local, multicore CPU with excess RAM we recommend calling
+    #> options(mc.cores = parallel::detectCores()).
+    #> To avoid recompilation of unchanged Stan programs, we recommend calling
+    #> rstan_options(auto_write = TRUE)
+
+    #> 
+    #> Attaching package: 'rstan'
+
+    #> The following object is masked from 'package:tidyr':
+    #> 
+    #>     extract
+
+    #> Loading required package: parallel
+
+    #> rethinking (Version 2.10)
+
+    #> 
+    #> Attaching package: 'rethinking'
+
+    #> The following object is masked from 'package:purrr':
+    #> 
+    #>     map
+
+    #> The following object is masked from 'package:stats':
+    #> 
+    #>     rstudent
+
+``` r
 globe_qa <- quap(
     alist(
         W ~ dbinom(W+L, p),  # binomial likelihood

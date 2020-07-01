@@ -173,7 +173,7 @@ logistic
     #>     p <- ifelse(x == Inf, 1, p)
     #>     p
     #> }
-    #> <bytecode: 0x7fb5861d4468>
+    #> <bytecode: 0x7f92807be410>
     #> <environment: namespace:rethinking>
 
   - \(\text{logistic}(0.32) \approx 0.58\) means that the probability of
@@ -390,60 +390,7 @@ stash("m10_4", depends_on = "d2", {
 })
 ```
 
-    #> Stashing object.
-
-    #> 
-    #> SAMPLING FOR MODEL 'b4b1d7ec20a801537be53f2c886c0fca' NOW (CHAIN 1).
-    #> Chain 1: 
-    #> Chain 1: Gradient evaluation took 0.000241 seconds
-    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.41 seconds.
-    #> Chain 1: Adjust your expectations accordingly!
-    #> Chain 1: 
-    #> Chain 1: 
-    #> Chain 1: Iteration:    1 / 2500 [  0%]  (Warmup)
-    #> Chain 1: Iteration:  250 / 2500 [ 10%]  (Warmup)
-    #> Chain 1: Iteration:  500 / 2500 [ 20%]  (Warmup)
-    #> Chain 1: Iteration:  501 / 2500 [ 20%]  (Sampling)
-    #> Chain 1: Iteration:  750 / 2500 [ 30%]  (Sampling)
-    #> Chain 1: Iteration: 1000 / 2500 [ 40%]  (Sampling)
-    #> Chain 1: Iteration: 1250 / 2500 [ 50%]  (Sampling)
-    #> Chain 1: Iteration: 1500 / 2500 [ 60%]  (Sampling)
-    #> Chain 1: Iteration: 1750 / 2500 [ 70%]  (Sampling)
-    #> Chain 1: Iteration: 2000 / 2500 [ 80%]  (Sampling)
-    #> Chain 1: Iteration: 2250 / 2500 [ 90%]  (Sampling)
-    #> Chain 1: Iteration: 2500 / 2500 [100%]  (Sampling)
-    #> Chain 1: 
-    #> Chain 1:  Elapsed Time: 1.27131 seconds (Warm-up)
-    #> Chain 1:                3.53968 seconds (Sampling)
-    #> Chain 1:                4.81099 seconds (Total)
-    #> Chain 1: 
-    #> 
-    #> SAMPLING FOR MODEL 'b4b1d7ec20a801537be53f2c886c0fca' NOW (CHAIN 2).
-    #> Chain 2: 
-    #> Chain 2: Gradient evaluation took 8.3e-05 seconds
-    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.83 seconds.
-    #> Chain 2: Adjust your expectations accordingly!
-    #> Chain 2: 
-    #> Chain 2: 
-    #> Chain 2: Iteration:    1 / 2500 [  0%]  (Warmup)
-    #> Chain 2: Iteration:  250 / 2500 [ 10%]  (Warmup)
-    #> Chain 2: Iteration:  500 / 2500 [ 20%]  (Warmup)
-    #> Chain 2: Iteration:  501 / 2500 [ 20%]  (Sampling)
-    #> Chain 2: Iteration:  750 / 2500 [ 30%]  (Sampling)
-    #> Chain 2: Iteration: 1000 / 2500 [ 40%]  (Sampling)
-    #> Chain 2: Iteration: 1250 / 2500 [ 50%]  (Sampling)
-    #> Chain 2: Iteration: 1500 / 2500 [ 60%]  (Sampling)
-    #> Chain 2: Iteration: 1750 / 2500 [ 70%]  (Sampling)
-    #> Chain 2: Iteration: 2000 / 2500 [ 80%]  (Sampling)
-    #> Chain 2: Iteration: 2250 / 2500 [ 90%]  (Sampling)
-    #> Chain 2: Iteration: 2500 / 2500 [100%]  (Sampling)
-    #> Chain 2: 
-    #> Chain 2:  Elapsed Time: 1.02504 seconds (Warm-up)
-    #> Chain 2:                3.0854 seconds (Sampling)
-    #> Chain 2:                4.11044 seconds (Total)
-    #> Chain 2:
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m10_4, depth = 2)
@@ -682,8 +629,8 @@ precis(m10_6)
 ```
 
     #>          mean         sd       5.5%      94.5%
-    #> a  -0.8304482 0.05077040 -0.9115892 -0.7493073
-    #> bm  0.6103056 0.06389094  0.5081955  0.7124156
+    #> a  -0.8304493 0.05077041 -0.9115902 -0.7493084
+    #> bm  0.6103062 0.06389095  0.5081961  0.7124163
 
 ``` r
 precis(m10_7)
@@ -696,9 +643,9 @@ precis(m10_7)
 compare(m10_6, m10_7)
 ```
 
-    #>            WAIC       SE    dWAIC      dSE     pWAIC       weight
-    #> m10_6  997.0243 314.8625  0.00000       NA 112.90698 1.000000e+00
-    #> m10_7 1050.7649 315.6198 53.74066 165.8455  83.98725 2.139758e-12
+    #>           WAIC       SE    dWAIC      dSE     pWAIC       weight
+    #> m10_6 1011.195 320.4589  0.00000       NA 121.89377 9.999999e-01
+    #> m10_7 1044.399 312.7998 33.20435 167.2944  85.95276 6.162652e-08
 
 ``` r
 plot(compare(m10_6, m10_7))
@@ -726,7 +673,7 @@ quantile(diff_admit, c(0.025, 0.50, 0.975))
 ```
 
     #>      2.5%       50%     97.5% 
-    #> 0.1134907 0.1416585 0.1690224
+    #> 0.1134044 0.1415553 0.1698697
 
   - plot posterior predictions for the model
       - can use the function `postcheck()`, though I also made a plot of
@@ -810,35 +757,35 @@ precis(m10_8, depth = 2)
 ```
 
     #>            mean         sd       5.5%      94.5%
-    #> a[1]  0.5934323 0.06837899  0.4841494  0.7027151
+    #> a[1]  0.5934323 0.06837899  0.4841495  0.7027152
     #> a[2]  0.5428251 0.08575108  0.4057783  0.6798719
-    #> a[3] -0.6156597 0.06916048 -0.7261915 -0.5051279
-    #> a[4] -0.6648327 0.07502756 -0.7847412 -0.5449242
-    #> a[5] -1.0894017 0.09534033 -1.2417739 -0.9370294
-    #> a[6] -2.6750255 0.15237509 -2.9185503 -2.4315007
+    #> a[3] -0.6156596 0.06916048 -0.7261914 -0.5051278
+    #> a[4] -0.6648327 0.07502756 -0.7847412 -0.5449241
+    #> a[5] -1.0894018 0.09534033 -1.2417740 -0.9370295
+    #> a[6] -2.6750259 0.15237512 -2.9185508 -2.4315011
 
 ``` r
 precis(m10_9, depth = 2)
 ```
 
     #>             mean         sd       5.5%       94.5%
-    #> a[1]  0.68192790 0.09910209  0.5235436  0.84031218
-    #> a[2]  0.63848061 0.11556492  0.4537856  0.82317567
-    #> a[3] -0.58063410 0.07465095 -0.6999407 -0.46132747
-    #> a[4] -0.61263537 0.08596013 -0.7500163 -0.47525449
-    #> a[5] -1.05730724 0.09872370 -1.2150868 -0.89952770
-    #> a[6] -2.62397851 0.15767079 -2.8759669 -2.37199013
-    #> bm   -0.09990425 0.08083560 -0.2290951  0.02928665
+    #> a[1]  0.68193893 0.09910200  0.5235548  0.84032307
+    #> a[2]  0.63852992 0.11556510  0.4538346  0.82322527
+    #> a[3] -0.58062952 0.07465092 -0.6999361 -0.46132293
+    #> a[4] -0.61262169 0.08596001 -0.7500024 -0.47524099
+    #> a[5] -1.05727062 0.09872297 -1.2150490 -0.89949225
+    #> a[6] -2.62392147 0.15766772 -2.8759049 -2.37193801
+    #> bm   -0.09992565 0.08083548 -0.2291164  0.02926506
 
 ``` r
 compare(m10_6, m10_7, m10_8, m10_9)
 ```
 
-    #>            WAIC        SE     dWAIC       dSE      pWAIC        weight
-    #> m10_8  104.8648  17.24390   0.00000        NA   6.364957  8.818243e-01
-    #> m10_9  108.8845  15.76447   4.01964   3.43047   9.554601  1.181757e-01
-    #> m10_6  991.1103 315.13238 886.24541 326.08968 107.333881 3.159632e-193
-    #> m10_7 1049.2754 315.02937 944.41052 326.65090  81.900773 7.400203e-206
+    #>            WAIC        SE      dWAIC        dSE      pWAIC        weight
+    #> m10_8  104.3851  17.06132   0.000000         NA   6.054943  8.753281e-01
+    #> m10_9  108.2829  15.54875   3.897827   3.717065   9.364827  1.246719e-01
+    #> m10_6  995.0506 315.18992 890.665509 326.542424 112.848200 3.440432e-194
+    #> m10_7 1037.7274 310.18375 933.342325 321.810828  83.343856 1.859774e-203
 
 ``` r
 plot(compare(m10_6, m10_7, m10_8, m10_9))
@@ -860,7 +807,7 @@ plot(compare(m10_6, m10_7, m10_8, m10_9))
 exp(m10_9@coef[["bm"]])
 ```
 
-    #> [1] 0.9049241
+    #> [1] 0.9049047
 
 ``` r
 postcheck(m10_9)
@@ -1269,110 +1216,7 @@ stash("m10_10_stan", {
 })
 ```
 
-    #> Stashing object.
-
-    #> 
-    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 1).
-    #> Chain 1: 
-    #> Chain 1: Gradient evaluation took 2.2e-05 seconds
-    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.22 seconds.
-    #> Chain 1: Adjust your expectations accordingly!
-    #> Chain 1: 
-    #> Chain 1: 
-    #> Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 1: 
-    #> Chain 1:  Elapsed Time: 0.390199 seconds (Warm-up)
-    #> Chain 1:                0.669509 seconds (Sampling)
-    #> Chain 1:                1.05971 seconds (Total)
-    #> Chain 1: 
-    #> 
-    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 2).
-    #> Chain 2: 
-    #> Chain 2: Gradient evaluation took 7e-06 seconds
-    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
-    #> Chain 2: Adjust your expectations accordingly!
-    #> Chain 2: 
-    #> Chain 2: 
-    #> Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 2: 
-    #> Chain 2:  Elapsed Time: 0.379656 seconds (Warm-up)
-    #> Chain 2:                0.633989 seconds (Sampling)
-    #> Chain 2:                1.01364 seconds (Total)
-    #> Chain 2: 
-    #> 
-    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 3).
-    #> Chain 3: 
-    #> Chain 3: Gradient evaluation took 6e-06 seconds
-    #> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
-    #> Chain 3: Adjust your expectations accordingly!
-    #> Chain 3: 
-    #> Chain 3: 
-    #> Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 3: 
-    #> Chain 3:  Elapsed Time: 0.371604 seconds (Warm-up)
-    #> Chain 3:                0.725127 seconds (Sampling)
-    #> Chain 3:                1.09673 seconds (Total)
-    #> Chain 3: 
-    #> 
-    #> SAMPLING FOR MODEL 'aebf42aae2f15766107ad9785e774ae2' NOW (CHAIN 4).
-    #> Chain 4: 
-    #> Chain 4: Gradient evaluation took 7e-06 seconds
-    #> Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
-    #> Chain 4: Adjust your expectations accordingly!
-    #> Chain 4: 
-    #> Chain 4: 
-    #> Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 4: 
-    #> Chain 4:  Elapsed Time: 0.365804 seconds (Warm-up)
-    #> Chain 4:                0.63586 seconds (Sampling)
-    #> Chain 4:                1.00166 seconds (Total)
-    #> Chain 4:
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m10_10_stan)
@@ -1440,110 +1284,7 @@ stash("m10_10_stan_c", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-
-    #> 
-    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 1).
-    #> Chain 1: 
-    #> Chain 1: Gradient evaluation took 2.4e-05 seconds
-    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.24 seconds.
-    #> Chain 1: Adjust your expectations accordingly!
-    #> Chain 1: 
-    #> Chain 1: 
-    #> Chain 1: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 1: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 1: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 1: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 1: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 1: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 1: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 1: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 1: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 1: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 1: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 1: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 1: 
-    #> Chain 1:  Elapsed Time: 0.097863 seconds (Warm-up)
-    #> Chain 1:                0.169634 seconds (Sampling)
-    #> Chain 1:                0.267497 seconds (Total)
-    #> Chain 1: 
-    #> 
-    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 2).
-    #> Chain 2: 
-    #> Chain 2: Gradient evaluation took 7e-06 seconds
-    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
-    #> Chain 2: Adjust your expectations accordingly!
-    #> Chain 2: 
-    #> Chain 2: 
-    #> Chain 2: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 2: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 2: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 2: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 2: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 2: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 2: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 2: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 2: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 2: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 2: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 2: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 2: 
-    #> Chain 2:  Elapsed Time: 0.068721 seconds (Warm-up)
-    #> Chain 2:                0.09533 seconds (Sampling)
-    #> Chain 2:                0.164051 seconds (Total)
-    #> Chain 2: 
-    #> 
-    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 3).
-    #> Chain 3: 
-    #> Chain 3: Gradient evaluation took 7e-06 seconds
-    #> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
-    #> Chain 3: Adjust your expectations accordingly!
-    #> Chain 3: 
-    #> Chain 3: 
-    #> Chain 3: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 3: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 3: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 3: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 3: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 3: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 3: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 3: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 3: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 3: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 3: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 3: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 3: 
-    #> Chain 3:  Elapsed Time: 0.06319 seconds (Warm-up)
-    #> Chain 3:                0.1043 seconds (Sampling)
-    #> Chain 3:                0.16749 seconds (Total)
-    #> Chain 3: 
-    #> 
-    #> SAMPLING FOR MODEL '820e6b7c08011e754ba554e2b8852a57' NOW (CHAIN 4).
-    #> Chain 4: 
-    #> Chain 4: Gradient evaluation took 1.8e-05 seconds
-    #> Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
-    #> Chain 4: Adjust your expectations accordingly!
-    #> Chain 4: 
-    #> Chain 4: 
-    #> Chain 4: Iteration:    1 / 3000 [  0%]  (Warmup)
-    #> Chain 4: Iteration:  300 / 3000 [ 10%]  (Warmup)
-    #> Chain 4: Iteration:  600 / 3000 [ 20%]  (Warmup)
-    #> Chain 4: Iteration:  900 / 3000 [ 30%]  (Warmup)
-    #> Chain 4: Iteration: 1001 / 3000 [ 33%]  (Sampling)
-    #> Chain 4: Iteration: 1300 / 3000 [ 43%]  (Sampling)
-    #> Chain 4: Iteration: 1600 / 3000 [ 53%]  (Sampling)
-    #> Chain 4: Iteration: 1900 / 3000 [ 63%]  (Sampling)
-    #> Chain 4: Iteration: 2200 / 3000 [ 73%]  (Sampling)
-    #> Chain 4: Iteration: 2500 / 3000 [ 83%]  (Sampling)
-    #> Chain 4: Iteration: 2800 / 3000 [ 93%]  (Sampling)
-    #> Chain 4: Iteration: 3000 / 3000 [100%]  (Sampling)
-    #> Chain 4: 
-    #> Chain 4:  Elapsed Time: 0.061261 seconds (Warm-up)
-    #> Chain 4:                0.128139 seconds (Sampling)
-    #> Chain 4:                0.1894 seconds (Total)
-    #> Chain 4:
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m10_10_stan_c)
@@ -1988,9 +1729,7 @@ stash("m_pois", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 plot(m_pois)
@@ -2253,9 +1992,7 @@ stash("m10h_2", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m10h_1)
@@ -2322,9 +2059,7 @@ stash("m10h_3", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 stash("m10h_4", depends_on = "d", {
@@ -2336,8 +2071,7 @@ stash("m10h_4", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 stash("m10h_5", depends_on = "d", {
@@ -2349,8 +2083,7 @@ stash("m10h_5", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 compare(m10h_2, m10h_3, m10h_4, m10h_5)
@@ -2412,19 +2145,17 @@ stash("m10h3_1_stan", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 precis(m10h3_1)
 ```
 
     #>                mean        sd       5.5%     94.5%
-    #> alpha     0.5914738 0.6622702 -0.4669619  1.649909
-    #> b_psize   4.2418279 0.8960177  2.8098185  5.673837
-    #> b_vsize  -4.5925693 0.9613897 -6.1290558 -3.056083
-    #> b_padult  1.0814609 0.5339219  0.2281506  1.934771
+    #> alpha     0.5915989 0.6622744 -0.4668436  1.650041
+    #> b_psize   4.2417198 0.8959878  2.8097583  5.673681
+    #> b_vsize  -4.5925533 0.9613695 -6.1290074 -3.056099
+    #> b_padult  1.0813713 0.5339177  0.2280677  1.934675
 
 ``` r
 precis(m10h3_1_stan)

@@ -7,7 +7,7 @@ Chapter 8. Markov Chain Monte Carlo
         curves (like the quadratic approximation)
       - allows for models that do not assume a multivariate normality
           - can use generalized linear and multilevel models
-  - use \*\*Stan\* to fit these models
+  - use *Stan* to fit these models
 
 ## 8.1 Good King Markov and His island kingdom
 
@@ -509,97 +509,22 @@ str_split(m8_1stan@model, "\n")
 
 ``` r
 y <- c(-1, 1)
-m8_2 <- map2stan(
-    alist(
-        y ~ dnorm(mu, sigma),
-        mu <- alpha
-    ),
-    data = list(y = y),
-    start = list(alpha = 0, sigma = 1),
-    chains = 2,
-    iter = 4000,
-    warmup = 1000
-)
+stash("m8_2", depends_on = "y", {
+    m8_2 <- map2stan(
+        alist(
+            y ~ dnorm(mu, sigma),
+            mu <- alpha
+        ),
+        data = list(y = y),
+        start = list(alpha = 0, sigma = 1),
+        chains = 2,
+        iter = 4000,
+        warmup = 1000
+    )
+})
 ```
 
-    #> 
-    #> SAMPLING FOR MODEL '6f2e075bef607e1f726668e58a99bff0' NOW (CHAIN 1).
-    #> Chain 1: 
-    #> Chain 1: Gradient evaluation took 2.8e-05 seconds
-    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.28 seconds.
-    #> Chain 1: Adjust your expectations accordingly!
-    #> Chain 1: 
-    #> Chain 1: 
-    #> Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    #> Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    #> Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    #> Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    #> Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    #> Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    #> Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    #> Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    #> Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    #> Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    #> Chain 1: 
-    #> Chain 1:  Elapsed Time: 0.131985 seconds (Warm-up)
-    #> Chain 1:                0.456826 seconds (Sampling)
-    #> Chain 1:                0.588811 seconds (Total)
-    #> Chain 1: 
-    #> 
-    #> SAMPLING FOR MODEL '6f2e075bef607e1f726668e58a99bff0' NOW (CHAIN 2).
-    #> Chain 2: 
-    #> Chain 2: Gradient evaluation took 3e-06 seconds
-    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.03 seconds.
-    #> Chain 2: Adjust your expectations accordingly!
-    #> Chain 2: 
-    #> Chain 2: 
-    #> Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    #> Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    #> Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    #> Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    #> Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    #> Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    #> Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    #> Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    #> Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    #> Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    #> Chain 2: 
-    #> Chain 2:  Elapsed Time: 0.203848 seconds (Warm-up)
-    #> Chain 2:                2.09653 seconds (Sampling)
-    #> Chain 2:                2.30038 seconds (Total)
-    #> Chain 2:
-
-    #> Warning: There were 486 divergent transitions after warmup. Increasing adapt_delta above 0.95 may help. See
-    #> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-
-    #> Warning: There were 762 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-    #> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-
-    #> Warning: There were 2 chains where the estimated Bayesian Fraction of Missing Information was low. See
-    #> http://mc-stan.org/misc/warnings.html#bfmi-low
-
-    #> Warning: Examine the pairs() plot to diagnose sampling problems
-
-    #> Warning: The largest R-hat is 1.79, indicating chains have not mixed.
-    #> Running the chains for more iterations may help. See
-    #> http://mc-stan.org/misc/warnings.html#r-hat
-
-    #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-    #> Running the chains for more iterations may help. See
-    #> http://mc-stan.org/misc/warnings.html#bulk-ess
-
-    #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-    #> Running the chains for more iterations may help. See
-    #> http://mc-stan.org/misc/warnings.html#tail-ess
-
-    #> Computing WAIC
-
-    #> Warning in map2stan(alist(y ~ dnorm(mu, sigma), mu <- alpha), data = list(y = y), : There were 486 divergent iterations during sampling.
-    #> Check the chains (trace plots, n_eff, Rhat) carefully to ensure they are valid.
+    #> Loading stashed object.
 
 ``` r
 precis(m8_2)
@@ -727,10 +652,10 @@ stash("m8_4", depends_on = "y", {
     #> Updating stash.
 
     #> 
-    #> SAMPLING FOR MODEL '8a3b497b759a01c82a3a8d33a14f46f5' NOW (CHAIN 1).
+    #> SAMPLING FOR MODEL 'c93922ce2e5a19632999ef5afa9615eb' NOW (CHAIN 1).
     #> Chain 1: 
-    #> Chain 1: Gradient evaluation took 1.5e-05 seconds
-    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.
+    #> Chain 1: Gradient evaluation took 3.4e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.34 seconds.
     #> Chain 1: Adjust your expectations accordingly!
     #> Chain 1: 
     #> Chain 1: 
@@ -747,15 +672,15 @@ stash("m8_4", depends_on = "y", {
     #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
     #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
     #> Chain 1: 
-    #> Chain 1:  Elapsed Time: 3.88358 seconds (Warm-up)
-    #> Chain 1:                12.7242 seconds (Sampling)
-    #> Chain 1:                16.6078 seconds (Total)
+    #> Chain 1:  Elapsed Time: 3.43336 seconds (Warm-up)
+    #> Chain 1:                11.9183 seconds (Sampling)
+    #> Chain 1:                15.3517 seconds (Total)
     #> Chain 1: 
     #> 
-    #> SAMPLING FOR MODEL '8a3b497b759a01c82a3a8d33a14f46f5' NOW (CHAIN 2).
+    #> SAMPLING FOR MODEL 'c93922ce2e5a19632999ef5afa9615eb' NOW (CHAIN 2).
     #> Chain 2: 
-    #> Chain 2: Gradient evaluation took 2.3e-05 seconds
-    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.23 seconds.
+    #> Chain 2: Gradient evaluation took 6e-06 seconds
+    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.06 seconds.
     #> Chain 2: Adjust your expectations accordingly!
     #> Chain 2: 
     #> Chain 2: 
@@ -772,17 +697,17 @@ stash("m8_4", depends_on = "y", {
     #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
     #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
     #> Chain 2: 
-    #> Chain 2:  Elapsed Time: 3.7533 seconds (Warm-up)
-    #> Chain 2:                12.2775 seconds (Sampling)
-    #> Chain 2:                16.0308 seconds (Total)
+    #> Chain 2:  Elapsed Time: 3.75279 seconds (Warm-up)
+    #> Chain 2:                11.317 seconds (Sampling)
+    #> Chain 2:                15.0698 seconds (Total)
     #> Chain 2:
 
-    #> Warning: There were 4904 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+    #> Warning: There were 4894 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
     #> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
 
     #> Warning: Examine the pairs() plot to diagnose sampling problems
 
-    #> Warning: The largest R-hat is 2.23, indicating chains have not mixed.
+    #> Warning: The largest R-hat is 1.89, indicating chains have not mixed.
     #> Running the chains for more iterations may help. See
     #> http://mc-stan.org/misc/warnings.html#r-hat
 
@@ -801,9 +726,9 @@ precis(m8_4, digits = 3)
 ```
 
     #>               mean           sd          5.5%       94.5%     n_eff    Rhat4
-    #> a1    -391.4033362 595.69514253 -1221.4540358  534.184381  1.247081 2.617230
-    #> a2     391.3949429 595.69297218  -534.1768109 1221.533418  1.247082 2.617234
-    #> sigma    0.9392861   0.06661364     0.8342817    1.046935 36.273587 1.010898
+    #> a1    -964.4899479 541.57700570 -1818.8111659 -223.393210  1.265054 2.369022
+    #> a2     964.5184129 541.57708579   223.3781135 1818.810016  1.265051 2.369030
+    #> sigma    0.9676124   0.07157624     0.8599235    1.076977 24.046541 1.016680
 
 ``` r
 plot(m8_4)
@@ -835,10 +760,10 @@ stash("m8_5", depends_on = "y", {
     #> Updating stash.
 
     #> 
-    #> SAMPLING FOR MODEL '11263bfde196a8a36cbdbb27787b9270' NOW (CHAIN 1).
+    #> SAMPLING FOR MODEL 'cf0d22bd53d28861a38ec9ae005b13e6' NOW (CHAIN 1).
     #> Chain 1: 
-    #> Chain 1: Gradient evaluation took 1.5e-05 seconds
-    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.
+    #> Chain 1: Gradient evaluation took 1.3e-05 seconds
+    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
     #> Chain 1: Adjust your expectations accordingly!
     #> Chain 1: 
     #> Chain 1: 
@@ -855,12 +780,12 @@ stash("m8_5", depends_on = "y", {
     #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
     #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
     #> Chain 1: 
-    #> Chain 1:  Elapsed Time: 1.35441 seconds (Warm-up)
-    #> Chain 1:                4.1473 seconds (Sampling)
-    #> Chain 1:                5.50171 seconds (Total)
+    #> Chain 1:  Elapsed Time: 1.339 seconds (Warm-up)
+    #> Chain 1:                4.29824 seconds (Sampling)
+    #> Chain 1:                5.63724 seconds (Total)
     #> Chain 1: 
     #> 
-    #> SAMPLING FOR MODEL '11263bfde196a8a36cbdbb27787b9270' NOW (CHAIN 2).
+    #> SAMPLING FOR MODEL 'cf0d22bd53d28861a38ec9ae005b13e6' NOW (CHAIN 2).
     #> Chain 2: 
     #> Chain 2: Gradient evaluation took 7e-06 seconds
     #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.07 seconds.
@@ -880,9 +805,9 @@ stash("m8_5", depends_on = "y", {
     #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
     #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
     #> Chain 2: 
-    #> Chain 2:  Elapsed Time: 1.48253 seconds (Warm-up)
-    #> Chain 2:                4.67482 seconds (Sampling)
-    #> Chain 2:                6.15736 seconds (Total)
+    #> Chain 2:  Elapsed Time: 1.40992 seconds (Warm-up)
+    #> Chain 2:                4.5868 seconds (Sampling)
+    #> Chain 2:                5.99672 seconds (Total)
     #> Chain 2:
 
     #> Computing WAIC
@@ -891,10 +816,10 @@ stash("m8_5", depends_on = "y", {
 precis(m8_5, digits = 3)
 ```
 
-    #>             mean        sd        5.5%     94.5%    n_eff    Rhat4
-    #> a1     0.2001348 7.2704602 -11.4631668 11.882331 2117.021 1.000506
-    #> a2    -0.2096329 7.2691112 -11.9046962 11.448639 2116.486 1.000521
-    #> sigma  0.9312246 0.0677552   0.8280074  1.043623 2167.301 1.001644
+    #>              mean         sd        5.5%     94.5%    n_eff    Rhat4
+    #> a1     0.07448717 7.12488901 -11.4065536 11.737317 1728.953 1.001785
+    #> a2    -0.04792736 7.12207247 -11.7474133 11.449899 1727.991 1.001795
+    #> sigma  0.94616936 0.06909494   0.8411724  1.061703 2139.499 1.001511
 
 ``` r
 plot(m8_5)

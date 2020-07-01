@@ -663,60 +663,7 @@ stash("m11_5", depends_on = "d", {
 })
 ```
 
-    #> Stashing object.
-
-    #> 
-    #> SAMPLING FOR MODEL '56998f09386e6ddb29b6ab7261c0a7b3' NOW (CHAIN 1).
-    #> Chain 1: 
-    #> Chain 1: Gradient evaluation took 4e-05 seconds
-    #> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.4 seconds.
-    #> Chain 1: Adjust your expectations accordingly!
-    #> Chain 1: 
-    #> Chain 1: 
-    #> Chain 1: Iteration:    1 / 4000 [  0%]  (Warmup)
-    #> Chain 1: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    #> Chain 1: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    #> Chain 1: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    #> Chain 1: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    #> Chain 1: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    #> Chain 1: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    #> Chain 1: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    #> Chain 1: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    #> Chain 1: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    #> Chain 1: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    #> Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)
-    #> Chain 1: 
-    #> Chain 1:  Elapsed Time: 0.09488 seconds (Warm-up)
-    #> Chain 1:                0.279311 seconds (Sampling)
-    #> Chain 1:                0.374191 seconds (Total)
-    #> Chain 1: 
-    #> 
-    #> SAMPLING FOR MODEL '56998f09386e6ddb29b6ab7261c0a7b3' NOW (CHAIN 2).
-    #> Chain 2: 
-    #> Chain 2: Gradient evaluation took 1.7e-05 seconds
-    #> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.17 seconds.
-    #> Chain 2: Adjust your expectations accordingly!
-    #> Chain 2: 
-    #> Chain 2: 
-    #> Chain 2: Iteration:    1 / 4000 [  0%]  (Warmup)
-    #> Chain 2: Iteration:  400 / 4000 [ 10%]  (Warmup)
-    #> Chain 2: Iteration:  800 / 4000 [ 20%]  (Warmup)
-    #> Chain 2: Iteration: 1001 / 4000 [ 25%]  (Sampling)
-    #> Chain 2: Iteration: 1400 / 4000 [ 35%]  (Sampling)
-    #> Chain 2: Iteration: 1800 / 4000 [ 45%]  (Sampling)
-    #> Chain 2: Iteration: 2200 / 4000 [ 55%]  (Sampling)
-    #> Chain 2: Iteration: 2600 / 4000 [ 65%]  (Sampling)
-    #> Chain 2: Iteration: 3000 / 4000 [ 75%]  (Sampling)
-    #> Chain 2: Iteration: 3400 / 4000 [ 85%]  (Sampling)
-    #> Chain 2: Iteration: 3800 / 4000 [ 95%]  (Sampling)
-    #> Chain 2: Iteration: 4000 / 4000 [100%]  (Sampling)
-    #> Chain 2: 
-    #> Chain 2:  Elapsed Time: 0.085334 seconds (Warm-up)
-    #> Chain 2:                0.253464 seconds (Sampling)
-    #> Chain 2:                0.338798 seconds (Total)
-    #> Chain 2:
-
-    #> Computing WAIC
+    #> Loading stashed object.
 
 ``` r
 plot(m11_5)
