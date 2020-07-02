@@ -9,10 +9,16 @@ library.
 ## Introduction
 
 This book is an introduction to Bayesian statistics, focussing on
-providing an applicable education in R. This reporisoty contains my
-notes; these notes are not a throughough recapitulation of the book, but
+providing an applicable education in R. This repository contains my
+notes; these notes are not a thorough recapitulation of the book, but
 instead acting as a combination of a reference and a playground for
 myself.
+
+These notes have been compiled into a simple static website for ease of
+reference and searching.
+
+[![notes
+website](https://img.shields.io/badge/Notes_on-Statistical_Rethinking-bf344b.svg?style=flat)](https://statistical-rethinking-notes.netlify.app)
 
 ## Setting-up
 
