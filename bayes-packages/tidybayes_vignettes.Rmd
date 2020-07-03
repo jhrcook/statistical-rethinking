@@ -4,72 +4,287 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", dpi = 500)
 
 library(glue)
+library(mustashe)
+library(magrittr)
+library(broom)
 library(patchwork)
+library(rstanarm)
+library(tidybayes)
 library(tidyverse)
 library(conflicted)
+
 
 conflict_prefer("filter", "dplyr")
 conflict_prefer("select", "dplyr")
 conflict_prefer("rename", "dplyr")
 
+# To be able to use `map2stan()`:
+conflict_prefer("collapse", "dplyr")
+conflict_prefer("extract", "tidyr")
+conflict_prefer("lag", "dplyr")
+conflict_prefer("map", "purrr")
+conflict_prefer("Position", "ggplot2")
+
+# To be able to use 'MASS':
+conflict_prefer("area", "patchwork")
+
 theme_set(theme_minimal())
-source_scripts()
+
+# Turn a PI into a tibble.
+pi_to_df <- function(list_pi) {
+    list_pi %>%
+        t() %>%
+        as.data.frame() %>%
+        janitor::clean_names() %>%
+        as_tibble()
+}
+
+
 set.seed(0)
+
+
+purple <- "#8067bf"
+blue <- "#5896d1"
+red <- "#d15858"
+light_grey <- "grey80"
+grey <- "grey50"
+dark_grey <- "grey25"
+
+# To shut-up `summarise()` in dplyr 1.0.0
+options(dplyr.summarise.inform = FALSE)
 ```
 
-date: 2020-05-13
+['tidybayes' documentation website.](https://mc-stan.org/rstanarm/index.html)  
+[CRAN : 'tidybayes'](https://cran.r-project.org/package=tidybayes)  
+[A link to all 'tidybayes' vignettes.](https://mjskay.github.io/tidybayes/articles/)
 
-[Get started](http://mjskay.github.io/tidybayes/articles/tidybayes.html)  
-[Extracting and visualizing tidy draws from **rstanarm** models](http://mjskay.github.io/tidybayes/articles/tidy-rstanarm.html)
+---
 
-Below are my notes from looking at the vignettes of the 'tidybayes' package.
+## [Extracting and visualizing tidy draws from rstanarm models](https://mjskay.github.io/tidybayes/articles/tidy-rstanarm.html)
 
-```{r}
-library(tidybayes)
-```
-
-## Supported model types:
-
-The following is a list of packages/models that are supported by 'tidybayes'
-
-- rstan, brms, rstanarm, MCMCglmmm, and others
-- the ['tidybayes.rethinking'](https://github.com/mjskay/tidybayes.rethinking) package can take objects from the 'rethinking' package
-
-### Example dataset
+- example data set of 10 observations from 5 conditions each
 
 ```{r}
 set.seed(5)
 n <- 10
 n_condition <- 5
-ABC <- tibble(condition = rep(c("A","B","C","D","E"), n),
-              response = rnorm(n * 5, c(0,1,2,1,-1), 0.5))
+ABC <- tibble(
+    condition = rep(c("A","B","C","D","E"), n),
+    response = rnorm(n * 5, c(0,1,2,1,-1), 0.5)
+)
+
 head(ABC)
 ```
 
 ```{r}
 ABC %>%
-    ggplot(aes(x = response, y = fct_rev(condition))) +
-    geom_point(alpha = 0.5) +
-    ylab("condition")
+    ggplot(aes(y = condition, x = response)) +
+    geom_point()
 ```
 
-### 'rstanarm' model
+### Model
+
+- hierarchical model with shrinkage towards a global mean
 
 ```{r}
-library(rstanarm)
+stash("m", depends_on = "ABC", {
+    m <- stan_lmer(
+        response ~ (1|condition), data = ABC,
+        prior = normal(0, 1, autoscale = FALSE),
+        prior_aux = student_t(3, 0, 1, autoscale = FALSE),
+        adapt_delta = .99,
+        refresh = 0
+    )
+})
+
+m
 ```
 
+### Extracting draws from a fit in tidy-format using `spread_draws()`
+
+- `get_variables()` function to list the raw model variable names
+    - `(Intercept)` is the global mean and the `b` parameters are offsets from that mean for each condition
 
 ```{r}
-m <- stan_lmer(response ~ (1|condition), 
-               data = ABC,
-               prior = normal(0, 1, autoscale = FALSE),
-               prior_aux = student_t(3, 0, 1, autoscale = FALSE),
-               adapt_delta = .99)
-
-summary(m)
+get_variables(m)
 ```
 
+- `spread_draws()` function to extract posterior samples for the variables
+    - includes a specification format that can be used to extract model variables and their indices
+
+```{r}
+m %>%
+    spread_draws(b[term,group]) %>%
+    head()
+```
+
+```{r}
+# Can remove the `term` variable because there is only an `(Intercept)` variable
+# in the model.
+m %>%
+    spread_draws(b[,group]) %>%
+    head()
+```
+
+```{r}
+m %>%
+    spread_draws(b[,group]) %>% 
+    separate(group, c("group", "condition"), sep = ":") %>%
+    head()
+```
+
+- use the `sep` argument to parse the variable names further
+
+```{r}
+m %>%
+    spread_draws(b[,group,condition], sep = "[, :]") %>%
+    head()
+```
+
+### Point summaries and intervals
+
+- family of functions for point summaries of posterior distributions
+    - follow the naming scheme `[median|mean|mode]_[qi|hdi]()`
+
+```{r}
+m %>%
+    spread_draws(`(Intercept)`, sigma) %>%
+    median_qi(`(Intercept)`, sigma)
+```
+
+- can use `gather_draws()` to get a long format
+
+```{r}
+m %>%
+    gather_draws(`(Intercept)`, sigma) %>%
+    head()
+```
+
+```{r}
+m %>%
+    gather_draws(`(Intercept)`, sigma) %>%
+    median_qi()
+```
+
+```{r}
+m %>%
+    spread_draws(b[,group]) %>%
+    median_qi()
+```
+
+### Posterior fits
+
+- use `add_fitted_draws()` to mimic `rstanarm::posterior_linpred()`
+
+```{r}
+ABC %>%
+    modelr::data_grid(condition) %>%
+    add_fitted_draws(m) %>%
+    head()
+```
+
+```{r}
+ABC %>%
+    modelr::data_grid(condition) %>%
+    add_fitted_draws(m) %>%
+    ggplot(aes(x = .value, y = condition)) +
+    ggdist::stat_pointinterval(.width = c(0.50, 0.89))
+```
+
+```{r}
+ABC %>%
+    modelr::data_grid(condition) %>%
+    add_fitted_draws(m) %>%
+    ggplot(aes(x = .value, y = condition)) +
+    ggdist::stat_halfeye(aes(fill = stat(abs(x) < 0.8)), 
+                         .width = c(0.50, 0.89)) +
+    geom_vline(xintercept = c(-0.8, 0.8), size = 1, lty = 2, color = dark_grey) +
+    scale_fill_manual(values = c(blue, grey))
+```
+
+### Posterior predictions
+
+- use `add_predicted()` to mimic `rstanarm::posterior_predict()` 
+
+```{r}
+ABC %>%
+      modelr::data_grid(condition) %>%
+      add_predicted_draws(m) %>%
+      ggplot(aes(x = .prediction, y = condition)) +
+      ggdist::stat_halfeye()
+```
+
+### Fit/prediction curves
+
+```{r}
+m_mpg <- stan_glm(mpg ~ hp * cyl, data = mtcars, refresh = 0)
+```
+
+- the following two examples show the models with the *probability bands*
+    - uses `add_fitted_draws()`
+
+```{r}
+mtcars %>%
+    group_by(cyl) %>%
+    modelr::data_grid(hp = modelr::seq_range(hp, n = 51)) %>%
+    add_fitted_draws(m_mpg) %>%
+    head()
+```
+
+```{r}
+mtcars %>%
+    group_by(cyl) %>%
+    modelr::data_grid(hp = modelr::seq_range(hp, n = 51)) %>%
+    add_fitted_draws(m_mpg) %>%
+    ggplot(aes(x = hp, y = mpg, color = factor(cyl))) +
+    stat_lineribbon(aes(y = .value)) +
+    geom_point(data = mtcars) +
+    scale_fill_brewer(palette = "Greys") +
+    scale_color_brewer(palette = "Set2")
+```
+
+```{r}
+mtcars %>%
+    group_by(cyl) %>%
+    modelr::data_grid(hp = modelr::seq_range(hp, n = 101)) %>%
+    add_fitted_draws(m_mpg, n = 100) %>%
+    ggplot(aes(x = hp, y = mpg, color = factor(cyl))) +
+    geom_line(aes(y = .value, group = paste(cyl, .draw)), 
+              alpha = .1) +
+    geom_point(data = mtcars) +
+    scale_color_brewer(palette = "Set2")
+```
+
+- the following two examples show the models with the *posterior predictions*
+    - uses `add_predicted_draws()`
+
+```{r}
+mtcars %>%
+    group_by(cyl) %>%
+    modelr::data_grid(hp = modelr::seq_range(hp, n = 101)) %>%
+    add_predicted_draws(m_mpg) %>%
+    ggplot(aes(x = hp, y = mpg, 
+               color = factor(cyl), fill = factor(cyl))) +
+    stat_lineribbon(aes(y = .prediction), 
+                    .width = c(.95, .80, .50), alpha = 1/4) +
+    geom_point(data = mtcars) +
+    scale_fill_brewer(palette = "Set2") +
+    scale_color_brewer(palette = "Dark2")
+```
+
+```{r}
+mtcars %>%
+    group_by(cyl) %>%
+    modelr::data_grid(hp = modelr::seq_range(hp, n = 101)) %>%
+    add_predicted_draws(m_mpg) %>%
+    ggplot(aes(x = hp, y = mpg)) +
+    stat_lineribbon(aes(y = .prediction), 
+                    .width = c(.99, .95, .8, .5),
+                    color = RColorBrewer::brewer.pal(5, "Blues")[[5]]) +
+    geom_point(data = mtcars) +
+    scale_fill_brewer() +
+    facet_grid(. ~ cyl, space = "free_x", scales = "free_x")
+```

@@ -80,11 +80,15 @@ tutorals/articles), the markdown files will be linked below.
 
 **[‘rstanarm’](https://mc-stan.org/rstanarm/index.html)**
 
+  - [my notes](bayes-packages/rstanarm.md)
+
 **[‘brms’](https://paul-buerkner.github.io/brms/)**
 
 **[‘ggmcmc’](https://cran.r-project.org/web/packages/ggmcmc/index.html)**
 
 **[‘tidybayes’](http://mjskay.github.io/tidybayes)**
+
+  - [my notes](bayes-packages/tidybayes_vignettes.md)
 
 **[‘bayetestR’](https://easystats.github.io/bayestestR/)** (part of the
 ‘easystats’ suite of packages)

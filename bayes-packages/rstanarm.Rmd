@@ -32,13 +32,16 @@ conflict_prefer("Position", "ggplot2")
 conflict_prefer("area", "patchwork")
 
 theme_set(theme_minimal())
-# 
-tryCatch(
-    source_scripts(),
-    error = function(e) { source(file.path("..", "scripts", "helpers.R")) }
-)
 
-source_scripts()
+# Turn a PI into a tibble.
+pi_to_df <- function(list_pi) {
+    list_pi %>%
+        t() %>%
+        as.data.frame() %>%
+        janitor::clean_names() %>%
+        as_tibble()
+}
+
 set.seed(0)
 
 
