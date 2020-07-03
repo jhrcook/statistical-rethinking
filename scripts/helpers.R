@@ -13,3 +13,4 @@ pi_to_df <- function(list_pi) {
 scale_nums <- function(x, na.rm = FALSE) {
     (x - mean(x, na.rm = na.rm)) / sd(x, na.rm = na.rm)
 }
+

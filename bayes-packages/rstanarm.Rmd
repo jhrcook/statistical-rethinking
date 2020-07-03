@@ -1,0 +1,429 @@
+---
+title: "'rstanarm'"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "#>", dpi = 500)
+
+library(glue)
+library(mustashe)
+library(magrittr)
+library(broom)
+library(patchwork)
+library(MASS)
+library(rstanarm)
+library(tidyverse)
+library(conflicted)
+
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("rename", "dplyr")
+
+# To be able to use `map2stan()`:
+conflict_prefer("collapse", "dplyr")
+conflict_prefer("extract", "tidyr")
+conflict_prefer("lag", "dplyr")
+conflict_prefer("map", "purrr")
+conflict_prefer("Position", "ggplot2")
+
+# To be able to use 'MASS':
+conflict_prefer("area", "patchwork")
+
+theme_set(theme_minimal())
+# 
+tryCatch(
+    source_scripts(),
+    error = function(e) { source(file.path("..", "scripts", "helpers.R")) }
+)
+
+source_scripts()
+set.seed(0)
+
+
+purple <- "#8067bf"
+blue <- "#5896d1"
+red <- "#d15858"
+light_grey <- "grey80"
+grey <- "grey50"
+dark_grey <- "grey25"
+
+# To shut-up `summarise()` in dplyr 1.0.0
+options(dplyr.summarise.inform = FALSE)
+```
+
+['rstanarm' documentation website.](https://mc-stan.org/rstanarm/index.html)  
+[CRAN : 'rstanarm'](https://cran.r-project.org/package=rstanarm)  
+[A link to all 'rstanarm' vignettes.](https://mc-stan.org/rstanarm/articles/index.html)
+
+---
+
+## [How to Use the 'rstanarm' Package](https://mc-stan.org/rstanarm/articles/rstanarm.html)
+
+> The four steps of a Bayesian analysis are
+> 
+> 1. Specify a joint distribution for the outcome(s) and all the unknowns, which typically takes the form of a marginal prior distribution for the unknowns multiplied by a likelihood for the outcome(s) conditional on the unknowns. This joint distribution is proportional to a posterior distribution of the unknowns conditional on the observed data
+> 2. Draw from posterior distribution using Markov Chain Monte Carlo (MCMC).
+> 3. Evaluate how well the model fits the data and possibly revise the model.
+> 4. Draw from the posterior predictive distribution of the outcome(s) given interesting values of the predictors in order to visualize how a manipulation of a predictor affects (a function of) the outcome(s).
+
+### Step 1: Specify a posterior distribution
+
+- the default priors in 'rstanarm' are designed to be *weakly informative*
+- the vignette will use an exampe from the 'HSAUR3' package that is a survey of whether people agree or disagree with conservative statements about women's roles in society
+- will use a binomial model with a logistic link function
+
+### Step 2: Draw from the posterior distribution
+
+> I am doing the same coding slightly different than presented in the vignette, but the models will be the same.
+
+- for comparison, fit the frequentist model
+
+```{r}
+data("womensrole", package = "HSAUR3")
+
+d <- womensrole %>%
+    mutate(total = agree + disagree,
+           row_id = row_number())
+
+womensrole_glm_1 <- glm(cbind(agree, disagree) ~ education + gender,
+                        data = d,
+                        family = binomial(link = "logit"))
+
+round(coef(summary(womensrole_glm_1)), 3)
+```
+
+- fit the same model using 'rstanarm'
+
+```{r}
+womensrole_bglm_1 <- stan_glm(cbind(agree, disagree) ~ education + gender,
+                              data = d,
+                              family = binomial(link = "logit"),
+                              prior = student_t(df = 7),
+                              prior_intercept = student_t(df = 7),
+                              cores = 1,
+                              seed = 12345,
+                              refresh = 0)
+
+womensrole_bglm_1
+```
+
+- frequentist would ask whether the point estimate is greater in magnitude than double the estimated standard deviation
+- with Bayesian, we have estimates of the standard deviation
+- can also use the posterior interval to see the uncertainty in the estimate of the coefficients
+    - these indicate that we believe there is a 95% chance that the real value for the coefficients lie in the interval
+    - thus we can say that there is effectively 0 probability that the real value for $\beta_\text{education} > 0$
+        - a frequentist cannot make that claim
+
+```{r}
+ci95 <- posterior_interval(womensrole_bglm_1, 
+                           prob = 0.95, 
+                           pars = c("education", "genderFemale"))
+round(ci95, 3)
+```
+
+### Step 3: Criticize the model
+
+- minimum requirement for Bayesian estimates is that the model should fit the data that the estimates were conditioned on
+    - use `posterior_predict()` function to get a matrix of each row is a sample from the posterior and each column a data point in the original data set
+
+```{r}
+y_rep <- posterior_predict(womensrole_bglm_1)
+dim(y_rep)
+```
+
+```{r}
+y_rep %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    set_names(d$row_id) %>%
+    mutate(post_sample_id = row_number()) %>%
+    pivot_longer(-post_sample_id, 
+                 names_to = "row_id", 
+                 values_to = "post_sample") %>%
+    mutate(row_id = as.numeric(row_id)) %>%
+    left_join(d %>% select(education, gender, total, row_id), 
+              by = "row_id") %>%
+    mutate(prop_agree = post_sample / total) %>%
+    ggplot(aes(x = factor(education), y = prop_agree)) +
+    facet_wrap(~gender, nrow = 1) +
+    geom_boxplot(fill = light_grey, alpha = 0.1, outlier.shape = NA) +
+    geom_point(data = d %>% mutate(prop_agree = agree / total), 
+               size = 2, color = red, alpha = 0.8) +
+    labs(x = "years of education",
+         y = "proportion agree",
+         title = "Posterior predictive checks of Bayesian model")
+```
+
+- can also model where the effect of education has a quadratic effect
+
+```{r}
+womensrole_bglm_2 <- update(womensrole_bglm_1, 
+                            formula. = . ~ . + I(education^2),
+                            refresh = 0)
+womensrole_bglm_2
+```
+
+- frequentists would test the null hypothesis that the new coefficient is zero
+- Bayesians ask whether such a model is expected to produce better out-of-sample predictions than the model without the new coefficient
+    - accomplish this using leave-one-out cross-validation using the `loo()` function from the 'loo' package
+
+```{r}
+loo_bglm_1 <- loo(womensrole_bglm_1)
+loo_bglm_2 <- loo(womensrole_bglm_2)
+```
+
+- use the Pareto shape *k* which indicates the effect of each data point on the posterior
+    * the plots below indiacte there are only a few outliers (with values above 0.5)
+
+```{r}
+p1 <- tibble(pareto_shape_k = loo::pareto_k_values(loo_bglm_1)) %>%
+    mutate(sample_num = row_number()) %>%
+    ggplot(aes(sample_num, pareto_shape_k)) +
+    geom_hline(yintercept = c(0.0, 0.5), lty = 4, color = grey, size = 0.8) +
+    geom_point() +
+    labs(x = "data point", y = "Pareto shape k",
+         title = "Without squared education term")
+
+p2 <- tibble(pareto_shape_k = loo::pareto_k_values(loo_bglm_2)) %>%
+    mutate(sample_num = row_number()) %>%
+    ggplot(aes(sample_num, pareto_shape_k)) +
+    geom_hline(yintercept = c(0.0, 0.5), lty = 4, color = grey, size = 0.8) +
+    geom_point() +
+    labs(x = "data point", y = NULL,
+         title = "With squared education term")
+
+p1 | p2
+```
+
+- model comparison using the LOO CV
+    - indicates there is little difference between the expected deviance of the models
+
+```{r}
+loo_compare(loo_bglm_1, loo_bglm_2)
+```
+
+### Step 4: Analyze manipulations of predictors
+
+- frequentists struggle to interpret the estimates complex models 
+- Bayesians just inspect the posterior predictive distribution at different levels of the predictors
+    - make predictions on new data
+    - note that the actual number of agrees and disagrees does not matter, just the total number surveyed
+
+```{r}
+newdata <- tibble(agree = c(0, 0),
+                  disagree = c(100, 100),
+                  education = c(12, 16),
+                  gender = factor("Female", levels = c("Male", "Female"))) %>%
+    mutate(row_id = row_number(),
+           total = agree + disagree)
+y_rep <- posterior_predict(womensrole_bglm_2, newdata)
+
+y_rep %>%
+    as.data.frame() %>%
+    as_tibble() %>%
+    set_names(newdata$row_id) %>%
+    mutate(post_sample_id = row_number()) %>%
+    pivot_longer(-post_sample_id, 
+                 names_to = "row_id", 
+                 values_to = "post_sample") %>%
+    mutate(row_id = as.numeric(row_id)) %>%
+    left_join(newdata %>% select(education, gender, total, row_id), 
+              by = "row_id") %>%
+    mutate(prop_agree = post_sample / total) %>%
+    ggplot(aes(x = factor(education), y = prop_agree)) +
+    facet_wrap(~gender, nrow = 1) +
+    geom_boxplot(fill = light_grey, alpha = 0.1, outlier.shape = NA) +
+    labs(x = "years of education",
+         y = "proportion agree",
+         title = "Posterior predictions of Bayesian model (example conditions)")
+```
+
+---
+
+## [Estimating Generalized Linear Models for Continuous Data with 'rstanarm'](https://mc-stan.org/rstanarm/articles/continuous.html)
+
+### Likelihood
+
+$$
+\frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac{1}{2} (\frac{y-\mu}{\sigma})^2} \\
+\mu = \alpha + \textbf{x}^T \beta
+$$
+
+### Priors
+
+- define priors for the interecpt and coefficients
+    - the `prior_intercept` and `prior` arguments of `stan_glm()`
+
+### Linear Regression Example
+
+- example data:
+    - fit regressions predicting cognitive test scores of 3 and 4 year-olds given the characteristics of their mothers
+- use two predictors:
+    - binary indicator for the mother's high-school graduation (`mom_hs`)
+    - mother's IQ (`mom_iq`)
+- four models:
+    - two models, each using one predictor
+    - one model using both
+    - one model using both and an interaction term
+
+```{r}
+data("kidiq")
+d <- as_tibble(kidiq)
+
+post1 <- stan_glm(kid_score ~ mom_hs,
+                  data = d,
+                  family = gaussian(link = "identity"),
+                  seed = 12345,
+                  refresh = 0)
+
+post2 <- stan_glm(kid_score ~ mom_iq,
+                  data = d,
+                  family = gaussian(link = "identity"),
+                  seed = 12345,
+                  refresh = 0)
+
+post3 <- stan_glm(kid_score ~ mom_hs + mom_iq,
+                  data = d,
+                  family = gaussian(link = "identity"),
+                  seed = 12345,
+                  refresh = 0)
+
+post4 <- stan_glm(kid_score ~ mom_hs * mom_iq,
+                  data = d,
+                  family = gaussian(link = "identity"),
+                  seed = 12345,
+                  refresh = 0)
+
+summary(post4)
+```
+
+- plot the actual data with the regression estimates overlayed
+    - plot the draws to show variation in the estimates
+
+```{r}
+draws1 <- as.data.frame(post1) %>%
+    as_tibble() %>%
+    janitor::clean_names()
+
+d %>%
+    ggplot(aes(x = factor(mom_hs), y = kid_score)) +
+    geom_jitter(size = 1, width = 0.1) +
+    geom_abline(aes(intercept = intercept, slope = mom_hs),
+                data = draws1,
+                color = light_grey, size = 0.2, alpha = 0.1) +
+    geom_abline(intercept = coef(post1)[1], slope = coef(post1)[2],
+                color = blue, size = 1, lty = 2) +
+    scale_x_discrete(labels = c("no HS", "HS")) +
+    labs(x = "mom's highschool graduation",
+         y = "kids test score")
+```
+
+```{r}
+draws2 <- as.data.frame(post2) %>%
+    as_tibble() %>%
+    janitor::clean_names()
+d %>%
+    ggplot(aes(mom_iq, y = kid_score)) +
+    geom_point(size = 1) +
+    geom_abline(aes(intercept = intercept, slope = mom_iq),
+                data = draws2,
+                size = 0.2, color = light_grey, alpha = 0.1) +
+    geom_abline(intercept = coef(post2)[1], slope = coef(post2)[2],
+                color = blue, size = 1, lty = 2) +
+    scale_x_discrete(labels = c("no HS", "HS")) +
+    labs(x = "mom's IQ",
+         y = "kids test score")
+```
+
+```{r}
+pred_data3 <- d %>% 
+    modelr::data_grid(mom_hs, mom_iq) %>%
+    mutate(id = as.character(row_number()))
+post_pred3 <- posterior_linpred(post3, newdata = pred_data3)
+
+pred_data3 %<>%
+    mutate(kid_score = apply(post_pred3, 2, mean)) %>%
+    bind_cols(apply(post_pred3, 2, rethinking::PI) %>% pi_to_df())
+
+
+d %>%
+    ggplot(aes(x = mom_iq, y = kid_score, color = factor(mom_hs))) +
+    geom_point(size = 0.8) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent, fill = factor(mom_hs)),
+                data = pred_data3, 
+                alpha = 0.2, color = NA) +
+    geom_line(data = pred_data3, size = 1.2, lty = 2) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "mom IQ",
+         y = "kid's score",
+         color = "mom's HS",
+         fill = "mom's HS")
+```
+
+```{r}
+pred_data4 <- d %>% 
+    modelr::data_grid(mom_hs, mom_iq) %>%
+    mutate(id = as.character(row_number()))
+post_pred4 <- posterior_linpred(post4, newdata = pred_data3)
+
+pred_data4 %<>%
+    mutate(kid_score = apply(post_pred4, 2, mean)) %>%
+    bind_cols(apply(post_pred4, 2, rethinking::PI) %>% pi_to_df())
+
+
+d %>%
+    ggplot(aes(x = mom_iq, y = kid_score, color = factor(mom_hs))) +
+    geom_point(size = 0.8) +
+    geom_ribbon(aes(ymin = x5_percent, ymax = x94_percent, fill = factor(mom_hs)),
+                data = pred_data4, 
+                alpha = 0.2, color = NA) +
+    geom_line(data = pred_data4, size = 1.2, lty = 2) +
+    scale_color_brewer(palette = "Set1") +
+    scale_fill_brewer(palette = "Set1") +
+    labs(x = "mom IQ",
+         y = "kid's score",
+         color = "mom's HS",
+         fill = "mom's HS")
+```
+
+### Model comparison
+
+- leave-one-out cross-validation to compare models
+
+```{r}
+loo1 <- loo(post1)
+loo2 <- loo(post2)
+loo3 <- loo(post3)
+loo4 <- loo(post4)
+loo_compare(loo1, loo2, loo3, loo4)
+```
+
+### The posterior predictive distribution
+
+- *posterior predictive distribution*: the distribution of the outcome implied by the model after using observed data to updat its beliefs about the unknown parameters
+
+#### Graphical posterior predictive checks
+
+- plot the distributions of the real data and predicted data of several draws
+    - the dark blue histogram is the real distribution of `kid_score` and the light blue histograms are individual samples
+    - they should all look similar
+
+```{r}
+pp_check(post4, plotfun = "hist", nreps = 5)
+```
+
+- compare the distribution of some statistic between the real distribution and that from many samples
+    - the plot below shows the distribution of means of the posterior distributions from many samples
+
+```{r}
+pp_check(post4, plotfun = "stat", stat = "mean")
+```
+
+- can plot two statistics at once
+
+```{r}
+pp_check(post4, plotfun = "stat_2d", stat = c("mean", "sd"))
+```
